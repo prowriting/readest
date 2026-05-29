@@ -129,8 +129,8 @@ const OpenAnnotationLanding = () => {
                 'The annotation link is missing required information. The original link may have been truncated.',
               )}
             </p>
-            <a href='https://readest.com' className='btn btn-ghost btn-block mt-6' rel='noopener'>
-              {_('Go to Readest')}
+            <a href='https://bookarc.app' className='btn btn-ghost btn-block mt-6' rel='noopener'>
+              {_('Go to Bookarc')}
             </a>
           </div>
         </Card>

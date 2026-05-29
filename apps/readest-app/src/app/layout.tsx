@@ -7,29 +7,29 @@ import Providers from '@/components/Providers';
 
 import '../styles/globals.css';
 
-const url = 'https://web.readest.com/';
-const title = 'Readest — Where You Read, Digest and Get Insight';
+const url = 'https://web.bookarc.app/';
+const title = 'Bookarc — A reading companion for color-coded thinking.';
 const description =
-  'Discover Readest, the ultimate online ebook reader for immersive and organized reading. ' +
-  'Enjoy seamless access to your digital library, powerful tools for highlighting, bookmarking, ' +
-  'and note-taking, and support for multiple book views. ' +
-  'Perfect for deep reading, analysis, and understanding. Explore now!';
-const previewImage = 'https://cdn.readest.com/images/open_graph_preview_read_now.png';
+  'Discover Bookarc, your shelf in full spectrum. ' +
+  'An open-source ebook reader with seamless access to your digital library, ' +
+  'powerful tools for highlighting, bookmarking, and note-taking, ' +
+  'and support for EPUB, PDF, and more. Your shelf, in full spectrum.';
+const previewImage = 'https://cdn.bookarc.app/images/open_graph_preview.png';
 
 export const metadata: Metadata = {
   metadataBase: new URL(url),
   title: {
     default: title,
-    template: '%s | Readest',
+    template: '%s | Bookarc',
   },
   description,
   generator: 'Next.js',
   manifest: '/manifest.json',
-  keywords: ['epub', 'pdf', 'ebook', 'reader', 'readest', 'pwa'],
+  keywords: ['epub', 'pdf', 'ebook', 'reader', 'bookarc', 'pwa'],
   authors: [
     {
-      name: 'readest',
-      url: 'https://github.com/readest/readest',
+      name: 'Orpheus Technology Ltd',
+      url: 'https://github.com/prowriting/readest',
     },
   ],
   icons: {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'Readest',
+    title: 'Bookarc',
     statusBarStyle: 'default',
   },
   openGraph: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   },
   other: {
     'apple-mobile-web-app-capable': 'yes',
-    'twitter:domain': 'web.readest.com',
+    'twitter:domain': 'web.bookarc.app',
     'twitter:url': url,
   },
 };

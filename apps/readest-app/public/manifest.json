@@ -1,10 +1,11 @@
 {
-  "name": "Readest",
-  "short_name": "Readest",
+  "name": "Bookarc",
+  "short_name": "Bookarc",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "description": "Readest is an open-source eBook reader supporting EPUB, PDF, and sync across devices.",
+  "background_color": "#f5f1e8",
+  "theme_color": "#FF5E5B",
+  "description": "Bookarc — your shelf in full spectrum. An open-source ebook reader supporting EPUB, PDF, and sync across devices.",
   "icons": [
     {
       "src": "/icon.png",

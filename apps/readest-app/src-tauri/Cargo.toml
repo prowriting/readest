@@ -1,8 +1,8 @@
 [package]
-name = "Readest"
+name = "Bookarc"
 version = "0.2.2"
-description = "Your online library"
-authors = ["Bilingify LLC"]
+description = "A reading companion for color-coded thinking."
+authors = ["Orpheus Technology Ltd"]
 license = ""
 repository = ""
 edition = "2021"

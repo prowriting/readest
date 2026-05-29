@@ -121,8 +121,8 @@ export const themes = [
     name: 'default',
     label: _('Default'),
     colors: {
-      light: generateLightPalette({ fg: '#171717', bg: '#ffffff', primary: '#0066cc' }),
-      dark: generateDarkPalette({ fg: '#e0e0e0', bg: '#222222', primary: '#77bbee' }),
+      light: generateLightPalette({ fg: '#1a1a1a', bg: '#f5f1e8', primary: '#FF5E5B' }),
+      dark: generateDarkPalette({ fg: '#f5f1e8', bg: '#1a1a1a', primary: '#FF5E5B' }),
     },
   },
   {
