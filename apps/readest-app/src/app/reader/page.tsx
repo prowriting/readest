@@ -8,9 +8,11 @@ import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
 import { useOpenAnnotationLink } from '@/hooks/useOpenAnnotationLink';
 import { useOpenShareLink } from '@/hooks/useOpenShareLink';
 import { useClipUrlIngress } from '@/hooks/useClipUrlIngress';
+import { useOpenWithCode } from '@/hooks/useOpenWithCode';
 import { useSettingsStore } from '@/store/settingsStore';
 import { checkForAppUpdates, checkAppReleaseNotes } from '@/helpers/updater';
 import { tauriHandleSetAlwaysOnTop } from '@/utils/window';
+import { BookCodeDialog } from '@/components/BookCodeDialog';
 import Reader from './components/Reader';
 
 // This is only used for the Tauri app in the app router
@@ -24,6 +26,7 @@ export default function Page() {
   useOpenAnnotationLink();
   useOpenShareLink();
   useClipUrlIngress();
+  useOpenWithCode();
 
   useEffect(() => {
     const doCheckAppUpdates = async () => {
@@ -40,5 +43,10 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appService?.hasUpdater, settings.autoCheckUpdates]);
 
-  return <Reader />;
+  return (
+    <>
+      <Reader />
+      <BookCodeDialog />
+    </>
+  );
 }

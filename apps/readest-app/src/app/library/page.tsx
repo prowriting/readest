@@ -45,6 +45,7 @@ import { useAppUrlIngress } from '@/hooks/useAppUrlIngress';
 import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
 import { useOpenAnnotationLink } from '@/hooks/useOpenAnnotationLink';
 import { useOpenShareLink } from '@/hooks/useOpenShareLink';
+import { useOpenWithCode } from '@/hooks/useOpenWithCode';
 import { useClipUrlIngress } from '@/hooks/useClipUrlIngress';
 import { useKeyDownActions } from '@/hooks/useKeyDownActions';
 import { SelectedFile, useFileSelector } from '@/hooks/useFileSelector';
@@ -61,6 +62,7 @@ import {
 import { LibraryGroupByType } from '@/types/settings';
 import { BookMetadata } from '@/libs/document';
 import { AboutWindow } from '@/components/AboutWindow';
+import { BookCodeDialog } from '@/components/BookCodeDialog';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 import { BookDetailModal } from '@/components/metadata';
 import { UpdaterWindow } from '@/components/UpdaterWindow';
@@ -243,6 +245,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   useOpenWithBooks();
   useOpenAnnotationLink();
   useOpenShareLink();
+  useOpenWithCode();
   useClipUrlIngress();
   useTransferQueue(libraryLoaded);
 
@@ -1464,6 +1467,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
         </ModalPortal>
       )}
       <AboutWindow />
+      <BookCodeDialog />
       <KeyboardShortcutsHelp />
       <UpdaterWindow />
       <MigrateDataWindow />
