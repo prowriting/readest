@@ -365,6 +365,8 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
 
   useEffect(() => {
     const doCheckAppUpdates = async () => {
+      // TODO: re-enable once Bookarc update channel is configured
+      return;
       if (appService?.hasUpdater && settings.autoCheckUpdates) {
         await checkForAppUpdates(_);
       } else if (appService?.hasUpdater === false) {

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { getCurrent } from '@tauri-apps/plugin-deep-link';
 import { isTauriAppPlatform } from '@/services/environment';
-import { fetchBookByCode } from '@/services/bookCode';
+import { fetchBookByCode, BookCodeError } from '@/services/bookCode';
 import { eventDispatcher } from '@/utils/event';
+import { useTranslation } from './useTranslation';
 
 // Prevents re-processing on hook remounts (library → reader → library)
 let coldStartConsumed = false;
@@ -16,12 +17,22 @@ function extractCode(url: string): string | null {
   }
 }
 
+const ERROR_MESSAGES: Record<number, string> = {
+  404: "That code wasn't found — check for typos",
+  409: 'This gift has already been claimed',
+  410: 'This gift has expired',
+  423: 'This gift is no longer available',
+  429: 'Too many attempts — please try again shortly',
+};
+
 /**
- * Listens for bookarc://open?code=<code> deep links (warm and cold start),
- * looks up the book via the API, and dispatches 'book-code-found' for
- * BookCodeDialog to display.
+ * Listens for bookarc://open?code=<code> deep links (warm and cold start)
+ * and ?code= web URL parameter, looks up the book via the API, and
+ * dispatches 'book-code-found' for BookCodeDialog to display.
+ * Shows a toast for error responses.
  */
 export function useOpenWithCode() {
+  const _ = useTranslation();
   const processing = useRef(false);
 
   const handleUrl = async (url: string) => {
@@ -29,10 +40,17 @@ export function useOpenWithCode() {
     if (!code || processing.current) return;
     processing.current = true;
     try {
-      const book = await fetchBookByCode(code);
-      if (book) {
-        eventDispatcher.dispatch('book-code-found', { book });
-      }
+      const result = await fetchBookByCode(code);
+      eventDispatcher.dispatch('book-code-found', { result });
+    } catch (err) {
+      const statusCode = err instanceof BookCodeError ? err.statusCode : 0;
+      const friendlyMessage =
+        err instanceof BookCodeError
+          ? (ERROR_MESSAGES[err.statusCode] ?? 'Something went wrong — please try again')
+          : 'Something went wrong — please try again';
+      const debugDetail = err instanceof Error ? err.message : String(err);
+      const message = `${_(friendlyMessage)}\n\n${debugDetail}`;
+      eventDispatcher.dispatch('book-code-error', { code, statusCode, message });
     } finally {
       processing.current = false;
     }
@@ -52,13 +70,13 @@ export function useOpenWithCode() {
       coldStartConsumed = true;
       getCurrent().then((urls) => {
         const first = urls?.[0];
-        if (first) handleUrl(first);
+        if (first) void handleUrl(first);
       });
     }
 
     const handler = (event: CustomEvent) => {
       const urls = (event.detail as { urls: string[] }).urls;
-      if (urls?.length) handleUrl(urls[0]!);
+      if (urls?.length) void handleUrl(urls[0]!);
     };
     eventDispatcher.on('app-incoming-url', handler);
     return () => eventDispatcher.off('app-incoming-url', handler);
