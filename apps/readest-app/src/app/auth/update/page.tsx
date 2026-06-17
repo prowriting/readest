@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useThemeStore } from '@/store/themeStore';
 import { useTranslation } from '@/hooks/useTranslation';
-import { supabase } from '@/utils/supabase';
+import { getAPIBaseUrl } from '@/services/environment';
+import type { AuthUser } from '@/context/AuthContext';
 
 export default function UpdateEmailPage() {
   const _ = useTranslation();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, token, login } = useAuth();
   const { isDarkMode } = useThemeStore();
 
   const [email, setEmail] = useState('');
@@ -18,9 +19,7 @@ export default function UpdateEmailPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
+    if (!user) router.push('/login');
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,22 +27,25 @@ export default function UpdateEmailPage() {
     setLoading(true);
     setMessage('');
     setError('');
-
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        email: email,
+      const resp = await fetch(`${getAPIBaseUrl()}/auth/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ email }),
       });
-
-      if (updateError) throw updateError;
-
-      setMessage(
-        _(
-          'Confirmation email sent! Please check your old and new email addresses to confirm the change.',
-        ),
-      );
+      const data = (await resp.json()) as AuthUser & { error?: string };
+      if (!resp.ok) {
+        setError(data.error ?? _('Failed to update email'));
+        return;
+      }
+      login(token!, data);
+      setMessage(_('Email updated successfully.'));
       setEmail('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : _('Failed to update email'));
+    } catch {
+      setError(_('Network error — please try again'));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export default function UpdateEmailPage() {
   return (
     <div className='flex min-h-screen items-center justify-center'>
       <div className='w-full max-w-md p-8'>
-        <div className={`rounded-md p-8`}>
+        <div className='rounded-md p-8'>
           <form onSubmit={handleSubmit} className='space-y-6'>
             <div className='space-y-1'>
               <label
@@ -69,22 +71,18 @@ export default function UpdateEmailPage() {
                 placeholder={_('Your new email')}
                 required
                 disabled={loading}
-                className={`w-full rounded-md border bg-transparent px-4 py-2.5 focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'text-gray-300' : 'text-gray-400'}`}
+                className='w-full rounded-md border bg-transparent px-4 py-2.5 focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50'
               />
             </div>
-
-            {error && <div className={`text-sm text-red-500`}>{error}</div>}
-
-            {message && <div className={`text-base-content text-sm`}>{message}</div>}
-
+            {error && <div className='text-sm text-red-500'>{error}</div>}
+            {message && <div className='text-base-content text-sm'>{message}</div>}
             <button
               type='submit'
               disabled={loading || !email}
-              className={`w-full rounded-md bg-green-400 px-4 py-2.5 font-medium text-white transition-colors hover:bg-green-500 disabled:cursor-not-allowed`}
+              className='w-full rounded-md bg-green-400 px-4 py-2.5 font-medium text-white transition-colors hover:bg-green-500 disabled:cursor-not-allowed'
             >
               {loading ? _('Updating email ...') : _('Update email')}
             </button>
-
             <button
               onClick={() => router.back()}
               className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm transition-colors ${
@@ -93,26 +91,11 @@ export default function UpdateEmailPage() {
                   : 'border-gray-300 text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-4 w-4'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
               {_('Back')}
             </button>
           </form>
-
           {user?.email && (
-            <div className={`mt-6 text-center text-sm text-gray-300`}>
+            <div className='mt-6 text-center text-sm text-gray-300'>
               {_('Current email')}: {user.email}
             </div>
           )}

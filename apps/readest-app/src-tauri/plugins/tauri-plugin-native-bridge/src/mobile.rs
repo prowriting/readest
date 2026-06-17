@@ -301,3 +301,33 @@ impl<R: Runtime> NativeBridge<R> {
             .map_err(Into::into)
     }
 }
+
+impl<R: Runtime> NativeBridge<R> {
+    pub fn detect_kindle(&self) -> crate::Result<DetectKindleResponse> {
+        self.0
+            .run_mobile_plugin("detect_kindle", ())
+            .map_err(Into::into)
+    }
+}
+
+impl<R: Runtime> NativeBridge<R> {
+    pub fn send_to_kindle_app(
+        &self,
+        payload: SendToKindleRequest,
+    ) -> crate::Result<SendToKindleResponse> {
+        self.0
+            .run_mobile_plugin("send_to_kindle_app", payload)
+            .map_err(Into::into)
+    }
+}
+
+impl<R: Runtime> NativeBridge<R> {
+    pub fn send_to_kindle_cloud(
+        &self,
+        payload: SendToKindleRequest,
+    ) -> crate::Result<SendToKindleResponse> {
+        self.0
+            .run_mobile_plugin("send_to_kindle_cloud", payload)
+            .map_err(Into::into)
+    }
+}

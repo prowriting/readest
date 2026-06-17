@@ -1,10 +1,10 @@
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/utils/supabase';
+import { getAPIBaseUrl } from '@/services/environment';
+import type { AuthUser } from '@/context/AuthContext';
 
 interface UseAuthCallbackOptions {
   accessToken?: string | null;
   refreshToken?: string | null;
-  login: (accessToken: string, user: User) => void;
+  login: (accessToken: string, user: AuthUser) => void;
   navigate: (path: string) => void;
   type?: string | null;
   next?: string;
@@ -27,35 +27,30 @@ export function handleAuthCallback({
       navigate('/auth/error');
       return;
     }
-
     if (!accessToken || !refreshToken) {
       navigate('/library');
       return;
     }
 
-    const { error: err } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    try {
+      const resp = await fetch(`${getAPIBaseUrl()}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!resp.ok) {
+        navigate('/auth/error');
+        return;
+      }
 
-    if (err) {
-      console.error('Error setting session:', err);
-      navigate('/auth/error');
-      return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
+      const user = (await resp.json()) as AuthUser;
+      localStorage.setItem('refresh_token', refreshToken);
       login(accessToken, user);
+
       if (type === 'recovery') {
         navigate('/auth/recovery');
         return;
       }
       navigate(next);
-    } else {
-      console.error('Error fetching user data');
+    } catch {
       navigate('/auth/error');
     }
   }

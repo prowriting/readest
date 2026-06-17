@@ -278,6 +278,24 @@ impl<R: Runtime> NativeBridge<R> {
                 .to_string(),
         ))
     }
+
+    pub fn detect_kindle(&self) -> crate::Result<DetectKindleResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+
+    pub fn send_to_kindle_app(
+        &self,
+        _payload: SendToKindleRequest,
+    ) -> crate::Result<SendToKindleResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+
+    pub fn send_to_kindle_cloud(
+        &self,
+        _payload: SendToKindleRequest,
+    ) -> crate::Result<SendToKindleResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
 }
 
 const KEYRING_SERVICE: &str = "Readest Safe Storage";

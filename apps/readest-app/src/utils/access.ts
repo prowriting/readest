@@ -1,8 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
-import { supabase } from '@/utils/supabase';
 import { UserPlan } from '@/types/quota';
 import { DEFAULT_DAILY_TRANSLATION_QUOTA, DEFAULT_STORAGE_QUOTA } from '@/services/constants';
-import { isWebAppPlatform } from '@/services/environment';
 import { getDailyUsage } from '@/services/translators/utils';
 import { getRuntimeConfig } from '@/services/runtimeConfig';
 
@@ -98,35 +96,31 @@ export const getDailyTranslationPlanData = (token: string) => {
   };
 };
 
-export const getAccessToken = async (): Promise<string | null> => {
-  // In browser context there might be two instances of supabase one in the app route
-  // and the other in the pages route, and they might have different sessions
-  // making the access token invalid for API calls. In that case we should use localStorage.
-  if (isWebAppPlatform()) {
-    return localStorage.getItem('token') ?? null;
-  }
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.access_token ?? null;
-};
+export const getAccessToken = async (): Promise<string | null> =>
+  typeof localStorage !== 'undefined' ? (localStorage.getItem('token') ?? null) : null;
 
 export const getUserID = async (): Promise<string | null> => {
-  if (isWebAppPlatform()) {
-    const user = localStorage.getItem('user') ?? '{}';
-    return JSON.parse(user).id ?? null;
+  if (typeof localStorage === 'undefined') return null;
+  const raw = localStorage.getItem('user');
+  if (!raw) return null;
+  try {
+    return (JSON.parse(raw) as { id?: string }).id ?? null;
+  } catch {
+    return null;
   }
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.user?.id ?? null;
 };
 
+// Validates a Bearer token from an Authorization header.
+// Decodes our own JWT (issued by BookArcReaderApi) to extract user identity.
+// Signature verification happens on BookArcReaderApi; here we only need the claims.
 export const validateUserAndToken = async (authHeader: string | null | undefined) => {
   if (!authHeader) return {};
-
   const token = authHeader.replace('Bearer ', '');
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
-
-  if (error || !user) return {};
-  return { user, token };
+  try {
+    const payload = jwtDecode<{ sub?: string; email?: string }>(token);
+    if (!payload.sub) return {};
+    return { user: { id: payload.sub, email: payload.email ?? '' }, token };
+  } catch {
+    return {};
+  }
 };

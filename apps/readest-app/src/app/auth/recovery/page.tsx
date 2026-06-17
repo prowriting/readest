@@ -1,86 +1,100 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { useThemeStore } from '@/store/themeStore';
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { Auth } from '@supabase/auth-ui-react';
-import { supabase } from '@/utils/supabase';
+import { getAPIBaseUrl } from '@/services/environment';
+import { RiLoader2Line } from 'react-icons/ri';
 
 export default function ResetPasswordPage() {
   const _ = useTranslation();
   const router = useRouter();
-  const { login } = useAuth();
-  const { isDarkMode } = useThemeStore();
+  const params = useSearchParams();
 
-  const getAuthLocalization = () => {
-    return {
-      variables: {
-        update_password: {
-          password_label: _('New Password'),
-          password_input_placeholder: _('Your new password'),
-          button_label: _('Update password'),
-          loading_button_label: _('Updating password ...'),
-          confirmation_text: _('Your password has been updated'),
-        },
-      },
-    };
+  const token = params?.get('token') ?? '';
+  const email = params?.get('email') ?? '';
+
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirm) {
+      setError(_('Passwords do not match'));
+      return;
+    }
+    setError('');
+    setBusy(true);
+    try {
+      const resp = await fetch(`${getAPIBaseUrl()}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, token, newPassword: password }),
+      });
+      const data = (await resp.json()) as { error?: string };
+      if (!resp.ok) {
+        setError(data.error ?? _('Something went wrong'));
+        return;
+      }
+      setDone(true);
+      setTimeout(() => router.push('/auth'), 2000);
+    } catch {
+      setError(_('Network error — please try again'));
+    } finally {
+      setBusy(false);
+    }
   };
 
-  useEffect(() => {
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.access_token && session.user && event === 'USER_UPDATED') {
-        login(session.access_token, session.user);
-        const redirectTo = new URLSearchParams(window.location.search).get('redirect');
-        router.push(redirectTo ?? '/library');
-      }
-    });
-
-    return () => {
-      subscription?.subscription.unsubscribe();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
+  if (!token || !email) {
+    return (
+      <div className='flex min-h-screen items-center justify-center'>
+        <p className='text-error'>{_('Invalid or expired reset link.')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className='flex min-h-screen items-center justify-center'>
       <div className='w-full max-w-md p-8'>
-        <Auth
-          supabaseClient={supabase}
-          view='update_password'
-          appearance={{ theme: ThemeSupa }}
-          theme={isDarkMode ? 'dark' : 'light'}
-          magicLink={false}
-          providers={[]}
-          localization={getAuthLocalization()}
-        />
-
-        <button
-          onClick={() => router.back()}
-          className={`mt-6 flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm transition-colors ${
-            isDarkMode
-              ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
-              : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-4 w-4'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth={2}
-              d='M15 19l-7-7 7-7'
+        <h1 className='text-base-content mb-6 text-xl font-bold'>{_('Set new password')}</h1>
+        {done ? (
+          <p className='text-success'>{_('Password updated — redirecting to sign in...')}</p>
+        ) : (
+          <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+            <input
+              type='password'
+              required
+              autoComplete='new-password'
+              placeholder={_('New password')}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className='input input-bordered w-full'
             />
-          </svg>
-          {_('Back')}
-        </button>
+            <input
+              type='password'
+              required
+              autoComplete='new-password'
+              placeholder={_('Confirm new password')}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              className='input input-bordered w-full'
+            />
+            {error && <p className='text-error text-sm'>{error}</p>}
+            <button type='submit' disabled={busy} className='btn btn-primary w-full'>
+              {busy ? <RiLoader2Line className='animate-spin' size={18} /> : _('Update password')}
+            </button>
+            <button
+              type='button'
+              onClick={() => router.back()}
+              className='btn btn-ghost w-full text-sm'
+            >
+              {_('Back')}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -1,22 +1,20 @@
 'use client';
 
-import {
-  createContext,
-  useState,
-  useContext,
-  useCallback,
-  useMemo,
-  ReactNode,
-  useEffect,
-} from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/utils/supabase';
-import posthog from 'posthog-js';
+import { createContext, useState, useContext, useCallback, useMemo, ReactNode } from 'react';
+import { getAPIBaseUrl } from '@/services/environment';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  plan: string;
+  createdAt: string;
+}
 
 interface AuthContextType {
   token: string | null;
-  user: User | null;
-  login: (token: string, user: User) => void;
+  user: AuthUser | null;
+  login: (token: string, user: AuthUser) => void;
   logout: () => void;
   refresh: () => void;
 }
@@ -25,65 +23,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('token');
+    return null;
+  });
+  const [user, setUser] = useState<AuthUser | null>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
+      const raw = localStorage.getItem('user');
+      return raw ? (JSON.parse(raw) as AuthUser) : null;
     }
     return null;
   });
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const userJson = localStorage.getItem('user');
-      return userJson ? JSON.parse(userJson) : null;
-    }
-    return null;
-  });
 
-  useEffect(() => {
-    const syncSession = (
-      session: { access_token: string; refresh_token: string; user: User } | null,
-    ) => {
-      if (session) {
-        console.log('Syncing session');
-        const { access_token, refresh_token, user } = session;
-        localStorage.setItem('token', access_token);
-        localStorage.setItem('refresh_token', refresh_token);
-        localStorage.setItem('user', JSON.stringify(user));
-        posthog.identify(user.id);
-        setToken(access_token);
-        setUser(user);
-      } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        setToken(null);
-        setUser(null);
-      }
-    };
-    const refreshSession = async () => {
-      try {
-        await supabase.auth.refreshSession();
-      } catch {
-        syncSession(null);
-      }
-    };
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_, session) => {
-      syncSession(session);
-    });
-
-    refreshSession();
-    return () => {
-      subscription?.subscription.unsubscribe();
-    };
-  }, []);
-
-  // setToken / setUser from useState are stable across renders, so the empty
-  // deps array is correct. Wrapping in useCallback (and only including stable
-  // refs in the deps) is what makes the useMemo below actually memoize the
-  // context value — without this, login/logout/refresh would be recreated on
-  // every render and the memo would always invalidate.
-  const login = useCallback((newToken: string, newUser: User) => {
-    console.log('Logging in');
+  const login = useCallback((newToken: string, newUser: AuthUser) => {
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('token', newToken);
@@ -91,24 +42,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    console.log('Logging out');
+    const storedRefresh = localStorage.getItem('refresh_token');
     try {
-      await supabase.auth.refreshSession();
+      await fetch(`${getAPIBaseUrl()}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ refreshToken: storedRefresh ?? '' }),
+      });
     } catch {
-    } finally {
-      await supabase.auth.signOut();
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setToken(null);
-      setUser(null);
+      /* best-effort */
     }
-  }, []);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+  }, [token]);
 
   const refresh = useCallback(async () => {
+    const storedRefresh = localStorage.getItem('refresh_token');
+    if (!storedRefresh) return;
     try {
-      await supabase.auth.refreshSession();
-    } catch {}
-  }, []);
+      const resp = await fetch(`${getAPIBaseUrl()}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: storedRefresh }),
+      });
+      if (!resp.ok) {
+        await logout();
+        return;
+      }
+      const data = (await resp.json()) as {
+        accessToken: string;
+        refreshToken: string;
+        user: AuthUser;
+      };
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refresh_token', data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setToken(data.accessToken);
+      setUser(data.user);
+    } catch {
+      /* silent */
+    }
+  }, [logout]);
 
   const value = useMemo(
     () => ({ token, user, login, logout, refresh }),

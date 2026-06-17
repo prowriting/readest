@@ -337,3 +337,26 @@ pub struct SyncKeychainAvailableResponse {
     pub available: bool,
     pub error: Option<String>,
 }
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DetectKindleResponse {
+    pub has_kindle: bool,
+    pub has_kindle_fs: bool,
+    pub is_fire: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SendToKindleRequest {
+    pub epub_path: String,
+    pub title: String,
+    pub is_fire: bool,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SendToKindleResponse {
+    pub saved_path: String,
+    pub helper_message: String,
+}

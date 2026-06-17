@@ -241,3 +241,24 @@ pub(crate) async fn is_sync_keychain_available<R: Runtime>(
 ) -> Result<SyncKeychainAvailableResponse> {
     app.native_bridge().is_sync_keychain_available()
 }
+
+#[command]
+pub(crate) async fn detect_kindle<R: Runtime>(app: AppHandle<R>) -> Result<DetectKindleResponse> {
+    app.native_bridge().detect_kindle()
+}
+
+#[command]
+pub(crate) async fn send_to_kindle_app<R: Runtime>(
+    app: AppHandle<R>,
+    payload: SendToKindleRequest,
+) -> Result<SendToKindleResponse> {
+    app.native_bridge().send_to_kindle_app(payload)
+}
+
+#[command]
+pub(crate) async fn send_to_kindle_cloud<R: Runtime>(
+    app: AppHandle<R>,
+    payload: SendToKindleRequest,
+) -> Result<SendToKindleResponse> {
+    app.native_bridge().send_to_kindle_cloud(payload)
+}

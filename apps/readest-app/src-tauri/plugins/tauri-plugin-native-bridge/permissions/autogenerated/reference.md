@@ -39,6 +39,9 @@ Default permissions for the plugin
 - `allow-get-sync-passphrase`
 - `allow-clear-sync-passphrase`
 - `allow-is-sync-keychain-available`
+- `allow-detect-kindle`
+- `allow-send-to-kindle-app`
+- `allow-send-to-kindle-cloud`
 
 ## Permission Table
 
@@ -253,6 +256,32 @@ Enables the copy_uri_to_path command without any pre-configured scope.
 <td>
 
 Denies the copy_uri_to_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:allow-detect-kindle`
+
+</td>
+<td>
+
+Enables the detect_kindle command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:deny-detect-kindle`
+
+</td>
+<td>
+
+Denies the detect_kindle command without any pre-configured scope.
 
 </td>
 </tr>
@@ -903,6 +932,58 @@ Enables the select_directory command without any pre-configured scope.
 <td>
 
 Denies the select_directory command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:allow-send-to-kindle-app`
+
+</td>
+<td>
+
+Enables the send_to_kindle_app command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:deny-send-to-kindle-app`
+
+</td>
+<td>
+
+Denies the send_to_kindle_app command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:allow-send-to-kindle-cloud`
+
+</td>
+<td>
+
+Enables the send_to_kindle_cloud command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-bridge:deny-send-to-kindle-cloud`
+
+</td>
+<td>
+
+Denies the send_to_kindle_cloud command without any pre-configured scope.
 
 </td>
 </tr>

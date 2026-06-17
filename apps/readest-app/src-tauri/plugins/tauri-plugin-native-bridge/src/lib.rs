@@ -84,6 +84,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::get_sync_passphrase,
             commands::clear_sync_passphrase,
             commands::is_sync_keychain_available,
+            commands::detect_kindle,
+            commands::send_to_kindle_app,
+            commands::send_to_kindle_cloud,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

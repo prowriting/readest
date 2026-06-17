@@ -44,13 +44,11 @@ export function useOpenWithCode() {
       eventDispatcher.dispatch('book-code-found', { result });
     } catch (err) {
       const statusCode = err instanceof BookCodeError ? err.statusCode : 0;
-      const friendlyMessage =
+      const message =
         err instanceof BookCodeError
           ? (ERROR_MESSAGES[err.statusCode] ?? 'Something went wrong — please try again')
           : 'Something went wrong — please try again';
-      const debugDetail = err instanceof Error ? err.message : String(err);
-      const message = `${_(friendlyMessage)}\n\n${debugDetail}`;
-      eventDispatcher.dispatch('book-code-error', { code, statusCode, message });
+      eventDispatcher.dispatch('book-code-error', { code, statusCode, message: _(message) });
     } finally {
       processing.current = false;
     }

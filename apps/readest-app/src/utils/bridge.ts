@@ -263,3 +263,37 @@ export async function clearSyncPassphrase(): Promise<SyncPassphraseResponse> {
 export async function isSyncKeychainAvailable(): Promise<SyncKeychainAvailableResponse> {
   return invoke<SyncKeychainAvailableResponse>('plugin:native-bridge|is_sync_keychain_available');
 }
+
+export type DetectKindleResult = {
+  hasKindle: boolean;
+  hasKindleFs: boolean;
+  isFire: boolean;
+};
+
+export type KindleShareResult = {
+  savedPath: string;
+  helperMessage: string;
+};
+
+export async function detectKindle(): Promise<DetectKindleResult> {
+  return invoke<DetectKindleResult>('plugin:native-bridge|detect_kindle');
+}
+
+export async function sendToKindleApp(
+  epubPath: string,
+  title: string,
+  isFire: boolean,
+): Promise<KindleShareResult> {
+  return invoke<KindleShareResult>('plugin:native-bridge|send_to_kindle_app', {
+    payload: { epubPath, title, isFire },
+  });
+}
+
+export async function sendToKindleCloud(
+  epubPath: string,
+  title: string,
+): Promise<KindleShareResult> {
+  return invoke<KindleShareResult>('plugin:native-bridge|send_to_kindle_cloud', {
+    payload: { epubPath, title, isFire: false },
+  });
+}

@@ -980,6 +980,73 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
         }
         controller.show()
     }
+
+    @Command
+    fun detect_kindle(invoke: Invoke) {
+        val pm = activity.packageManager
+        fun installed(pkg: String): Boolean = try {
+            pm.getPackageInfo(pkg, 0); true
+        } catch (_: PackageManager.NameNotFoundException) { false }
+        val ret = JSObject()
+        ret.put("hasKindle", installed("com.amazon.kindle"))
+        ret.put("hasKindleFs", installed("com.amazon.kindlefs"))
+        ret.put("isFire", Build.MANUFACTURER.equals("Amazon", ignoreCase = true))
+        invoke.resolve(ret)
+    }
+
+    @Command
+    fun send_to_kindle_app(invoke: Invoke) {
+        val args = try { invoke.parseArgs(SendToKindleArgs::class.java) }
+        catch (e: Exception) { invoke.reject(e.message ?: "Invalid args"); return }
+        try {
+            val src = java.io.File(args.epubPath)
+            val folder = if (args.isFire) "Books" else "kindle"
+            val destDir = java.io.File(activity.getExternalFilesDir(null), folder)
+            destDir.mkdirs()
+            val safeTitle = args.title.replace(Regex("[^\\w\\s\\-]"), "_").trim()
+            val dest = java.io.File(destDir, "$safeTitle.epub")
+            src.copyTo(dest, overwrite = true)
+            val launchIntent = activity.packageManager.getLaunchIntentForPackage("com.amazon.kindle")
+            if (launchIntent != null) activity.startActivity(launchIntent)
+            val ret = JSObject()
+            ret.put("savedPath", dest.absolutePath)
+            ret.put("helperMessage", "Your book has been moved to the $folder folder and should appear in your Kindle app under Downloads. Make sure 'Show personal documents' is enabled in your Kindle settings.")
+            invoke.resolve(ret)
+        } catch (e: Exception) {
+            invoke.reject(e.message ?: "send_to_kindle_app failed")
+        }
+    }
+
+    @Command
+    fun send_to_kindle_cloud(invoke: Invoke) {
+        val args = try { invoke.parseArgs(SendToKindleArgs::class.java) }
+        catch (e: Exception) { invoke.reject(e.message ?: "Invalid args"); return }
+        try {
+            val src = java.io.File(args.epubPath)
+            val authority = "${activity.packageName}.fileprovider"
+            val uri = FileProvider.getUriForFile(activity, authority, src)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                setPackage("com.amazon.kindle")
+                type = "application/epub+zip"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(intent)
+            val ret = JSObject()
+            ret.put("savedPath", src.absolutePath)
+            ret.put("helperMessage", "Sending to Kindle — the book will appear in your Kindle library once delivered.")
+            invoke.resolve(ret)
+        } catch (e: Exception) {
+            invoke.reject(e.message ?: "send_to_kindle_cloud failed")
+        }
+    }
+}
+
+@app.tauri.annotation.InvokeArg
+class SendToKindleArgs {
+    lateinit var epubPath: String
+    lateinit var title: String
+    var isFire: Boolean = false
 }
 
 @app.tauri.annotation.InvokeArg

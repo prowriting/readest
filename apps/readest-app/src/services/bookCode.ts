@@ -25,42 +25,26 @@ export type BookCodeResult = {
 };
 
 export async function fetchBookByCode(code: string): Promise<BookCodeResult> {
-  const url = `${getAPIBaseUrl()}/claim/redeem`;
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code.toLowerCase().trim() }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new BookCodeError(res.status, text || `HTTP ${res.status}`);
-    }
-    return res.json() as Promise<BookCodeResult>;
-  } catch (err) {
-    if (err instanceof BookCodeError) throw err;
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new BookCodeError(0, `fetch failed — url: ${url} — ${msg}`);
+  const res = await fetch(`${getAPIBaseUrl()}/claim/redeem`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code.toLowerCase().trim() }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new BookCodeError(res.status, text || `HTTP ${res.status}`);
   }
+  return res.json() as Promise<BookCodeResult>;
 }
 
 export async function downloadGiftBook(downloadRef: string): Promise<ArrayBuffer> {
-  const url = `${getAPIBaseUrl()}/claim/download?ref=${encodeURIComponent(downloadRef)}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new BookCodeError(
-        res.status,
-        `Download failed: HTTP ${res.status} — ${text} — url: ${url}`,
-      );
-    }
-    return res.arrayBuffer();
-  } catch (err) {
-    if (err instanceof BookCodeError) throw err;
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new BookCodeError(0, `fetch failed — url: ${url} — ${msg}`);
+  const res = await fetch(
+    `${getAPIBaseUrl()}/claim/download?ref=${encodeURIComponent(downloadRef)}`,
+  );
+  if (!res.ok) {
+    throw new BookCodeError(res.status, `Download failed: HTTP ${res.status}`);
   }
+  return res.arrayBuffer();
 }
 
 export async function confirmGiftRedemption(downloadRef: string): Promise<void> {

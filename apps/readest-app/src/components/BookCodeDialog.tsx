@@ -1,8 +1,10 @@
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MdMenuBook, MdCheckCircle, MdErrorOutline } from 'react-icons/md';
 import { RiLoader2Line } from 'react-icons/ri';
+import { tempDir } from '@tauri-apps/api/path';
+import { writeFile } from '@tauri-apps/plugin-fs';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEnv } from '@/context/EnvContext';
 import { useAuth } from '@/context/AuthContext';
@@ -17,6 +19,7 @@ import {
   downloadGiftBook,
   confirmGiftRedemption,
 } from '@/services/bookCode';
+import { detectKindle, sendToKindleApp, type DetectKindleResult } from '@/utils/bridge';
 import { eventDispatcher } from '@/utils/event';
 import { navigateToReader } from '@/utils/nav';
 import Dialog from './Dialog';
@@ -43,6 +46,17 @@ export const BookCodeDialog = () => {
   const [result, setResult] = useState<BookCodeResult | null>(null);
   const [codeError, setCodeError] = useState<CodeError | null>(null);
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+  const kindleRef = useRef<DetectKindleResult | null>(null);
+
+  useEffect(() => {
+    if (isTauriAppPlatform() && appService?.isAndroidApp) {
+      detectKindle()
+        .then((r) => {
+          kindleRef.current = r;
+        })
+        .catch(() => {});
+    }
+  }, [appService?.isAndroidApp]);
 
   useEffect(() => {
     const handler = (event: CustomEvent) => {
@@ -92,17 +106,11 @@ export const BookCodeDialog = () => {
         type: 'application/epub+zip',
       });
     } catch (err) {
-      const detail =
-        err instanceof BookCodeError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : String(err);
       const message =
         err instanceof BookCodeError && err.statusCode === 410
           ? _('This gift has expired')
-          : `Download failed — ${detail}`;
-      eventDispatcher.dispatch('toast', { type: 'error', message, timeout: 10000 });
+          : _('Download failed — please try again');
+      eventDispatcher.dispatch('toast', { type: 'error', message, timeout: 3500 });
       return null;
     }
   };
@@ -187,6 +195,37 @@ export const BookCodeDialog = () => {
     } catch (err) {
       console.error('Share failed:', err);
       void openUrl(fallbackWebUrl);
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleSendToKindle = async () => {
+    if (!result) return;
+    const kindle = kindleRef.current;
+    const hasNativeKindle = kindle && (kindle.hasKindle || kindle.hasKindleFs || kindle.isFire);
+    if (!hasNativeKindle) {
+      window.open(KINDLE_WEB_URL, '_blank', 'noopener');
+      return;
+    }
+    setBusyAction('kindle');
+    try {
+      const file = await getDownloadedFile();
+      if (!file) return;
+      const bytes = await file.arrayBuffer();
+      const tmp = await tempDir();
+      const safeTitle = result.book.title.replace(/[^\w\s-]/g, '_').trim();
+      const epubPath = `${tmp}/${safeTitle}.epub`;
+      await writeFile(epubPath, new Uint8Array(bytes));
+      const shareResult = await sendToKindleApp(epubPath, result.book.title, kindle.isFire);
+      eventDispatcher.dispatch('toast', {
+        type: 'info',
+        message: shareResult.helperMessage,
+        timeout: 6000,
+      });
+    } catch (err) {
+      console.error('Send to Kindle failed:', err);
+      window.open(KINDLE_WEB_URL, '_blank', 'noopener');
     } finally {
       setBusyAction(null);
     }
@@ -334,7 +373,7 @@ export const BookCodeDialog = () => {
               <>
                 <button
                   className='btn btn-ghost w-full'
-                  onClick={() => handleShareFile('kindle', KINDLE_WEB_URL)}
+                  onClick={handleSendToKindle}
                   disabled={busy}
                 >
                   {busyAction === 'kindle' ? (
