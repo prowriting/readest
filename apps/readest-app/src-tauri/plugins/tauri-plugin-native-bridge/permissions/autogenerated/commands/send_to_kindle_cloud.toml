@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-send-to-kindle-cloud"
+description = "Enables the send_to_kindle_cloud command without any pre-configured scope."
+commands.allow = ["send_to_kindle_cloud"]
+
+[[permission]]
+identifier = "deny-send-to-kindle-cloud"
+description = "Denies the send_to_kindle_cloud command without any pre-configured scope."
+commands.deny = ["send_to_kindle_cloud"]
