@@ -35,6 +35,20 @@ export interface DBBookConfig {
   deleted_at?: string | null;
 }
 
+export interface DBDwellRecord {
+  user_id: string;
+  id: string;
+  book_hash: string;
+  start_section: number;
+  start_char: number;
+  end_section: number;
+  end_char: number;
+  time_milliseconds: number;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+}
+
 export interface DBBookNote {
   user_id: string;
   book_hash: string;

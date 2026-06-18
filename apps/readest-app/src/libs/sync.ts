@@ -1,11 +1,11 @@
-import { Book, BookConfig, BookNote, BookDataRecord } from '@/types/book';
+import { Book, BookConfig, BookNote, BookDataRecord, DwellRecord } from '@/types/book';
 import { getAPIBaseUrl } from '@/services/environment';
 import { getAccessToken } from '@/utils/access';
 import { fetchWithTimeout } from '@/utils/fetch';
 
 const SYNC_API_ENDPOINT = getAPIBaseUrl() + '/sync';
 
-export type SyncType = 'books' | 'configs' | 'notes';
+export type SyncType = 'books' | 'configs' | 'notes' | 'dwells';
 export type SyncOp = 'push' | 'pull' | 'both';
 
 interface BookRecord extends BookDataRecord, Book {}
@@ -16,6 +16,7 @@ export interface SyncResult {
   books: BookRecord[] | null;
   notes: BookNoteRecord[] | null;
   configs: BookConfigRecord[] | null;
+  dwells: DwellRecord[] | null;
 }
 
 export type SyncRecord = BookRecord & BookConfigRecord & BookNoteRecord;
@@ -24,6 +25,7 @@ export interface SyncData {
   books?: Partial<BookRecord>[];
   notes?: Partial<BookNoteRecord>[];
   configs?: Partial<BookConfigRecord>[];
+  dwells?: DwellRecord[];
 }
 
 export class SyncClient {

@@ -16,6 +16,7 @@ export type BookFormat =
   | 'MD';
 export type BookNoteType = 'bookmark' | 'annotation' | 'excerpt';
 export type ReadingStatus = 'unread' | 'reading' | 'finished';
+export type AnalyticsStatus = 'none' | 'ask' | 'collect' | 'denied';
 export type HighlightStyle = 'highlight' | 'underline' | 'squiggly';
 // Predefined highlight colors, can be extended with custom hex colors
 export type HighlightColor = 'red' | 'yellow' | 'green' | 'blue' | 'violet' | string;
@@ -104,6 +105,7 @@ export interface Book {
   lastUpdated?: number; // deprecated in favor of updatedAt
   progress?: [number, number]; // Add progress field: [current, total], 1-based page number
   readingStatus?: ReadingStatus;
+  analyticsStatus?: AnalyticsStatus;
   primaryLanguage?: string;
 
   metadata?: BookMetadata;
@@ -148,6 +150,19 @@ export interface BookNote {
    */
   global?: boolean;
 
+  createdAt: number;
+  updatedAt: number;
+  deletedAt?: number | null;
+}
+
+export interface DwellRecord {
+  id: string;
+  bookHash: string;
+  startSection: number;
+  startChar: number;
+  endSection: number;
+  endChar: number;
+  timeMilliseconds: number;
   createdAt: number;
   updatedAt: number;
   deletedAt?: number | null;

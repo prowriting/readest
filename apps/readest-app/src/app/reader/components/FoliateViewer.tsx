@@ -41,6 +41,7 @@ import { mountAdditionalFonts, mountCustomFont } from '@/styles/fonts';
 import { layoutWarichu, relayoutWarichu } from '@/utils/warichu';
 import { getBookDirFromLanguage, getBookDirFromWritingMode } from '@/utils/book';
 import { getIndexFromCfi } from '@/utils/cfi';
+import { getSectionCharRange } from '../hooks/useDwellTracking';
 import { useUICSS } from '@/hooks/useUICSS';
 import {
   handleKeydown,
@@ -72,6 +73,8 @@ import { isFontType } from '@/utils/font';
 import { ParagraphControl } from './paragraph';
 import Spinner from '@/components/Spinner';
 import KOSyncConflictResolver from './KOSyncResolver';
+import AnalyticsConsentModal from './AnalyticsConsentModal';
+import { useAnalyticsDwells } from '../hooks/useAnalyticsDwells';
 import ImageViewer from './ImageViewer';
 import TableViewer from './TableViewer';
 
@@ -134,6 +137,7 @@ const FoliateViewer: React.FC<{
   const { syncState, conflictDetails, resolveWithLocal, resolveWithRemote } = useKOSync(bookKey);
   useWebDAVSync(bookKey);
   useTextTranslation(bookKey, viewRef.current);
+  const { showConsent, onRelocate, handleAllow, handleDecline } = useAnalyticsDwells(bookKey);
 
   const progressRelocateHandler = (event: Event) => {
     const detail = (event as CustomEvent).detail;
@@ -150,6 +154,9 @@ const FoliateViewer: React.FC<{
       detail.time,
       detail.range,
     );
+    const section = getIndexFromCfi(detail.cfi) ?? 0;
+    const { startChar, endChar } = getSectionCharRange(detail.range as Range);
+    onRelocate(section, startChar, endChar);
   };
 
   const getDocTransformHandler = ({ width, height }: { width: number; height: number }) => {
@@ -810,6 +817,7 @@ const FoliateViewer: React.FC<{
           onClose={resolveWithLocal}
         />
       )}
+      {showConsent && <AnalyticsConsentModal onAllow={handleAllow} onDecline={handleDecline} />}
     </>
   );
 };

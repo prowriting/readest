@@ -59,6 +59,7 @@ export function useSync(bookKey?: string) {
     books: null,
     configs: null,
     notes: null,
+    dwells: null,
   });
   const [syncedBooks, setSyncedBooks] = useState<Book[] | null>(null);
   const [syncedConfigs, setSyncedConfigs] = useState<BookConfig[] | null>(null);
@@ -112,8 +113,11 @@ export function useSync(bookKey?: string) {
       setSyncResult({ ...syncResult, [type]: result[type] });
       const records = result[type];
       if (since > 1000 && !records?.length) return 0;
+      if (type === 'dwells') return records?.length || 0;
+      // type is 'books' | 'configs' | 'notes' — all backed by BookDataRecord
+      const bookRecords = records as BookDataRecord[] | null;
       // For since <= 1000, we set lastSyncedAt to now if no records returned
-      const maxTime = records?.length ? computeMaxTimestamp(records) : Date.now();
+      const maxTime = bookRecords?.length ? computeMaxTimestamp(bookRecords) : Date.now();
       setLastSyncedAt(maxTime);
 
       // due to closures in React hooks the settings might be stale
@@ -141,7 +145,7 @@ export function useSync(bookKey?: string) {
           }
           break;
       }
-      return records?.filter((rec) => !rec.deleted_at).length || 0;
+      return bookRecords?.filter((rec) => !rec.deleted_at).length || 0;
     } catch (err: unknown) {
       console.error(err);
       if (err instanceof Error) {

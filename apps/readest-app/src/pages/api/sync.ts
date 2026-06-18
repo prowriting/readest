@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   const sinceIso = since.toISOString();
 
   try {
-    const results: SyncResult = { books: [], configs: [], notes: [] };
+    const results: SyncResult = { books: [], configs: [], notes: [], dwells: null };
     const errors: Record<TableName, DBError | null> = {
       books: null,
       book_notes: null,
@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
           }
         });
       }
-      results[DBSyncTypeMap[table] as SyncType] = records || [];
+      results[DBSyncTypeMap[table] as Exclude<SyncType, 'dwells'>] = records || [];
     };
 
     if (!typeParam || typeParam === 'books') {
