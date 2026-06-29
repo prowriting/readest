@@ -494,7 +494,7 @@ pub fn run() {
                     .decorations(false)
                     .visible(false)
                     .shadow(true)
-                    .title("Readest");
+                    .title("Bookarc");
 
                 #[cfg(target_os = "windows")]
                 {
