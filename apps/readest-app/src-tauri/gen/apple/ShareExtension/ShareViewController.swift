@@ -110,7 +110,7 @@ final class ShareViewController: UIViewController {
     AppGroupBridge.appendPendingSave(save)
     NSLog("[ReadestShare] queued save for %@ group=%@", url.absoluteString, group?.name ?? "<none>")
 
-    if let target = buildTargetURL(scheme: "readest", host: "clip", inner: url) {
+    if let target = buildTargetURL(scheme: "bookarc", host: "clip", inner: url) {
       let opened = openViaResponderChain(target)
       NSLog("[ReadestShare] responder-chain launch=%@", opened ? "yes" : "no")
     }
@@ -272,7 +272,7 @@ private final class SaveOptionsViewController: UITableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    title = NSLocalizedString("Save to Readest", comment: "Share extension title")
+    title = NSLocalizedString("Save to Bookarc", comment: "Share extension title")
     // Both Cancel and Save are iOS system bar button items — UIKit
     // localizes them automatically for every language Apple ships, so
     // the extension doesn't carry its own .strings file for them.
