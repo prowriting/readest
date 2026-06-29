@@ -19,7 +19,7 @@
 }
 
 :root {
-  border-radius: 10px;
+  border-radius: 12px; /* Patronus radius-300 (largest non-pill step) */
   scrollbar-gutter: auto !important;
   overscroll-behavior: none;
   background-color: transparent;
@@ -50,7 +50,7 @@ html[data-page='reader'] {
 }
 
 body {
-  border-radius: 10px;
+  border-radius: 12px; /* Patronus radius-300 — matches the :root window corner */
   background-color: transparent;
   cursor: default;
 }

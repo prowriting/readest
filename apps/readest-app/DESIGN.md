@@ -210,6 +210,36 @@ When a control extends a card (an "add row" affordance, a footer button bar atta
 list), it inherits the card's surface treatment: same `bg-base-100`, same
 `border-base-200`, same `rounded-lg`. It is the card grown by one row.
 
+#### Patronus brand layer (the `default` theme)
+
+The shipped `default` theme is Readest's expression of the **Patronus** design system
+(the org-wide Figma library). Patronus is a near-black-on-warm-white system where
+**color is earned** — which is why it slots cleanly under the structural rules above
+rather than replacing them. Patronus is the brand/foundation layer; the surface tiers,
+e-ink overlay, and boxed-list anatomy are unchanged. The other ten themes (Sepia, Nord,
+…) remain user-selectable reading palettes.
+
+Token mapping (`src/styles/themes.ts`, light mode):
+
+| Patronus token            | Value     | Readest token     | Notes                                      |
+| ------------------------- | --------- | ----------------- | ------------------------------------------ |
+| `Brown/50` (bg-secondary) | `#fef9f6` | `base-100` anchor | base-200/300 derive warm from this anchor  |
+| `Fg/foreground`           | `#161d1a` | `base-content`    | near-black ink                             |
+| `button/bg-main`          | `#161d1a` | `primary`         | the CTA is near-black, **not** a hue       |
+| `Fg/foreground-success`   | `#429953` | `--su` (success)  | status foundations, applied app-wide       |
+| `Fg/foreground-warning`   | `#d59c2d` | `--wa` (warning)  |                                            |
+| `Fg/foreground-danger`    | `#c63737` | `--er` (error)    |                                            |
+| `fg/info`                 | `#0e5d8b` | `--in` (info)     |                                            |
+
+Dark mode uses the Patronus "Neutral Dark" ramp (`#1f2623` surface, `#ebebeb` ink) with a
+near-white CTA — the dark-mode inversion of the near-black button.
+
+Two foundations already matched Patronus and needed no change: the **UI font is Inter**
+(Patronus `Typeface/Family/Body`) and the **house radius is 8px** (`rounded-lg` =
+Patronus `radius-200`). The only off-scale value, the `10px` window corner in
+`globals.css`, moved to `12px` (Patronus `radius-300`). Patronus's **Reckless** display
+serif is intentionally not adopted — it's display-only and Readest's chrome uses Inter.
+
 ---
 
 ### 4. Action vocabulary

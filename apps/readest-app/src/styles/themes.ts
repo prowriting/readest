@@ -121,8 +121,15 @@ export const themes = [
     name: 'default',
     label: _('Default'),
     colors: {
-      light: generateLightPalette({ fg: '#1a1a1a', bg: '#f5f1e8', primary: '#FF5E5B' }),
-      dark: generateDarkPalette({ fg: '#f5f1e8', bg: '#1a1a1a', primary: '#FF5E5B' }),
+      // Patronus design system. Warm-white surface (Brown/50 #fef9f6) with
+      // near-black ink (Fg/foreground #161d1a). The CTA is the same near-black
+      // (Patronus button/bg-main) rather than a saturated hue — color is earned.
+      // Darkening the #fef9f6 anchor keeps base-200/300 warm, matching Patronus's
+      // Brown ramp; getContrastOklch makes primary-content white over the CTA.
+      light: generateLightPalette({ fg: '#161d1a', bg: '#fef9f6', primary: '#161d1a' }),
+      // Dark uses the Patronus "Neutral Dark" ramp: #1f2623 surface, #ebebeb ink,
+      // and a near-white CTA — the dark-mode inversion of the near-black button.
+      dark: generateDarkPalette({ fg: '#ebebeb', bg: '#1f2623', primary: '#ebebeb' }),
     },
   },
   {
@@ -226,14 +233,15 @@ const generateCustomThemeVariables = (palette: Palette, fallbackIncluded = false
     --n: ${hexToOklch(palette.neutral)};
     --nc: ${hexToOklch(palette['neutral-content'])};
     
-    --in: 69.37% 0.047 231deg;
-    --inc: 100% 0 0deg;
-    --su: 78.15% 0.12 160deg;
-    --suc: 100% 0 0deg;
-    --wa: 90.69% 0.123 84deg;
-    --wac: 0% 0 0deg;
-    --er: 70.9% 0.184 22deg;
-    --erc: 100% 0 0deg;
+    /* Patronus status foundations: info/success/warning/error. */
+    --in: ${hexToOklch('#0e5d8b')};
+    --inc: ${getContrastOklch('#0e5d8b')};
+    --su: ${hexToOklch('#429953')};
+    --suc: ${getContrastOklch('#429953')};
+    --wa: ${hexToOklch('#d59c2d')};
+    --wac: ${getContrastOklch('#d59c2d')};
+    --er: ${hexToOklch('#c63737')};
+    --erc: ${getContrastOklch('#c63737')};
   `;
 
   const fallbackColors = `
@@ -254,14 +262,14 @@ const generateCustomThemeVariables = (palette: Palette, fallbackIncluded = false
     --fallback-n: ${palette.neutral};
     --fallback-nc: ${palette['neutral-content']};
 
-    --fallback-in: #ff0000;
-    --fallback-inc: #ffffff;
-    --fallback-su: #00ff00;
-    --fallback-suc: #000000;
-    --fallback-wa: #ffff00;
-    --fallback-wac: #000000;
-    --fallback-er: #ff8000;
-    --fallback-erc: #000000;
+    --fallback-in: #0e5d8b;
+    --fallback-inc: ${getContrastHex('#0e5d8b')};
+    --fallback-su: #429953;
+    --fallback-suc: ${getContrastHex('#429953')};
+    --fallback-wa: #d59c2d;
+    --fallback-wac: ${getContrastHex('#d59c2d')};
+    --fallback-er: #c63737;
+    --fallback-erc: ${getContrastHex('#c63737')};
   `;
 
   return colors + (fallbackIncluded ? fallbackColors : '');
