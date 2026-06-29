@@ -29,8 +29,8 @@ let coldStartConsumed = false;
  *     library store hydrates. Stash and replay once libraryLoaded.
  *
  * Supported URL shapes (see src/utils/share.ts):
- *   readest://share/{token}
- *   https://web.readest.com/s/{token}
+ *   bookarc://share/{token}
+ *   https://web.bookarc.app/s/{token}
  *
  * Auth-gated paths:
  *   - Logged-in: POST /api/share/[token]/import (server-side R2 byte-copy),

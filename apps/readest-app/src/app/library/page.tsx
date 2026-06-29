@@ -45,6 +45,7 @@ import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
 import { useOpenAnnotationLink } from '@/hooks/useOpenAnnotationLink';
 import { useOpenShareLink } from '@/hooks/useOpenShareLink';
 import { useOpenWithCode } from '@/hooks/useOpenWithCode';
+import { useDeferredDeepLink } from '@/hooks/useDeferredDeepLink';
 import { useClipUrlIngress } from '@/hooks/useClipUrlIngress';
 import { useKeyDownActions } from '@/hooks/useKeyDownActions';
 import { SelectedFile, useFileSelector } from '@/hooks/useFileSelector';
@@ -243,6 +244,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   useAppUrlIngress();
   useOpenWithBooks();
   useOpenAnnotationLink();
+  useDeferredDeepLink();
   useOpenShareLink();
   useOpenWithCode();
   useClipUrlIngress();

@@ -1,7 +1,7 @@
 'use client';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
@@ -70,6 +70,8 @@ const ProviderLogin: React.FC<ProviderLoginProp> = ({
 export default function AuthPage() {
   const _ = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams?.get('next') ?? '/library';
   const { login } = useAuth();
   const { envConfig, appService } = useEnv();
   const { safeAreaInsets, isRoundedWindow } = useThemeStore();
@@ -164,6 +166,7 @@ export default function AuthPage() {
 
   // Web: redirect to BookArcReaderApi OAuth start
   const webSignIn = (provider: OAuthProvider) => {
+    if (nextUrl !== '/library') sessionStorage.setItem('auth_return_url', nextUrl);
     const redirectTo = getWebRedirectTo();
     window.location.href = `${API_BASE}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectTo)}`;
   };
@@ -192,7 +195,7 @@ export default function AuthPage() {
       }
       localStorage.setItem('refresh_token', data.refreshToken!);
       login(data.accessToken!, data.user!);
-      router.push('/library');
+      router.push(nextUrl);
     } catch {
       setFormError(_('Network error — please try again'));
     } finally {
@@ -342,6 +345,8 @@ export default function AuthPage() {
   }
 
   // ── Web layout ──────────────────────────────────────────────────────────────
+  const isClaimRedirect = nextUrl.startsWith('/read?code=');
+
   return (
     <div style={{ maxWidth: '420px', margin: 'auto', padding: '2rem', paddingTop: '4rem' }}>
       <button
@@ -351,6 +356,16 @@ export default function AuthPage() {
         <IoArrowBack className='text-base-content' />
       </button>
       <div className='flex flex-col items-center gap-2'>
+        {isClaimRedirect && (
+          <div className='mb-4 w-64 text-center'>
+            <p className='text-base-content text-sm font-medium'>
+              {_('Sign in to read your book')}
+            </p>
+            <p className='text-base-content/60 mt-1 text-xs'>
+              {_('A free account saves your place and syncs highlights across devices.')}
+            </p>
+          </div>
+        )}
         <ProviderLogin
           provider='google'
           handleSignIn={webSignIn}

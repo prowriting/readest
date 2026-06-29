@@ -24,12 +24,13 @@ export const buildAnnotationWebUrl = ({ bookHash, noteId, cfi }: AnnotationDeepL
  * and direct deeplink scenarios. Markdown export uses the HTTPS form.
  */
 export const buildAnnotationAppUrl = ({ bookHash, noteId, cfi }: AnnotationDeepLink): string => {
-  const base = `readest://book/${bookHash}/annotation/${noteId}`;
+  const base = `bookarc://book/${bookHash}/annotation/${noteId}`;
   return cfi ? `${base}?cfi=${encodeURIComponent(cfi)}` : base;
 };
 
 /**
- * Parse an incoming readest:// or https://web.readest.com annotation URL.
+ * Parse an incoming bookarc:// or https://web.bookarc.app annotation URL.
+ * Also accepts the legacy readest:// scheme for backward compatibility.
  * Accepts the new hierarchical form (book/{hash}/annotation/{id}) and the
  * legacy flat form (annotation/{hash}/{id}) emitted by older Readwise syncs.
  * Returns null if the URL doesn't match.
@@ -42,13 +43,14 @@ export const parseAnnotationDeepLink = (url: string): AnnotationDeepLink | null 
     return null;
   }
 
-  const isCustomScheme = parsed.protocol === 'readest:';
+  const isCustomScheme = parsed.protocol === 'bookarc:' || parsed.protocol === 'readest:';
+  const webHost = new URL(READEST_WEB_BASE_URL).host;
   const isWebHost =
     (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
-    parsed.host === 'web.readest.com';
+    (parsed.host === webHost || parsed.host === 'web.readest.com');
   if (!isCustomScheme && !isWebHost) return null;
 
-  // For readest:// URLs the URL parser stores the first path segment in the
+  // For bookarc:// URLs the URL parser stores the first path segment in the
   // host. Reconstruct a uniform segment list across both schemes.
   const segments: string[] = isCustomScheme
     ? [parsed.host, ...parsed.pathname.split('/')].filter(Boolean)

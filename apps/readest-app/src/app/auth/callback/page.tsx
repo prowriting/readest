@@ -16,7 +16,9 @@ export default function AuthCallback() {
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');
     const type = params.get('type');
-    const next = params.get('next') ?? '/';
+    const storedNext = sessionStorage.getItem('auth_return_url');
+    sessionStorage.removeItem('auth_return_url');
+    const next = storedNext ?? params.get('next') ?? '/';
     const error = params.get('error');
     const errorDescription = params.get('error_description');
     const errorCode = params.get('error_code');

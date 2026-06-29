@@ -3,11 +3,14 @@ import { getCurrent } from '@tauri-apps/plugin-deep-link';
 import { isTauriAppPlatform } from '@/services/environment';
 import { fetchBookByCode, BookCodeError } from '@/services/bookCode';
 import { eventDispatcher } from '@/utils/event';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from './useTranslation';
 
 // Prevents re-processing on hook remounts (library → reader → library)
 let coldStartConsumed = false;
 let webCodeConsumed = false;
+
+const PENDING_CLAIM_KEY = 'bookarc_pending_claim_url';
 
 function extractCode(url: string): string | null {
   try {
@@ -30,14 +33,26 @@ const ERROR_MESSAGES: Record<number, string> = {
  * and ?code= web URL parameter, looks up the book via the API, and
  * dispatches 'book-code-found' for BookCodeDialog to display.
  * Shows a toast for error responses.
+ *
+ * If the user is not logged in when a code arrives, the URL is stored in
+ * localStorage and replayed once the user signs in.
  */
 export function useOpenWithCode() {
   const _ = useTranslation();
+  const { user } = useAuth();
   const processing = useRef(false);
 
   const handleUrl = async (url: string) => {
     const code = extractCode(url);
     if (!code || processing.current) return;
+
+    // Defer until the user is authenticated — the API requires a session.
+    if (!user) {
+      localStorage.setItem(PENDING_CLAIM_KEY, url);
+      eventDispatcher.dispatch('book-code-pending', {});
+      return;
+    }
+
     processing.current = true;
     try {
       const result = await fetchBookByCode(code);
@@ -53,6 +68,16 @@ export function useOpenWithCode() {
       processing.current = false;
     }
   };
+
+  // Replay a pending claim code that arrived before the user was logged in.
+  useEffect(() => {
+    if (!user) return;
+    const pending = localStorage.getItem(PENDING_CLAIM_KEY);
+    if (!pending) return;
+    localStorage.removeItem(PENDING_CLAIM_KEY);
+    void handleUrl(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     // Web: read ?code= from the page URL once on mount

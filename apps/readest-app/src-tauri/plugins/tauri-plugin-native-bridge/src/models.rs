@@ -360,3 +360,9 @@ pub struct SendToKindleResponse {
     pub saved_path: String,
     pub helper_message: String,
 }
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetInstallReferrerResponse {
+    pub referrer: String,
+}

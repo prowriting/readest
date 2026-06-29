@@ -529,9 +529,9 @@ describe('renderNoteTemplate', () => {
           annotations: [
             {
               text: 'quote',
-              webLink: 'https://web.readest.com/o/book/abc/annotation/n1',
-              appLink: 'readest://book/abc/annotation/n1',
-              link: 'https://web.readest.com/o/book/abc/annotation/n1',
+              webLink: 'https://web.bookarc.app/o/book/abc/annotation/n1',
+              appLink: 'bookarc://book/abc/annotation/n1',
+              link: 'https://web.bookarc.app/o/book/abc/annotation/n1',
             },
           ],
         },
@@ -541,19 +541,19 @@ describe('renderNoteTemplate', () => {
     it('should render annotation.webLink', () => {
       const template = '{{ chapters[0].annotations[0].webLink }}';
       const result = renderNoteTemplate(template, linkData);
-      expect(result).toBe('https://web.readest.com/o/book/abc/annotation/n1');
+      expect(result).toBe('https://web.bookarc.app/o/book/abc/annotation/n1');
     });
 
-    it('should render annotation.appLink with readest:// scheme', () => {
+    it('should render annotation.appLink with bookarc:// scheme', () => {
       const template = '{{ chapters[0].annotations[0].appLink }}';
       const result = renderNoteTemplate(template, linkData);
-      expect(result).toBe('readest://book/abc/annotation/n1');
+      expect(result).toBe('bookarc://book/abc/annotation/n1');
     });
 
     it('should still render legacy annotation.link', () => {
       const template = '{{ chapters[0].annotations[0].link }}';
       const result = renderNoteTemplate(template, linkData);
-      expect(result).toBe('https://web.readest.com/o/book/abc/annotation/n1');
+      expect(result).toBe('https://web.bookarc.app/o/book/abc/annotation/n1');
     });
   });
 

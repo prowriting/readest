@@ -87,6 +87,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::detect_kindle,
             commands::send_to_kindle_app,
             commands::send_to_kindle_cloud,
+            commands::get_install_referrer,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

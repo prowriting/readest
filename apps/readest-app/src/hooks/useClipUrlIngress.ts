@@ -124,12 +124,15 @@ export function useClipUrlIngress() {
       // we can share the http(s) clip path with the Android side:
       //
       //   - Universal Link (primary):
-      //       https://web.readest.com/clip?url=<encoded>
+      //       https://web.bookarc.app/clip?url=<encoded>
       //   - Custom URL scheme (fallback):
-      //       readest://clip?url=<encoded>
+      //       bookarc://clip?url=<encoded>
       const isClipUrl =
+        url.startsWith('bookarc://clip?') ||
+        url.startsWith('bookarc://clip/') ||
         url.startsWith('readest://clip?') ||
         url.startsWith('readest://clip/') ||
+        /^https:\/\/web\.bookarc\.app\/clip(?:[/?].*)?$/i.test(url) ||
         /^https:\/\/web\.readest\.com\/clip(?:[/?].*)?$/i.test(url);
       if (isClipUrl) {
         try {

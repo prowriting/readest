@@ -35,6 +35,7 @@ WORKDIR /app
 # NEXT_PUBLIC_* vars are baked into the bundle at build time
 ARG NEXT_PUBLIC_APP_PLATFORM=web
 ARG NEXT_PUBLIC_API_BASE_URL=https://reader.bookarc.app
+ARG NEXT_PUBLIC_AUTHOR_BASE_URL=https://author.bookarc.app
 ARG NEXT_PUBLIC_OBJECT_STORAGE_TYPE
 ARG NEXT_PUBLIC_STORAGE_FIXED_QUOTA
 ARG NEXT_PUBLIC_TRANSLATION_FIXED_QUOTA
@@ -54,6 +55,6 @@ WORKDIR /app
 COPY --from=build --chown=appuser:appgroup /app /app
 USER appuser
 WORKDIR /app/apps/readest-app
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production PORT=3000 NEXT_PUBLIC_APP_PLATFORM=web
 EXPOSE 3000
 ENTRYPOINT ["node_modules/.bin/next", "start", "-H", "0.0.0.0", "-p", "3000"]

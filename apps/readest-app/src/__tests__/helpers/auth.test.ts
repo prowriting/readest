@@ -1,43 +1,34 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { User, AuthError } from '@supabase/supabase-js';
-
-// Mock supabase before importing the module under test
-const mockSetSession = vi.fn();
-const mockGetUser = vi.fn();
-
-vi.mock('@/utils/supabase', () => ({
-  supabase: {
-    auth: {
-      setSession: (...args: unknown[]) => mockSetSession(...args),
-      getUser: () => mockGetUser(),
-    },
-  },
-}));
+import type { AuthUser } from '@/context/AuthContext';
 
 import { handleAuthCallback } from '@/helpers/auth';
 
+const fakeUser: AuthUser = {
+  id: 'user-123',
+  email: 'test@example.com',
+  displayName: 'Test User',
+  plan: 'free',
+  createdAt: '2024-01-01T00:00:00Z',
+};
+
 describe('handleAuthCallback', () => {
-  let mockLogin: ReturnType<typeof vi.fn<(accessToken: string, user: User) => void>>;
+  let mockLogin: ReturnType<typeof vi.fn<(accessToken: string, user: AuthUser) => void>>;
   let mockNavigate: ReturnType<typeof vi.fn<(path: string) => void>>;
 
-  const fakeUser: User = {
-    id: 'user-123',
-    app_metadata: {},
-    user_metadata: {},
-    aud: 'authenticated',
-    created_at: '2024-01-01T00:00:00Z',
-  } as User;
-
   beforeEach(() => {
-    mockLogin = vi.fn<(accessToken: string, user: User) => void>();
+    mockLogin = vi.fn<(accessToken: string, user: AuthUser) => void>();
     mockNavigate = vi.fn<(path: string) => void>();
-    mockSetSession.mockReset();
-    mockGetUser.mockReset();
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should navigate to /auth/error when error is present', async () => {
@@ -49,13 +40,11 @@ describe('handleAuthCallback', () => {
       error: 'some_error',
     });
 
-    // Wait for the async finalizeSession to complete
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/auth/error');
     });
 
     expect(mockLogin).not.toHaveBeenCalled();
-    expect(mockSetSession).not.toHaveBeenCalled();
   });
 
   it('should navigate to /library when accessToken is missing', async () => {
@@ -99,14 +88,8 @@ describe('handleAuthCallback', () => {
     });
   });
 
-  it('should navigate to /auth/error when setSession fails', async () => {
-    const sessionError: AuthError = {
-      message: 'Invalid token',
-      name: 'AuthError',
-      status: 401,
-    } as AuthError;
-
-    mockSetSession.mockResolvedValue({ error: sessionError });
+  it('should navigate to /auth/error when /auth/me returns non-ok', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
 
     handleAuthCallback({
       accessToken: 'bad-token',
@@ -119,16 +102,11 @@ describe('handleAuthCallback', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/auth/error');
     });
 
-    expect(mockSetSession).toHaveBeenCalledWith({
-      access_token: 'bad-token',
-      refresh_token: 'bad-refresh',
-    });
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
   it('should login and navigate to next URL on successful auth', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: fakeUser } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => fakeUser }));
 
     handleAuthCallback({
       accessToken: 'good-token',
@@ -146,8 +124,7 @@ describe('handleAuthCallback', () => {
   });
 
   it('should default next to "/" when not specified', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: fakeUser } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => fakeUser }));
 
     handleAuthCallback({
       accessToken: 'token',
@@ -162,8 +139,7 @@ describe('handleAuthCallback', () => {
   });
 
   it('should navigate to /auth/recovery when type is "recovery"', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: fakeUser } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => fakeUser }));
 
     handleAuthCallback({
       accessToken: 'token',
@@ -179,13 +155,11 @@ describe('handleAuthCallback', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('/auth/recovery');
-    // Should NOT navigate to next when type is recovery
     expect(mockNavigate).not.toHaveBeenCalledWith('/some-page');
   });
 
-  it('should navigate to /auth/error when getUser returns null user', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('should navigate to /auth/error when fetch throws', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 
     handleAuthCallback({
       accessToken: 'token',
@@ -199,42 +173,5 @@ describe('handleAuthCallback', () => {
     });
 
     expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it('should not call login when user is undefined from getUser', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: undefined } });
-
-    handleAuthCallback({
-      accessToken: 'token',
-      refreshToken: 'refresh',
-      login: mockLogin,
-      navigate: mockNavigate,
-    });
-
-    await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/error');
-    });
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it('should pass the correct session parameters to setSession', async () => {
-    mockSetSession.mockResolvedValue({ error: null });
-    mockGetUser.mockResolvedValue({ data: { user: fakeUser } });
-
-    handleAuthCallback({
-      accessToken: 'my-access-token',
-      refreshToken: 'my-refresh-token',
-      login: mockLogin,
-      navigate: mockNavigate,
-    });
-
-    await vi.waitFor(() => {
-      expect(mockSetSession).toHaveBeenCalledWith({
-        access_token: 'my-access-token',
-        refresh_token: 'my-refresh-token',
-      });
-    });
   });
 });

@@ -41,6 +41,7 @@ CONTAINER_ENV_ID="${CONTAINER_ENV_ID:?Set CONTAINER_ENV_ID}"
 
 CUSTOM_HOSTNAME="${CUSTOM_HOSTNAME:-web.bookarc.app}"
 API_BASE_URL="${API_BASE_URL:-https://reader.bookarc.app}"
+AUTHOR_BASE_URL="${AUTHOR_BASE_URL:-https://author.bookarc.app}"
 USE_APPLE_SIGN_IN="${USE_APPLE_SIGN_IN:-true}"
 
 CONTAINER_APP_NAME="${APP_NAME}-${ENV}"
@@ -80,6 +81,7 @@ az acr build \
     --agent-pool-tier S3 \
     --file Dockerfile \
     --build-arg "NEXT_PUBLIC_API_BASE_URL=${API_BASE_URL}" \
+    --build-arg "NEXT_PUBLIC_AUTHOR_BASE_URL=${AUTHOR_BASE_URL}" \
     --build-arg "NEXT_PUBLIC_APP_PLATFORM=web" \
     --build-arg "NEXT_PUBLIC_USE_APPLE_SIGN_IN=${USE_APPLE_SIGN_IN}" \
     . 2>/dev/null \
@@ -91,6 +93,7 @@ az acr build \
     --platform linux/amd64 \
     --file Dockerfile \
     --build-arg "NEXT_PUBLIC_API_BASE_URL=${API_BASE_URL}" \
+    --build-arg "NEXT_PUBLIC_AUTHOR_BASE_URL=${AUTHOR_BASE_URL}" \
     --build-arg "NEXT_PUBLIC_APP_PLATFORM=web" \
     --build-arg "NEXT_PUBLIC_USE_APPLE_SIGN_IN=${USE_APPLE_SIGN_IN}" \
     .

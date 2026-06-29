@@ -82,7 +82,7 @@ const ShareLanding = () => {
     };
   }, [token, _]);
 
-  const appHref = `readest://share/${encodeURIComponent(token)}`;
+  const appHref = `bookarc://share/${encodeURIComponent(token)}`;
 
   const handleAddToLibrary = async () => {
     if (!token || importing || !appService) return;
@@ -301,14 +301,14 @@ const ShareLanding = () => {
                     {_('Open in app')}
                   </a>
                   <p className='text-base-content/60 mt-1 text-center text-xs sm:text-left'>
-                    {_("Don't have Readest?")}{' '}
+                    {_("Don't have BookArc?")}{' '}
                     <a
                       href={DOWNLOAD_READEST_URL}
                       target='_blank'
                       rel='noopener'
                       className='text-primary font-medium hover:underline'
                     >
-                      {_('Download Readest')}
+                      {_('Download BookArc')}
                     </a>
                   </p>
                 </>

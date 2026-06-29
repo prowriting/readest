@@ -296,6 +296,10 @@ impl<R: Runtime> NativeBridge<R> {
     ) -> crate::Result<SendToKindleResponse> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+
+    pub fn get_install_referrer(&self) -> crate::Result<GetInstallReferrerResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
 }
 
 const KEYRING_SERVICE: &str = "Readest Safe Storage";

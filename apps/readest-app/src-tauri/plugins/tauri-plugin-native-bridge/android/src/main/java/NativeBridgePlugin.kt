@@ -138,6 +138,9 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
     private val billingManager by lazy {
         BillingManager(activity)
     }
+    private val installReferrerHelper by lazy {
+        InstallReferrerHelper(activity)
+    }
 
     companion object {
         private const val REQUEST_MANAGE_STORAGE = 1001
@@ -1038,6 +1041,18 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
             invoke.resolve(ret)
         } catch (e: Exception) {
             invoke.reject(e.message ?: "send_to_kindle_cloud failed")
+        }
+    }
+
+    // Returns the Google Play install referrer string (e.g. "claim_code=abc1234").
+    // Returns an empty string when not installed from Google Play (FOSS builds,
+    // sideloads, or when Play Store is unavailable).
+    @Command
+    fun get_install_referrer(invoke: Invoke) {
+        installReferrerHelper.getReferrer { referrer ->
+            val result = JSObject()
+            result.put("referrer", referrer)
+            invoke.resolve(result)
         }
     }
 }

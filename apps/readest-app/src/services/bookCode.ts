@@ -19,6 +19,9 @@ export type BookCodeResult = {
     coverImageUrl: string;
     description: string;
     format: string;
+    requestAnalytics?: boolean;
+    collectAnnotations?: boolean;
+    appOnlyReading?: boolean;
   };
   downloadRef: string;
   expiresAt: string;

@@ -265,8 +265,8 @@ const ProfilePage = () => {
     );
   }
 
-  const avatarUrl = user?.user_metadata?.['picture'] || user?.user_metadata?.['avatar_url'];
-  const userFullName = user?.user_metadata?.['full_name'] || '-';
+  const avatarUrl = undefined;
+  const userFullName = user?.displayName || '-';
   const userEmail = user?.email || '';
   const userPlanDetails =
     getPlanDetails(userProfilePlan, availablePlans) || getPlanDetails('free', availablePlans);

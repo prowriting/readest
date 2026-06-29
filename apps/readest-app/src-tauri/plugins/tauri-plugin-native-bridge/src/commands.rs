@@ -262,3 +262,10 @@ pub(crate) async fn send_to_kindle_cloud<R: Runtime>(
 ) -> Result<SendToKindleResponse> {
     app.native_bridge().send_to_kindle_cloud(payload)
 }
+
+#[command]
+pub(crate) async fn get_install_referrer<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<GetInstallReferrerResponse> {
+    app.native_bridge().get_install_referrer()
+}

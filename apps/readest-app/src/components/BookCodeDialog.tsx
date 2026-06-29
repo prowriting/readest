@@ -121,6 +121,9 @@ export const BookCodeDialog = () => {
       { appService: appService!, settings, isLoggedIn: !!user },
     );
     if (book) {
+      if (result?.book.requestAnalytics) {
+        book.analyticsStatus = 'ask';
+      }
       setLibrary(library);
       void appService!.saveLibraryBooks(library);
       void confirmGiftRedemption(result!.downloadRef);
@@ -369,7 +372,7 @@ export const BookCodeDialog = () => {
               )}
             </button>
 
-            {!isWebAppPlatform() && (
+            {!isWebAppPlatform() && !book.appOnlyReading && (
               <>
                 <button
                   className='btn btn-ghost w-full'
@@ -397,17 +400,19 @@ export const BookCodeDialog = () => {
               </>
             )}
 
-            <button
-              className='btn btn-ghost w-full'
-              onClick={handleSaveToDownloads}
-              disabled={busy}
-            >
-              {busyAction === 'downloads' ? (
-                <RiLoader2Line className='animate-spin' size={18} />
-              ) : (
-                _('Save to Downloads')
-              )}
-            </button>
+            {!book.appOnlyReading && (
+              <button
+                className='btn btn-ghost w-full'
+                onClick={handleSaveToDownloads}
+                disabled={busy}
+              >
+                {busyAction === 'downloads' ? (
+                  <RiLoader2Line className='animate-spin' size={18} />
+                ) : (
+                  _('Save to Downloads')
+                )}
+              </button>
+            )}
 
             <button
               className='btn btn-ghost text-base-content/50 w-full text-sm'

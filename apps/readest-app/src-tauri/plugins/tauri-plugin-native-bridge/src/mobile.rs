@@ -331,3 +331,11 @@ impl<R: Runtime> NativeBridge<R> {
             .map_err(Into::into)
     }
 }
+
+impl<R: Runtime> NativeBridge<R> {
+    pub fn get_install_referrer(&self) -> crate::Result<GetInstallReferrerResponse> {
+        self.0
+            .run_mobile_plugin("get_install_referrer", ())
+            .map_err(Into::into)
+    }
+}
