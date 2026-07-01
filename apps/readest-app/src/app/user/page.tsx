@@ -51,6 +51,10 @@ type CheckoutState = {
   planName: string;
 };
 
+// The plans/upgrade section is hidden on the profile screen for now. Flip to true to bring it
+// back; the Stripe/IAP subscribe + checkout code below stays wired up in the meantime.
+const SHOW_PLANS_SECTION = false;
+
 const ProfilePage = () => {
   const _ = useTranslation();
   const router = useRouter();
@@ -331,17 +335,19 @@ const ProfilePage = () => {
                   </div>
                 ) : (
                   <>
-                    <div className='flex flex-col gap-y-8 sm:px-6'>
-                      <PlansComparison
-                        availablePlans={availablePlans}
-                        userPlan={userProfilePlan}
-                        onSubscribe={
-                          appService.hasIAP && iapAvailable
-                            ? handleIAPSubscribe
-                            : handleStripeSubscribe
-                        }
-                      />
-                    </div>
+                    {SHOW_PLANS_SECTION && (
+                      <div className='flex flex-col gap-y-8 sm:px-6'>
+                        <PlansComparison
+                          availablePlans={availablePlans}
+                          userPlan={userProfilePlan}
+                          onSubscribe={
+                            appService.hasIAP && iapAvailable
+                              ? handleIAPSubscribe
+                              : handleStripeSubscribe
+                          }
+                        />
+                      </div>
+                    )}
                     <div className='flex flex-col gap-y-8 px-6'>
                       <AccountActions
                         userPlan={userProfilePlan}
