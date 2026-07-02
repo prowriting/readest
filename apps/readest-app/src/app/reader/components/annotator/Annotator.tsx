@@ -55,6 +55,7 @@ import {
   removeGlobalAnnotationOverlays,
   sourceCfiFromSyntheticValue,
 } from '../../utils/globalAnnotations';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { annotationToolButtons } from './AnnotationTools';
 import AnnotationRangeEditor from './AnnotationRangeEditor';
 import AnnotationPopup from './AnnotationPopup';
@@ -987,9 +988,6 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
       onReadAloudSelection: () => {
         handleSpeakText();
       },
-      onProofreadSelection: () => {
-        handleProofread();
-      },
     },
     [selection?.text],
   );
@@ -1349,7 +1347,7 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
             />
           );
         })()}
-      {showDeepLPopup && trianglePosition && translatorPopupPosition && (
+      {TRANSLATION_ENABLED && showDeepLPopup && trianglePosition && translatorPopupPosition && (
         <TranslatorPopup
           text={selection?.text as string}
           position={translatorPopupPosition}

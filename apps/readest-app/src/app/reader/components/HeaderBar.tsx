@@ -28,6 +28,7 @@ import SidebarToggler from './SidebarToggler';
 import BookmarkToggler from './BookmarkToggler';
 import NotebookToggler from './NotebookToggler';
 import SettingsToggler from './SettingsToggler';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import TranslationToggler from './TranslationToggler';
 import ViewMenu from './ViewMenu';
 import SyncInfoDialog from './SyncInfoDialog';
@@ -222,7 +223,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
               <VscLibrary size={iconSize18} className='fill-base-content' />
             </button>
             <BookmarkToggler bookKey={bookKey} />
-            <TranslationToggler bookKey={bookKey} />
+            {TRANSLATION_ENABLED && <TranslationToggler bookKey={bookKey} />}
           </div>
           {enableAnnotationQuickActions && (
             <Dropdown

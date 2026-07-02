@@ -113,6 +113,14 @@ export const navigateToProfile = (router: ReturnType<typeof useRouter>) => {
   router.push('/user');
 };
 
+export const navigateToDiscover = (router: ReturnType<typeof useRouter>) => {
+  router.push('/discover');
+};
+
+export const navigateToClaim = (router: ReturnType<typeof useRouter>) => {
+  router.push('/claim');
+};
+
 export const navigateToLibrary = (
   router: ReturnType<typeof useRouter>,
   queryParams?: string,

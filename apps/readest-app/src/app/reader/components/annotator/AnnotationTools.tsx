@@ -8,6 +8,7 @@ import { TbHexagonLetterD } from 'react-icons/tb';
 import { FaHeadphones } from 'react-icons/fa6';
 import { IoIosBuild } from 'react-icons/io';
 import { AnnotationToolType } from '@/types/annotator';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { stubTranslation as _ } from '@/utils/misc';
 
 type AnnotationToolButton = {
@@ -34,7 +35,7 @@ function createAnnotationToolButtons<T extends AnnotationToolType>(
   return buttons;
 }
 
-export const annotationToolButtons = createAnnotationToolButtons([
+const allAnnotationToolButtons = createAnnotationToolButtons([
   {
     type: 'copy',
     label: _('Copy'),
@@ -90,6 +91,17 @@ export const annotationToolButtons = createAnnotationToolButtons([
     Icon: IoIosBuild,
   },
 ]);
+
+// Tools omitted from the selection toolbar and quick actions. The "Proofread"
+// tool is removed outright; "Translate" is dropped while its feature flag is
+// off. (The array above must stay complete to satisfy createAnnotationToolButtons'
+// exhaustiveness check, so we filter here rather than deleting the entries.)
+const excludedToolTypes = new Set<AnnotationToolType>(['proofread']);
+if (!TRANSLATION_ENABLED) excludedToolTypes.add('translate');
+
+export const annotationToolButtons = allAnnotationToolButtons.filter(
+  (button) => !excludedToolTypes.has(button.type),
+);
 
 export const annotationToolQuickActions = annotationToolButtons.filter(
   (button) => button.quickAction,

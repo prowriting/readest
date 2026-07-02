@@ -20,6 +20,7 @@ import {
   LibrarySortByType,
   LibraryViewModeType,
 } from '@/types/settings';
+import { BOOK_SHARING_ENABLED } from '@/services/constants';
 import { useEnv } from '@/context/EnvContext';
 import { useThemeStore } from '@/store/themeStore';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
@@ -745,11 +746,13 @@ const Bookshelf: React.FC<BookshelfProps> = ({
           onUpdateStatus={updateBooksStatus}
         />
       )}
-      <ShareBookDialog
-        isOpen={!!shareDialogBook}
-        book={shareDialogBook}
-        onClose={() => setShareDialogBook(null)}
-      />
+      {BOOK_SHARING_ENABLED && (
+        <ShareBookDialog
+          isOpen={!!shareDialogBook}
+          book={shareDialogBook}
+          onClose={() => setShareDialogBook(null)}
+        />
+      )}
     </div>
   );
 };

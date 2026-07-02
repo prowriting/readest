@@ -807,7 +807,7 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
     // reads/writes via these commands so the user's sync passphrase
     // persists across app launches.
 
-    private val syncPrefsName = "readest_sync_passphrase_v1"
+    private val syncPrefsName = "bookarc_sync_passphrase_v1"
     private val syncPrefsKey = "passphrase"
 
     private fun openSyncPrefs(): android.content.SharedPreferences {

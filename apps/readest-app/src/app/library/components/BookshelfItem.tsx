@@ -13,7 +13,7 @@ import { getOSPlatform } from '@/utils/misc';
 import { throttle } from '@/utils/throttle';
 import { navigateToReader, showReaderWindow } from '@/utils/nav';
 import { LibraryCoverFitType, LibraryViewModeType } from '@/types/settings';
-import { BOOK_UNGROUPED_ID, BOOK_UNGROUPED_NAME } from '@/services/constants';
+import { BOOK_SHARING_ENABLED, BOOK_UNGROUPED_ID, BOOK_UNGROUPED_NAME } from '@/services/constants';
 import { FILE_REVEAL_LABELS, FILE_REVEAL_PLATFORMS } from '@/utils/os';
 import { Book, BooksGroup, ReadingStatus } from '@/types/book';
 import { md5Fingerprint } from '@/utils/md5';
@@ -310,7 +310,7 @@ const BookshelfItem: React.FC<BookshelfItemProps> = ({
     }
     // Share is offered for any local-or-uploaded book; the dialog will trigger
     // an upload first if the book hasn't been pushed yet.
-    if (book.downloadedAt || book.uploadedAt) {
+    if (BOOK_SHARING_ENABLED && (book.downloadedAt || book.uploadedAt)) {
       menu.append(shareBookMenuItem);
     }
     menu.append(deleteBookMenuItem);

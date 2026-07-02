@@ -83,10 +83,11 @@ const nextConfig = {
   ],
   async rewrites() {
     return [
-      // In web-dev mode the app calls /api relative to localhost — proxy to the deployed API.
+      // In web-dev mode the app calls /api relative to localhost — proxy to the deployed
+      // API, or to a local backend via DEV_API_PROXY_TARGET (e.g. http://localhost:5180).
       ...(isDev ? [{
         source: '/api/:path*',
-        destination: 'https://reader.bookarc.app/api/:path*',
+        destination: `${process.env.DEV_API_PROXY_TARGET ?? 'https://reader.bookarc.app'}/api/:path*`,
       }] : []),
       {
         source: '/reader/:ids',

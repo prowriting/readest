@@ -5,7 +5,6 @@ import { FaSearch } from 'react-icons/fa';
 import { PiPlus } from 'react-icons/pi';
 import { PiSelectionAll, PiSelectionAllFill } from 'react-icons/pi';
 import { PiDotsThreeCircle } from 'react-icons/pi';
-import { MdOutlineMenu } from 'react-icons/md';
 import { IoMdCloseCircle } from 'react-icons/io';
 
 import { useEnv } from '@/context/EnvContext';
@@ -18,14 +17,12 @@ import { debounce } from '@/utils/debounce';
 import useShortcuts from '@/hooks/useShortcuts';
 import WindowButtons from '@/components/WindowButtons';
 import Dropdown from '@/components/Dropdown';
-import SettingsMenu from './SettingsMenu';
 import ImportMenu from './ImportMenu';
 import ViewMenu from './ViewMenu';
 
 interface LibraryHeaderProps {
   isSelectMode: boolean;
   isSelectAll: boolean;
-  onPullLibrary: () => void;
   onImportBooksFromFiles: () => void;
   onImportBooksFromDirectory?: () => void;
   onImportBookFromUrl?: () => void;
@@ -38,7 +35,6 @@ interface LibraryHeaderProps {
 const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   isSelectMode,
   isSelectAll,
-  onPullLibrary,
   onImportBooksFromFiles,
   onImportBooksFromDirectory,
   onImportBookFromUrl,
@@ -208,14 +204,8 @@ const LibraryHeader: React.FC<LibraryHeaderProps> = ({
             >
               <ViewMenu />
             </Dropdown>
-            <Dropdown
-              label={_('Settings Menu')}
-              className='exclude-title-bar-mousedown dropdown-bottom dropdown-end'
-              buttonClassName='btn btn-ghost h-8 min-h-8 w-8 p-0'
-              toggleButton={<MdOutlineMenu role='none' size={iconSize18} />}
-            >
-              <SettingsMenu onPullLibrary={onPullLibrary} />
-            </Dropdown>
+            {/* The settings ("hamburger") menu moved to the More tab in the
+                bottom navigation — it is the single entry point now (MOR-4). */}
             {appService?.hasWindowBar && (
               <WindowButtons
                 headerRef={headerRef}

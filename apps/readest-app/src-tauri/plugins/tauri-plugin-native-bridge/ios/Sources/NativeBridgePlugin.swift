@@ -1161,7 +1161,7 @@ class NativeBridgePlugin: Plugin {
   // CryptoSession reads/writes via these commands so the user's sync
   // passphrase persists across app launches.
 
-  private static let syncKeychainService = "com.bilingify.readest.sync-passphrase"
+  private static let syncKeychainService = "com.bookarc.app.sync-passphrase"
   private static let syncKeychainAccount = "default"
 
   private func syncKeychainBaseQuery() -> [String: Any] {

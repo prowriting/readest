@@ -18,8 +18,8 @@
       "allow": [
         { "path": "**/.readest-test-sandbox-tauri" },
         { "path": "**/.readest-test-sandbox-tauri/**" },
-        { "path": "**/Readest" },
-        { "path": "**/Readest/**" }
+        { "path": "**/Bookarc" },
+        { "path": "**/Bookarc/**" }
       ]
     },
     "os:default",

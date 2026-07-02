@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { QuotaType, UserPlan } from '@/types/quota';
 import { getStoragePlanData, getTranslationPlanData, getUserProfilePlan } from '@/utils/access';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { useTranslation } from './useTranslation';
 
 export const useQuotaStats = (briefName = false) => {
@@ -42,7 +43,7 @@ export const useQuotaStats = (briefName = false) => {
       resetAt: translationResetAt,
     };
     setUserProfilePlan(getUserProfilePlan(token));
-    setQuotas([storageQuota, translationQuota]);
+    setQuotas(TRANSLATION_ENABLED ? [storageQuota, translationQuota] : [storageQuota]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 

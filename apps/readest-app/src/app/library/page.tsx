@@ -38,7 +38,6 @@ import { useBooksSync } from './hooks/useBooksSync';
 import { useInboxDrainer } from '@/hooks/useInboxDrainer';
 import { useOPDSSubscriptions } from '@/hooks/useOPDSSubscriptions';
 import { useBookDataStore } from '@/store/bookDataStore';
-import { useTransferStore } from '@/store/transferStore';
 import { useScreenWakeLock } from '@/hooks/useScreenWakeLock';
 import { useAppUrlIngress } from '@/hooks/useAppUrlIngress';
 import { useOpenWithBooks } from '@/hooks/useOpenWithBooks';
@@ -61,14 +60,11 @@ import {
 
 import { LibraryGroupByType } from '@/types/settings';
 import { BookMetadata } from '@/libs/document';
-import { AboutWindow } from '@/components/AboutWindow';
 import { BookCodeDialog } from '@/components/BookCodeDialog';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 import { BookDetailModal } from '@/components/metadata';
 import { UpdaterWindow } from '@/components/UpdaterWindow';
 import { CatalogDialog } from './components/OPDSDialog';
-import { MigrateDataWindow } from './components/MigrateDataWindow';
-import { BackupWindow } from './components/BackupWindow';
 import { useDragDropImport } from './hooks/useDragDropImport';
 import { useTransferQueue } from '@/hooks/useTransferQueue';
 import { useAppRouter } from '@/hooks/useAppRouter';
@@ -81,6 +77,7 @@ import {
 } from './utils/libraryUtils';
 import Spinner from '@/components/Spinner';
 import LibraryHeader from './components/LibraryHeader';
+import BottomTabBar from '@/components/navigation/BottomTabBar';
 import Bookshelf from './components/Bookshelf';
 import LibraryEmptyState from './components/LibraryEmptyState';
 import GroupHeader from './components/GroupHeader';
@@ -96,9 +93,7 @@ import useShortcuts from '@/hooks/useShortcuts';
 import { useReplicaPull } from '@/hooks/useReplicaPull';
 import { useCustomFonts } from '@/hooks/useCustomFonts';
 import DropIndicator from '@/components/DropIndicator';
-import SettingsDialog from '@/components/settings/SettingsDialog';
-import ModalPortal from '@/components/ModalPortal';
-import TransferQueuePanel from './components/TransferQueuePanel';
+import TopLevelMenuDialogs from '@/components/navigation/TopLevelMenuDialogs';
 
 /**
  * Key used to persist the last directory the user imported books from.
@@ -161,8 +156,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   const { safeAreaInsets: insets, isRoundedWindow } = useThemeStore();
   const { clearBookData } = useBookDataStore();
   const { settings, setSettings, saveSettings } = useSettingsStore();
-  const { isSettingsDialogOpen, setSettingsDialogOpen } = useSettingsStore();
-  const { isTransferQueueOpen } = useTransferStore();
+  const { setSettingsDialogOpen } = useSettingsStore();
 
   // Library page pulls user replicas (dictionaries, custom fonts,
   // background textures, OPDS catalogs, bundled settings). Deferred
@@ -1338,7 +1332,6 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
         <LibraryHeader
           isSelectMode={isSelectMode}
           isSelectAll={isSelectAll}
-          onPullLibrary={pullLibrary}
           onImportBooksFromFiles={handleImportBooksFromFiles}
           onImportBooksFromDirectory={
             appService?.canReadExternalDir ? handleImportBooksFromDirectory : undefined
@@ -1439,11 +1432,12 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
             </div>
           </div>
         ) : (
-          <div className='hero drop-zone h-screen items-center justify-center'>
+          <div className='hero drop-zone min-h-0 flex-1 items-center justify-center'>
             <DropIndicator />
             <LibraryEmptyState onImport={handleImportBooksFromFiles} />
           </div>
         ))}
+      {!isSelectMode && <BottomTabBar active='library' onPullLibrary={pullLibrary} />}
       {showDetailsBook && (
         <BookDetailModal
           isOpen={!!showDetailsBook}
@@ -1457,18 +1451,10 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
           handleBookMetadataUpdate={handleUpdateMetadata}
         />
       )}
-      {isTransferQueueOpen && (
-        <ModalPortal>
-          <TransferQueuePanel />
-        </ModalPortal>
-      )}
-      <AboutWindow />
+      <TopLevelMenuDialogs onPullLibrary={pullLibrary} />
       <BookCodeDialog />
       <KeyboardShortcutsHelp />
       <UpdaterWindow />
-      <MigrateDataWindow />
-      <BackupWindow onPullLibrary={pullLibrary} />
-      {isSettingsDialogOpen && <SettingsDialog bookKey={''} />}
       {showCatalogManager && <CatalogDialog onClose={handleDismissOPDSDialog} />}
       {failedImportsModal && (
         <FailedImportsDialog

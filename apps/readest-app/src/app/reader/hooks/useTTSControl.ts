@@ -7,6 +7,7 @@ import { useReaderStore } from '@/store/readerStore';
 import { useProofreadStore } from '@/store/proofreadStore';
 import { TransformContext } from '@/services/transformers/types';
 import { proofreadTransformer } from '@/services/transformers/proofread';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TTSController, TTSMark, TTSHighlightOptions, TTSVoicesGroup } from '@/services/tts';
 import { TauriMediaSession } from '@/libs/mediaSession';
@@ -311,9 +312,9 @@ export const useTTSControl = ({ bookKey, onRequestHidePanel }: UseTTSControlProp
   const getTTSTargetLang = useCallback((): string | null => {
     const vs = getViewSettings(bookKey);
     const ttsReadAloudText = vs?.ttsReadAloudText;
-    if (vs?.translationEnabled && ttsReadAloudText === 'translated') {
+    if (TRANSLATION_ENABLED && vs?.translationEnabled && ttsReadAloudText === 'translated') {
       return vs?.translateTargetLang || getLocale();
-    } else if (vs?.translationEnabled && ttsReadAloudText === 'source') {
+    } else if (TRANSLATION_ENABLED && vs?.translationEnabled && ttsReadAloudText === 'source') {
       return bookData?.book?.primaryLanguage || '';
     }
     return null;

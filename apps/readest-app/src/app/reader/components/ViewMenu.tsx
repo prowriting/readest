@@ -11,7 +11,12 @@ import { IoShareOutline } from 'react-icons/io5';
 import { TbArrowAutofitWidth } from 'react-icons/tb';
 import { TbColumns1, TbColumns2 } from 'react-icons/tb';
 
-import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL, ZOOM_STEP } from '@/services/constants';
+import {
+  BOOK_SHARING_ENABLED,
+  MAX_ZOOM_LEVEL,
+  MIN_ZOOM_LEVEL,
+  ZOOM_STEP,
+} from '@/services/constants';
 import { useEnv } from '@/context/EnvContext';
 import { useAuth } from '@/context/AuthContext';
 import { useThemeStore } from '@/store/themeStore';
@@ -378,9 +383,12 @@ const ViewMenu: React.FC<ViewMenuProps> = ({
         onClick={() => setInvertImgColorInDark(!invertImgColorInDark)}
       />
 
-      <hr aria-hidden='true' className='border-base-300 my-1' />
-
-      <MenuItem label={_('Share Book')} Icon={IoShareOutline} onClick={handleShare} />
+      {BOOK_SHARING_ENABLED && (
+        <>
+          <hr aria-hidden='true' className='border-base-300 my-1' />
+          <MenuItem label={_('Share Book')} Icon={IoShareOutline} onClick={handleShare} />
+        </>
+      )}
     </Menu>
   );
 };

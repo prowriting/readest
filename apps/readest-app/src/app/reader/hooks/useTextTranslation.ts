@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FoliateView } from '@/types/view';
 import { UseTranslatorOptions } from '@/services/translators';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { useReaderStore } from '@/store/readerStore';
 import { useTranslator } from '@/hooks/useTranslator';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -20,7 +21,12 @@ export function useTextTranslation(
   const viewSettings = getViewSettings(bookKey);
   const progress = getProgress(bookKey);
 
-  const enabled = useRef(viewSettings?.translationEnabled);
+  // Content translation is behind a feature flag; when it's off, treat every
+  // book as translation-disabled so a book that had it persisted on stops
+  // injecting translations (there is no UI left to turn it off).
+  const translationOn = TRANSLATION_ENABLED && !!viewSettings?.translationEnabled;
+
+  const enabled = useRef(translationOn);
   const [provider, setProvider] = useState(viewSettings?.translationProvider);
   const [targetLang, setTargetLang] = useState(viewSettings?.translateTargetLang);
   const showTranslateSourceRef = useRef(viewSettings?.showTranslateSource);
@@ -99,7 +105,7 @@ export function useTextTranslation(
     });
 
     translatedElements.current = [];
-    if (viewSettings?.translationEnabled && view) {
+    if (translationOn && view) {
       recreateTranslationObserver();
     }
   };
@@ -347,14 +353,14 @@ export function useTextTranslation(
   useEffect(() => {
     if (!viewSettings) return;
 
-    const enabledChanged = enabled.current !== viewSettings.translationEnabled;
+    const enabledChanged = enabled.current !== translationOn;
     const providerChanged = provider !== viewSettings.translationProvider;
     const targetLangChanged = targetLang !== viewSettings.translateTargetLang;
     const showTranslateSourceChanged =
       showTranslateSourceRef.current !== viewSettings.showTranslateSource;
 
     if (enabledChanged) {
-      enabled.current = viewSettings.translationEnabled;
+      enabled.current = translationOn;
     }
 
     if (providerChanged) {
@@ -370,7 +376,7 @@ export function useTextTranslation(
     }
 
     if (enabledChanged) {
-      toggleTranslationVisibility(viewSettings.translationEnabled);
+      toggleTranslationVisibility(translationOn);
       if (enabled.current) {
         observeTextNodes();
       }

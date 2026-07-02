@@ -131,6 +131,13 @@ export async function loadSettings(ctx: Context): Promise<SystemSettings> {
     ...(ctx.isMobile ? DEFAULT_MOBILE_SYSTEM_SETTINGS : {}),
     ...settings,
   };
+  // One-time migration (settings v1 → v2): default "Keep Screen Awake" on so
+  // existing installs pick up the new default. Gated on the pre-upgrade
+  // version only — NOT on isAppDataSandbox, which can be true every launch and
+  // would otherwise re-force the value after a user turns it back off.
+  if (version < 2) {
+    settings.screenWakeLock = true;
+  }
   settings.globalReadSettings = {
     ...DEFAULT_READSETTINGS,
     ...(ctx.isMobile ? DEFAULT_MOBILE_READSETTINGS : {}),

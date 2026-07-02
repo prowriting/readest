@@ -15,6 +15,7 @@ import type { PlanType } from '@/types/quota';
 import { navigateToLibrary } from '@/utils/nav';
 import { eventDispatcher } from '@/utils/event';
 import { isTauriAppPlatform } from '@/services/environment';
+import { BOOK_SHARING_ENABLED } from '@/services/constants';
 import { getPlanDetails } from './utils/plan';
 import { Toast } from '@/components/Toast';
 import {
@@ -324,7 +325,7 @@ const ProfilePage = () => {
                   <div className='flex flex-col gap-y-8 px-6'>
                     <StorageManager />
                   </div>
-                ) : showSharedLinksManager ? (
+                ) : showSharedLinksManager && BOOK_SHARING_ENABLED ? (
                   <div className='flex flex-col gap-y-8 px-6'>
                     <SharedLinksSection />
                   </div>
@@ -359,7 +360,9 @@ const ProfilePage = () => {
                         onRestorePurchase={handleIAPRestorePurchase}
                         onManageSubscription={handleManageSubscription}
                         onManageStorage={handleManageStorage}
-                        onManageSharedLinks={handleManageSharedLinks}
+                        onManageSharedLinks={
+                          BOOK_SHARING_ENABLED ? handleManageSharedLinks : undefined
+                        }
                         onManageSync={handleManageSync}
                       />
                     </div>

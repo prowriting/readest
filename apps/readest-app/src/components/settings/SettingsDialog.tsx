@@ -21,6 +21,7 @@ import {
 import { FiSearch } from 'react-icons/fi';
 import { getDirFromUILanguage } from '@/utils/rtl';
 import { getCommandPaletteShortcut } from '@/services/environment';
+import { INTEGRATIONS_ENABLED } from '@/services/constants';
 import FontPanel from './FontPanel';
 import LayoutPanel from './LayoutPanel';
 import ColorPanel from './ColorPanel';
@@ -121,6 +122,7 @@ const SettingsDialog: React.FC<{ bookKey: string }> = ({ bookKey }) => {
       tab: 'Integrations',
       icon: RiShareLine,
       label: _('Integrations'),
+      disabled: !INTEGRATIONS_ENABLED,
     },
     {
       tab: 'Custom',
@@ -134,11 +136,11 @@ const SettingsDialog: React.FC<{ bookKey: string }> = ({ bookKey }) => {
     // dialog, honor that for the initial state. The store-clear lives in
     // a useEffect below so we never call a zustand setter during render
     // (would warn "Cannot update a component while rendering another").
-    if (requestedPanel && tabConfig.some((tab) => tab.tab === requestedPanel)) {
+    if (requestedPanel && tabConfig.some((tab) => tab.tab === requestedPanel && !tab.disabled)) {
       return requestedPanel as SettingsPanelType;
     }
     const lastPanel = localStorage.getItem('lastConfigPanel');
-    if (lastPanel && tabConfig.some((tab) => tab.tab === lastPanel)) {
+    if (lastPanel && tabConfig.some((tab) => tab.tab === lastPanel && !tab.disabled)) {
       return lastPanel as SettingsPanelType;
     }
     return 'Font' as SettingsPanelType;
@@ -468,7 +470,7 @@ const SettingsDialog: React.FC<{ bookKey: string }> = ({ bookKey }) => {
           />
         )}
         {activePanel === 'AI' && <AIPanel />}
-        {activePanel === 'Integrations' && <IntegrationsPanel />}
+        {INTEGRATIONS_ENABLED && activePanel === 'Integrations' && <IntegrationsPanel />}
         {activePanel === 'Custom' && (
           <MiscPanel
             bookKey={bookKey}

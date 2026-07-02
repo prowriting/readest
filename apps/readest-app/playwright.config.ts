@@ -14,7 +14,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Tests run unauthenticated against a fresh browser context, so each test
  * starts from an isolated, empty local library.
  */
-const PORT = 3000;
+// Defaults to 3000; override with PLAYWRIGHT_PORT to run alongside another dev
+// server already bound to 3000 (e.g. the BookArcWeb marketing site).
+const PORT = Number(process.env.PLAYWRIGHT_PORT) || 3000;
 
 export default defineConfig({
   testDir: './e2e/tests',
@@ -42,6 +44,9 @@ export default defineConfig({
     // `next-view-transitions` unhandled rejection, which intercepts clicks.
     command: process.env.CI ? 'pnpm start-web' : 'pnpm dev-web',
     port: PORT,
+    // Next.js reads PORT from the environment; passing it here keeps the dev
+    // server and `baseURL` on the same (optionally overridden) port.
+    env: { PORT: String(PORT) },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

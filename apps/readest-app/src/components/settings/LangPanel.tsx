@@ -13,7 +13,7 @@ import {
 } from '@/services/translators';
 import { useResetViewSettings } from '@/hooks/useResetSettings';
 import { useKeyDownActions } from '@/hooks/useKeyDownActions';
-import { TRANSLATED_LANGS, TRANSLATOR_LANGS } from '@/services/constants';
+import { TRANSLATED_LANGS, TRANSLATION_ENABLED, TRANSLATOR_LANGS } from '@/services/constants';
 import { ConvertChineseVariant } from '@/types/book';
 import { SettingsPanelPanelProp } from './SettingsDialog';
 import { getDirFromLanguage } from '@/utils/rtl';
@@ -306,46 +306,48 @@ const LangPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset 
         />
       </BoxedList>
 
-      <BoxedList title={_('Translation')} data-setting-id='settings.language.translationEnabled'>
-        <SettingsSwitchRow
-          label={_('Enable Translation')}
-          checked={translationEnabled}
-          onChange={() => setTranslationEnabled(!translationEnabled)}
-          disabled={!bookKey}
-        />
-        <SettingsSwitchRow
-          label={_('Show Source Text')}
-          checked={showTranslateSource}
-          onChange={() => setShowTranslateSource(!showTranslateSource)}
-        />
-        <SettingsRow label={_('TTS Text')} data-setting-id='settings.language.ttsTextTranslation'>
-          <SettingsSelect
-            value={ttsReadAloudText}
-            onChange={handleSelectTTSText}
-            ariaLabel={_('TTS Text')}
-            options={getTTSTextOptions()}
+      {TRANSLATION_ENABLED && (
+        <BoxedList title={_('Translation')} data-setting-id='settings.language.translationEnabled'>
+          <SettingsSwitchRow
+            label={_('Enable Translation')}
+            checked={translationEnabled}
+            onChange={() => setTranslationEnabled(!translationEnabled)}
+            disabled={!bookKey}
           />
-        </SettingsRow>
-        <SettingsRow
-          label={_('Translation Service')}
-          data-setting-id='settings.language.translationProvider'
-        >
-          <SettingsSelect
-            value={getCurrentTranslationProviderOption().value}
-            onChange={handleSelectTranslationProvider}
-            ariaLabel={_('Translation Service')}
-            options={getTranslationProviderOptions()}
+          <SettingsSwitchRow
+            label={_('Show Source Text')}
+            checked={showTranslateSource}
+            onChange={() => setShowTranslateSource(!showTranslateSource)}
           />
-        </SettingsRow>
-        <SettingsRow label={_('Translate To')} data-setting-id='settings.language.targetLanguage'>
-          <SettingsSelect
-            value={getCurrentTargetLangOption().value}
-            onChange={handleSelectTargetLang}
-            ariaLabel={_('Translate To')}
-            options={getLangOptions(TRANSLATOR_LANGS)}
-          />
-        </SettingsRow>
-      </BoxedList>
+          <SettingsRow label={_('TTS Text')} data-setting-id='settings.language.ttsTextTranslation'>
+            <SettingsSelect
+              value={ttsReadAloudText}
+              onChange={handleSelectTTSText}
+              ariaLabel={_('TTS Text')}
+              options={getTTSTextOptions()}
+            />
+          </SettingsRow>
+          <SettingsRow
+            label={_('Translation Service')}
+            data-setting-id='settings.language.translationProvider'
+          >
+            <SettingsSelect
+              value={getCurrentTranslationProviderOption().value}
+              onChange={handleSelectTranslationProvider}
+              ariaLabel={_('Translation Service')}
+              options={getTranslationProviderOptions()}
+            />
+          </SettingsRow>
+          <SettingsRow label={_('Translate To')} data-setting-id='settings.language.targetLanguage'>
+            <SettingsSelect
+              value={getCurrentTargetLangOption().value}
+              onChange={handleSelectTargetLang}
+              ariaLabel={_('Translate To')}
+              options={getLangOptions(TRANSLATOR_LANGS)}
+            />
+          </SettingsRow>
+        </BoxedList>
+      )}
 
       {(isCJKEnv() || view?.language.isCJK) && (
         <BoxedList title={_('Punctuation')} data-setting-id='settings.language.quotationMarks'>

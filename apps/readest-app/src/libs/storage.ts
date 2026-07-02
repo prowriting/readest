@@ -11,6 +11,11 @@ import {
   ProgressPayload,
 } from '@/utils/transfer';
 
+// Azure Blob Storage's "Put Blob" REST operation rejects a PUT to a SAS URL
+// with HTTP 400 unless x-ms-blob-type is set. The presigned-PUT path is shared
+// with S3/R2 (which ignore the unsigned header), so it's safe to always send.
+const AZURE_BLOB_UPLOAD_HEADERS: Record<string, string> = { 'x-ms-blob-type': 'BlockBlob' };
+
 const API_ENDPOINTS = {
   upload: getAPIBaseUrl() + '/storage/upload',
   download: getAPIBaseUrl() + '/storage/download',
@@ -63,9 +68,17 @@ export const uploadFile = async (
     const { uploadUrl, downloadUrl }: { uploadUrl: string; downloadUrl?: string } =
       await response.json();
     if (isWebAppPlatform()) {
-      await webUpload(file, uploadUrl, onProgress);
+      await webUpload(file, uploadUrl, onProgress, AZURE_BLOB_UPLOAD_HEADERS);
     } else {
-      await tauriUpload(uploadUrl, fileFullPath, 'PUT', onProgress);
+      // tauriUpload's TS type says Map, but its Tauri command deserialises a
+      // JSON object into HashMap<String, String>; a plain object is correct.
+      await tauriUpload(
+        uploadUrl,
+        fileFullPath,
+        'PUT',
+        onProgress,
+        AZURE_BLOB_UPLOAD_HEADERS as unknown as Map<string, string>,
+      );
     }
     return temp ? downloadUrl : undefined;
   } catch (error) {
@@ -107,9 +120,15 @@ export const uploadReplicaFile = async (
 
     const { uploadUrl }: { uploadUrl: string } = await response.json();
     if (isWebAppPlatform()) {
-      await webUpload(file, uploadUrl, onProgress);
+      await webUpload(file, uploadUrl, onProgress, AZURE_BLOB_UPLOAD_HEADERS);
     } else {
-      await tauriUpload(uploadUrl, fileFullPath, 'PUT', onProgress);
+      await tauriUpload(
+        uploadUrl,
+        fileFullPath,
+        'PUT',
+        onProgress,
+        AZURE_BLOB_UPLOAD_HEADERS as unknown as Map<string, string>,
+      );
     }
   } catch (error) {
     console.error('Replica file upload failed:', error);

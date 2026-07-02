@@ -123,11 +123,6 @@ const DEFAULT_SHORTCUTS = {
     description: _('Read Aloud Selection'),
     section: 'Selection',
   },
-  onProofreadSelection: {
-    keys: ['ctrl+p', 'cmd+p'],
-    description: _('Proofread Selection'),
-    section: 'Selection',
-  },
   onOpenFontLayoutSettings: {
     keys: ['shift+f', 'ctrl+,', 'cmd+,'],
     description: _('Open Settings'),

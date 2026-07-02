@@ -16,64 +16,68 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 const navigateToLoginMock = vi.fn();
+const navigateToDiscoverMock = vi.fn();
+const navigateToClaimMock = vi.fn();
 const routerStub = { push: vi.fn(), replace: vi.fn(), back: vi.fn() };
 vi.mock('@/hooks/useAppRouter', () => ({
   useAppRouter: () => routerStub,
 }));
 vi.mock('@/utils/nav', () => ({
   navigateToLogin: (...args: unknown[]) => navigateToLoginMock(...args),
-}));
-
-const useEnvMock = vi.fn();
-vi.mock('@/context/EnvContext', () => ({
-  useEnv: () => useEnvMock(),
+  navigateToDiscover: (...args: unknown[]) => navigateToDiscoverMock(...args),
+  navigateToClaim: (...args: unknown[]) => navigateToClaimMock(...args),
 }));
 
 afterEach(() => {
   cleanup();
   useAuthMock.mockReset();
   navigateToLoginMock.mockReset();
-  useEnvMock.mockReset();
+  navigateToDiscoverMock.mockReset();
+  navigateToClaimMock.mockReset();
 });
 
 describe('LibraryEmptyState', () => {
-  it('renders title, desktop description, and both CTAs when logged out on desktop', () => {
-    useEnvMock.mockReturnValue({ appService: { isMobile: false } });
+  it('renders the heading and the three inline action links plus sync when logged out', () => {
     useAuthMock.mockReturnValue({ user: null });
     render(<LibraryEmptyState onImport={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: 'Start your library' })).toBeTruthy();
-    expect(screen.getByText(/drop a book anywhere on this window/i)).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Import Books' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'importing a book' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'discovering a book in our library' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'claim code' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Sign in to sync your library' })).toBeTruthy();
   });
 
-  it('renders mobile description (no drag-drop language) when appService.isMobile', () => {
-    useEnvMock.mockReturnValue({ appService: { isMobile: true } });
+  it('leaves no [[token]] markers in the rendered sentence', () => {
     useAuthMock.mockReturnValue({ user: null });
-    render(<LibraryEmptyState onImport={vi.fn()} />);
+    const { container } = render(<LibraryEmptyState onImport={vi.fn()} />);
 
-    expect(screen.getByText(/pick a book from your device/i)).toBeTruthy();
-    expect(screen.queryByText(/drop a book anywhere on this window/i)).toBeNull();
+    expect(container.textContent).not.toMatch(/\[\[|\]\]/);
   });
 
   it('hides the sync button when the user is logged in', () => {
-    useEnvMock.mockReturnValue({ appService: { isMobile: false } });
     useAuthMock.mockReturnValue({ user: { id: 'stub-user' } });
     render(<LibraryEmptyState onImport={vi.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Import Books' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'importing a book' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Sign in to sync your library' })).toBeNull();
   });
 
-  it('calls onImport when the Import Books button is clicked', () => {
-    useEnvMock.mockReturnValue({ appService: { isMobile: false } });
+  it('wires each inline link to its action', () => {
     useAuthMock.mockReturnValue({ user: null });
     const handleImport = vi.fn();
     render(<LibraryEmptyState onImport={handleImport} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Import Books' }));
-
+    fireEvent.click(screen.getByRole('button', { name: 'importing a book' }));
     expect(handleImport).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'discovering a book in our library' }));
+    expect(navigateToDiscoverMock).toHaveBeenCalledWith(routerStub);
+
+    fireEvent.click(screen.getByRole('button', { name: 'claim code' }));
+    expect(navigateToClaimMock).toHaveBeenCalledWith(routerStub);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in to sync your library' }));
+    expect(navigateToLoginMock).toHaveBeenCalledWith(routerStub);
   });
 });

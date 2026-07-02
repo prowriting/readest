@@ -8,6 +8,7 @@ import { PiRobot, PiSpeakerHigh, PiSun, PiMoon } from 'react-icons/pi';
 import { TbSunMoon } from 'react-icons/tb';
 import { MdRefresh } from 'react-icons/md';
 import { IconType } from 'react-icons';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 import { stubTranslation as _ } from '@/utils/misc';
 
 export type CommandCategory = 'settings' | 'actions' | 'navigation';
@@ -724,8 +725,9 @@ export const buildCommandRegistry = (options: CommandRegistryOptions): CommandIt
     items.push(createSettingsItem(def, 'Control', 'Behavior'));
   }
 
-  // add language panel items
+  // add language panel items (translation entries are gated behind the flag)
   for (const def of languagePanelItems) {
+    if (!TRANSLATION_ENABLED && def.section === 'Translation') continue;
     items.push(createSettingsItem(def, 'Language'));
   }
 

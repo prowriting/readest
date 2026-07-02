@@ -7,7 +7,7 @@
 import Foundation
 
 enum AppGroupBridge {
-  static let suiteName = "group.com.bilingify.readest"
+  static let suiteName = "group.com.bookarc.app"
   static let groupsKey = "shareExtensionGroups"
   static let defaultGroupNameKey = "shareExtensionDefaultGroupName"
   static let pendingSavesKey = "shareExtensionPendingSaves"

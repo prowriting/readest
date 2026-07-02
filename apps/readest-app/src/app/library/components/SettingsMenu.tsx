@@ -9,7 +9,6 @@ import { MdCloudSync, MdSync, MdSyncProblem } from 'react-icons/md';
 import { invoke, PermissionState } from '@tauri-apps/api/core';
 import { isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { DOWNLOAD_READEST_URL } from '@/services/constants';
-import { setBackupDialogVisible } from '@/app/library/components/BackupWindow';
 import { useAuth } from '@/context/AuthContext';
 import { useEnv } from '@/context/EnvContext';
 import { useThemeStore } from '@/store/themeStore';
@@ -23,16 +22,12 @@ import { navigateToLogin, navigateToProfile } from '@/utils/nav';
 import { tauriHandleSetAlwaysOnTop, tauriHandleToggleFullScreen } from '@/utils/window';
 import { optInTelemetry, optOutTelemetry } from '@/utils/telemetry';
 import { setAboutDialogVisible } from '@/components/AboutWindow';
-import { setMigrateDataDirDialogVisible } from '@/app/library/components/MigrateDataWindow';
-import { requestStoragePermission } from '@/utils/permission';
 import { saveSysSettings } from '@/helpers/settings';
-import { selectDirectory } from '@/utils/bridge';
 import dayjs from 'dayjs';
 import UserAvatar from '@/components/UserAvatar';
 import MenuItem from '@/components/MenuItem';
 import Quota from '@/components/Quota';
 import Menu from '@/components/Menu';
-import { type AppLockDialogMode, useAppLockStore } from '@/store/appLockStore';
 
 interface SettingsMenuProps {
   onPullLibrary: (fullRefresh?: boolean, verbose?: boolean) => void;
@@ -49,7 +44,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
   const router = useRouter();
   const { envConfig, appService } = useEnv();
   const { user } = useAuth();
-  const { userProfilePlan, quotas } = useQuotaStats(true);
+  const { quotas } = useQuotaStats(true);
   const { themeMode, setThemeMode } = useThemeStore();
   const { settings, setSettingsDialogOpen } = useSettingsStore();
   const [isAutoUpload, setIsAutoUpload] = useState(settings.autoUpload);
@@ -62,21 +57,9 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
   );
   const [isTelemetryEnabled, setIsTelemetryEnabled] = useState(settings.telemetryEnabled);
   const [alwaysInForeground, setAlwaysInForeground] = useState(settings.alwaysInForeground);
-  const [savedBookCoverForLockScreen, setSavedBookCoverForLockScreen] = useState(
-    settings.savedBookCoverForLockScreen || '',
-  );
   const iconSize = useResponsiveSize(16);
 
-  const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
-  const [refreshMetadataProgress, setRefreshMetadataProgress] = useState('');
-  const { openDialog: openAppLockDialogInStore } = useAppLockStore();
-  const isPinEnabled = !!settings.pinCodeEnabled;
-
-  const openAppLockDialog = (mode: AppLockDialogMode) => {
-    openAppLockDialogInStore(mode);
-    setIsDropdownOpen?.(false);
-  };
-  const { isSyncing, setLibrary } = useLibraryStore();
+  const { isSyncing } = useLibraryStore();
   const { stats, hasActiveTransfers, setIsTransferQueueOpen } = useTransferQueue();
 
   const openTransferQueue = () => {
@@ -101,11 +84,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
 
   const handleUserProfile = () => {
     navigateToProfile(router);
-    setIsDropdownOpen?.(false);
-  };
-
-  const handleManageSync = () => {
-    router.push('/user?section=sync');
     setIsDropdownOpen?.(false);
   };
 
@@ -177,74 +155,9 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
     }
   };
 
-  const handleUpgrade = () => {
-    navigateToProfile(router);
-    setIsDropdownOpen?.(false);
-  };
-
-  const handleSetRootDir = () => {
-    setMigrateDataDirDialogVisible(true);
-    setIsDropdownOpen?.(false);
-  };
-
-  const handleBackupRestore = () => {
-    setIsDropdownOpen?.(false);
-    setBackupDialogVisible(true);
-  };
-
-  const handleRefreshMetadata = async () => {
-    if (!appService || isRefreshingMetadata) return;
-    setIsRefreshingMetadata(true);
-    setRefreshMetadataProgress(_('Loading library...'));
-    try {
-      const books = await appService.loadLibraryBooks();
-      const activeBooks = books.filter((b) => !b.deletedAt);
-      let refreshed = 0;
-      for (let i = 0; i < activeBooks.length; i++) {
-        setRefreshMetadataProgress(`${i + 1} / ${activeBooks.length}`);
-        try {
-          if (await appService.refreshBookMetadata(activeBooks[i]!)) {
-            refreshed++;
-          }
-        } catch {
-          // Skip books whose files can't be opened
-        }
-      }
-      setLibrary(books);
-      await appService.saveLibraryBooks(books);
-      setRefreshMetadataProgress(_('{{count}} books refreshed', { count: refreshed }));
-      onPullLibrary(true);
-      setTimeout(() => {
-        setIsRefreshingMetadata(false);
-        setRefreshMetadataProgress('');
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to refresh metadata:', error);
-      setRefreshMetadataProgress(_('Failed to refresh metadata'));
-      setTimeout(() => {
-        setIsRefreshingMetadata(false);
-        setRefreshMetadataProgress('');
-      }, 2000);
-    }
-  };
-
   const openSettingsDialog = () => {
     setIsDropdownOpen?.(false);
     setSettingsDialogOpen(true);
-  };
-
-  const handleSetSavedBookCoverForLockScreen = async () => {
-    if (!(await requestStoragePermission()) && appService?.distChannel === 'readest') return;
-
-    const newValue = settings.savedBookCoverForLockScreen ? '' : 'default';
-    if (newValue) {
-      const response = await selectDirectory();
-      if (response.path) {
-        saveSysSettings(envConfig, 'savedBookCoverForLockScreenPath', response.path);
-      }
-    }
-    saveSysSettings(envConfig, 'savedBookCoverForLockScreen', newValue);
-    setSavedBookCoverForLockScreen(newValue);
   };
 
   const toggleAlwaysInForeground = async () => {
@@ -277,10 +190,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
       : themeMode === 'light'
         ? _('Light Mode')
         : _('Auto Mode');
-
-  const savedBookCoverPath = settings.savedBookCoverForLockScreenPath;
-  const coverDir = savedBookCoverPath ? savedBookCoverPath.split('/').pop() : 'Images';
-  const savedBookCoverDescription = `💾 ${coverDir}/last-book-cover.png`;
 
   return (
     <Menu
@@ -412,47 +321,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
       />
       <MenuItem label={_('Settings')} Icon={PiGear} onClick={openSettingsDialog} />
       <hr aria-hidden='true' className='border-base-200 my-1' />
-      <MenuItem label={_('Advanced Settings')}>
-        <ul className='ms-0 flex flex-col ps-0 before:hidden'>
-          <MenuItem label={_('Backup & Restore')} onClick={handleBackupRestore} />
-          {appService?.canCustomizeRootDir && (
-            <MenuItem label={_('Change Data Location')} onClick={handleSetRootDir} />
-          )}
-          {user && <MenuItem label={_('Data Sync')} onClick={handleManageSync} />}
-          <MenuItem
-            label={_('Refresh Metadata')}
-            description={refreshMetadataProgress}
-            onClick={handleRefreshMetadata}
-            disabled={isRefreshingMetadata}
-          />
-          {!isPinEnabled && (
-            <MenuItem
-              label={_('Set PIN…')}
-              tooltip={_('Require a 4-digit PIN to open Readest')}
-              onClick={() => openAppLockDialog('set')}
-            />
-          )}
-          {isPinEnabled && (
-            <MenuItem label={_('Change PIN…')} onClick={() => openAppLockDialog('change')} />
-          )}
-          {isPinEnabled && (
-            <MenuItem label={_('Disable PIN…')} onClick={() => openAppLockDialog('disable')} />
-          )}
-          {appService?.isAndroidApp && appService?.distChannel !== 'playstore' && (
-            <MenuItem
-              label={_('Save Book Cover')}
-              tooltip={_('Auto-save last book cover')}
-              description={savedBookCoverForLockScreen ? savedBookCoverDescription : ''}
-              toggled={!!savedBookCoverForLockScreen}
-              onClick={handleSetSavedBookCoverForLockScreen}
-            />
-          )}
-        </ul>
-      </MenuItem>
-      <hr aria-hidden='true' className='border-base-200 my-1' />
-      {user && userProfilePlan === 'free' && (
-        <MenuItem label={_('Upgrade to Bookarc Premium')} onClick={handleUpgrade} />
-      )}
       {isWebAppPlatform() && <MenuItem label={_('Download Bookarc')} onClick={downloadReadest} />}
       <MenuItem label={_('About Bookarc')} onClick={showAboutReadest} />
       <MenuItem

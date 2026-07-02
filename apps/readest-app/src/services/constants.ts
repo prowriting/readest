@@ -31,7 +31,7 @@ import { getDefaultMaxBlockSize, getDefaultMaxInlineSize } from '@/utils/config'
 import { stubTranslation as _ } from '@/utils/misc';
 import { DEFAULT_AI_SETTINGS } from './ai/constants';
 
-export const DATA_SUBDIR = 'Readest';
+export const DATA_SUBDIR = 'Bookarc';
 export const LOCAL_BOOKS_SUBDIR = `${DATA_SUBDIR}/Books`;
 export const CLOUD_BOOKS_SUBDIR = `${DATA_SUBDIR}/Books`;
 export const CLOUD_REPLICAS_SUBDIR = `${DATA_SUBDIR}/Replicas`;
@@ -40,6 +40,38 @@ export const LOCAL_IMAGES_SUBDIR = `${DATA_SUBDIR}/Images`;
 export const LOCAL_DICTIONARIES_SUBDIR = `${DATA_SUBDIR}/Dictionaries`;
 
 export const SETTINGS_FILENAME = 'settings.json';
+
+/**
+ * Master switch for the in-app book-sharing feature: the "Share Book" menu
+ * items (library context menu + reader view menu), the share-link dialog, and
+ * the account "Shared books" manager. Set to false to hide all of it from the
+ * UI. The sharing backend (API routes, libs) and the public /s/[token]
+ * recipient landing page are intentionally left intact so links that were
+ * already sent still resolve. Flip back to true to restore the UI.
+ */
+export const BOOK_SHARING_ENABLED: boolean = false;
+
+/**
+ * Master switch for the content-translation feature: translating a book's text
+ * while reading. Gates the reader header "Translation" toggle, the selection
+ * "Translate" tool + translator popup, the Settings → Language → Translation
+ * section, the translation command-palette entries, the translation quota
+ * display, and the inline auto-translation runtime (so books that had it
+ * persisted on stop translating when the feature is off). The translation
+ * backend (services/translators, providers, API route) is left intact. Flip
+ * back to true to restore the feature. This is NOT the app's UI localization
+ * (i18n / useTranslation), which is always on.
+ */
+export const TRANSLATION_ENABLED: boolean = false;
+
+/**
+ * Master switch for the Settings → Integrations section (external-service
+ * config: KOSync, Readwise, Hardcover, Send-to-Bookarc, WebDAV, OPDS catalogs,
+ * Discord presence). Set to false to hide the whole Integrations tab from the
+ * settings dialog. The underlying sync/integration services are left intact;
+ * only the settings UI is hidden. Flip back to true to restore it.
+ */
+export const INTEGRATIONS_ENABLED: boolean = false;
 
 export const SUPPORTED_BOOK_EXTS = [
   'epub',
@@ -106,7 +138,7 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
   alwaysShowStatusBar: false,
   alwaysInForeground: false,
   autoCheckUpdates: true,
-  screenWakeLock: false,
+  screenWakeLock: true,
   screenBrightness: -1, // -1~100, -1 for system default
   autoScreenBrightness: true,
   hardwarePageTurner: {
@@ -408,7 +440,7 @@ export const DEFAULT_VIEW_SETTINGS_CONFIG: ViewSettingsConfig = {
   isGlobal: true,
 };
 
-export const SYSTEM_SETTINGS_VERSION = 1;
+export const SYSTEM_SETTINGS_VERSION = 2;
 
 export const SERIF_FONTS = [
   'Bitter',
