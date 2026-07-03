@@ -1684,5 +1684,13 @@
   "Read Along": "साथ पढ़ें",
   "Highlight Style": "हाइलाइट शैली",
   "Highlight Color": "हाइलाइट रंग",
-  "Go to Playing Position": "प्लेबैक स्थिति पर जाएँ"
+  "Go to Playing Position": "प्लेबैक स्थिति पर जाएँ",
+  "Sleep Timer": "स्लीप टाइमर",
+  "Off": "बंद",
+  "End of Chapter": "अध्याय का अंत",
+  "{{min}} min": "{{min}} मिनट",
+  "min": "मिनट",
+  "Extend Sleep Timer": "स्लीप टाइमर बढ़ाएँ",
+  "Sleep Timer Remaining": "स्लीप टाइमर शेष",
+  "Delete Bookmark": "बुकमार्क हटाएँ"
 }

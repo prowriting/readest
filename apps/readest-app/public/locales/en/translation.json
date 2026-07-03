@@ -86,5 +86,13 @@
   "Read Along": "Read Along",
   "Highlight Style": "Highlight Style",
   "Highlight Color": "Highlight Color",
-  "Go to Playing Position": "Go to Playing Position"
+  "Go to Playing Position": "Go to Playing Position",
+  "Sleep Timer": "Sleep Timer",
+  "Off": "Off",
+  "End of Chapter": "End of Chapter",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Extend Sleep Timer",
+  "Sleep Timer Remaining": "Sleep Timer Remaining",
+  "Delete Bookmark": "Delete Bookmark"
 }

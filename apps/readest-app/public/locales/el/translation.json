@@ -1684,5 +1684,13 @@
   "Read Along": "Συγχρονισμένη ανάγνωση",
   "Highlight Style": "Στυλ επισήμανσης",
   "Highlight Color": "Χρώμα επισήμανσης",
-  "Go to Playing Position": "Μετάβαση στη θέση αναπαραγωγής"
+  "Go to Playing Position": "Μετάβαση στη θέση αναπαραγωγής",
+  "Sleep Timer": "Χρονόμετρο ύπνου",
+  "Off": "Ανενεργό",
+  "End of Chapter": "Τέλος κεφαλαίου",
+  "{{min}} min": "{{min}} λεπ.",
+  "min": "λεπ.",
+  "Extend Sleep Timer": "Παράταση χρονομέτρου",
+  "Sleep Timer Remaining": "Υπόλοιπο χρονομέτρου ύπνου",
+  "Delete Bookmark": "Διαγραφή σελιδοδείκτη"
 }

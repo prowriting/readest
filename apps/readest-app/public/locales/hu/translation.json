@@ -1684,5 +1684,13 @@
   "Read Along": "Együttolvasás",
   "Highlight Style": "Kiemelés stílusa",
   "Highlight Color": "Kiemelés színe",
-  "Go to Playing Position": "Ugrás a lejátszási pozícióhoz"
+  "Go to Playing Position": "Ugrás a lejátszási pozícióhoz",
+  "Sleep Timer": "Alvásidőzítő",
+  "Off": "Ki",
+  "End of Chapter": "Fejezet vége",
+  "{{min}} min": "{{min}} perc",
+  "min": "perc",
+  "Extend Sleep Timer": "Alvásidőzítő meghosszabbítása",
+  "Sleep Timer Remaining": "Hátralévő alvásidő",
+  "Delete Bookmark": "Könyvjelző törlése"
 }

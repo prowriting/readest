@@ -1746,5 +1746,13 @@
   "Read Along": "Читать вместе",
   "Highlight Style": "Стиль выделения",
   "Highlight Color": "Цвет выделения",
-  "Go to Playing Position": "К месту воспроизведения"
+  "Go to Playing Position": "К месту воспроизведения",
+  "Sleep Timer": "Таймер сна",
+  "Off": "Выкл.",
+  "End of Chapter": "Конец главы",
+  "{{min}} min": "{{min}} мин",
+  "min": "мин",
+  "Extend Sleep Timer": "Продлить таймер сна",
+  "Sleep Timer Remaining": "Осталось до таймера сна",
+  "Delete Bookmark": "Удалить закладку"
 }

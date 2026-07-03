@@ -1715,5 +1715,13 @@
   "Read Along": "Leitura acompanhada",
   "Highlight Style": "Estilo de destaque",
   "Highlight Color": "Cor de destaque",
-  "Go to Playing Position": "Ir para a posição de reprodução"
+  "Go to Playing Position": "Ir para a posição de reprodução",
+  "Sleep Timer": "Temporizador de sono",
+  "Off": "Desligado",
+  "End of Chapter": "Fim do capítulo",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Prolongar o temporizador",
+  "Sleep Timer Remaining": "Temporizador de sono restante",
+  "Delete Bookmark": "Eliminar marcador"
 }

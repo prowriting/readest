@@ -1653,5 +1653,13 @@
   "Read Along": "อ่านตาม",
   "Highlight Style": "รูปแบบไฮไลต์",
   "Highlight Color": "สีไฮไลต์",
-  "Go to Playing Position": "ไปยังตำแหน่งที่เล่น"
+  "Go to Playing Position": "ไปยังตำแหน่งที่เล่น",
+  "Sleep Timer": "ตัวตั้งเวลานอน",
+  "Off": "ปิด",
+  "End of Chapter": "จบบท",
+  "{{min}} min": "{{min}} นาที",
+  "min": "นาที",
+  "Extend Sleep Timer": "ขยายเวลาตัวตั้งเวลานอน",
+  "Sleep Timer Remaining": "เวลาที่เหลือของตัวตั้งเวลานอน",
+  "Delete Bookmark": "ลบที่คั่นหน้า"
 }

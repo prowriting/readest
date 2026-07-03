@@ -1715,5 +1715,13 @@
   "Read Along": "Lettura guidata",
   "Highlight Style": "Stile evidenziazione",
   "Highlight Color": "Colore evidenziazione",
-  "Go to Playing Position": "Vai alla posizione di riproduzione"
+  "Go to Playing Position": "Vai alla posizione di riproduzione",
+  "Sleep Timer": "Timer di spegnimento",
+  "Off": "Disattivato",
+  "End of Chapter": "Fine del capitolo",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Prolunga il timer",
+  "Sleep Timer Remaining": "Timer rimanente",
+  "Delete Bookmark": "Elimina segnalibro"
 }

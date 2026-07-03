@@ -1684,5 +1684,13 @@
   "Read Along": "Birga o‘qish",
   "Highlight Style": "Ajratish uslubi",
   "Highlight Color": "Ajratish rangi",
-  "Go to Playing Position": "Ijro joyiga o‘tish"
+  "Go to Playing Position": "Ijro joyiga o‘tish",
+  "Sleep Timer": "Uyqu taymeri",
+  "Off": "O‘chiq",
+  "End of Chapter": "Bob oxiri",
+  "{{min}} min": "{{min}} daqiqa",
+  "min": "daqiqa",
+  "Extend Sleep Timer": "Uyqu taymerini uzaytirish",
+  "Sleep Timer Remaining": "Uyqu taymeri qoldig‘i",
+  "Delete Bookmark": "Xatcho‘pni o‘chirish"
 }

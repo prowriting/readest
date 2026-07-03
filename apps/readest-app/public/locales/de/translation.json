@@ -1684,5 +1684,13 @@
   "Read Along": "Mitlesen",
   "Highlight Style": "Hervorhebungsstil",
   "Highlight Color": "Hervorhebungsfarbe",
-  "Go to Playing Position": "Zur Wiedergabeposition"
+  "Go to Playing Position": "Zur Wiedergabeposition",
+  "Sleep Timer": "Einschlaftimer",
+  "Off": "Aus",
+  "End of Chapter": "Kapitelende",
+  "{{min}} min": "{{min}} Min.",
+  "min": "Min.",
+  "Extend Sleep Timer": "Einschlaftimer verlängern",
+  "Sleep Timer Remaining": "Verbleibender Einschlaftimer",
+  "Delete Bookmark": "Lesezeichen löschen"
 }

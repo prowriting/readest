@@ -1684,5 +1684,13 @@
   "Read Along": "সাথে পড়ুন",
   "Highlight Style": "হাইলাইট শৈলী",
   "Highlight Color": "হাইলাইট রং",
-  "Go to Playing Position": "প্লেয়িং অবস্থানে যান"
+  "Go to Playing Position": "প্লেয়িং অবস্থানে যান",
+  "Sleep Timer": "স্লিপ টাইমার",
+  "Off": "বন্ধ",
+  "End of Chapter": "অধ্যায়ের শেষ",
+  "{{min}} min": "{{min}} মিনিট",
+  "min": "মিনিট",
+  "Extend Sleep Timer": "স্লিপ টাইমার বাড়ান",
+  "Sleep Timer Remaining": "স্লিপ টাইমারের অবশিষ্ট",
+  "Delete Bookmark": "বুকমার্ক মুছুন"
 }

@@ -1808,5 +1808,13 @@
   "Read Along": "القراءة المتزامنة",
   "Highlight Style": "نمط التمييز",
   "Highlight Color": "لون التمييز",
-  "Go to Playing Position": "الانتقال إلى موضع التشغيل"
+  "Go to Playing Position": "الانتقال إلى موضع التشغيل",
+  "Sleep Timer": "مؤقّت النوم",
+  "Off": "إيقاف",
+  "End of Chapter": "نهاية الفصل",
+  "{{min}} min": "{{min}} د",
+  "min": "د",
+  "Extend Sleep Timer": "تمديد مؤقّت النوم",
+  "Sleep Timer Remaining": "المتبقي من مؤقّت النوم",
+  "Delete Bookmark": "حذف الإشارة المرجعية"
 }

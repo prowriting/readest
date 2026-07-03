@@ -1715,5 +1715,13 @@
   "Read Along": "Lecture suivie",
   "Highlight Style": "Style de surlignage",
   "Highlight Color": "Couleur de surlignage",
-  "Go to Playing Position": "Aller à la position de lecture"
+  "Go to Playing Position": "Aller à la position de lecture",
+  "Sleep Timer": "Minuterie de veille",
+  "Off": "Désactivé",
+  "End of Chapter": "Fin du chapitre",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Prolonger la minuterie",
+  "Sleep Timer Remaining": "Minuterie de veille restante",
+  "Delete Bookmark": "Supprimer le signet"
 }

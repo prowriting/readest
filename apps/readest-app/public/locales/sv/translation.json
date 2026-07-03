@@ -1684,5 +1684,13 @@
   "Read Along": "Läs med",
   "Highlight Style": "Markeringsstil",
   "Highlight Color": "Markeringsfärg",
-  "Go to Playing Position": "Gå till uppspelningsläget"
+  "Go to Playing Position": "Gå till uppspelningsläget",
+  "Sleep Timer": "Sovtimer",
+  "Off": "Av",
+  "End of Chapter": "Kapitelslut",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Förläng sovtimern",
+  "Sleep Timer Remaining": "Återstående sovtimer",
+  "Delete Bookmark": "Ta bort bokmärke"
 }

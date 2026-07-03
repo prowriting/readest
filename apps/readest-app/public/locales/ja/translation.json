@@ -1653,5 +1653,13 @@
   "Read Along": "読み上げフォロー",
   "Highlight Style": "ハイライトのスタイル",
   "Highlight Color": "ハイライトの色",
-  "Go to Playing Position": "再生位置へ移動"
+  "Go to Playing Position": "再生位置へ移動",
+  "Sleep Timer": "スリープタイマー",
+  "Off": "オフ",
+  "End of Chapter": "チャプターの終わり",
+  "{{min}} min": "{{min}}分",
+  "min": "分",
+  "Extend Sleep Timer": "スリープタイマーを延長",
+  "Sleep Timer Remaining": "スリープタイマーの残り",
+  "Delete Bookmark": "ブックマークを削除"
 }

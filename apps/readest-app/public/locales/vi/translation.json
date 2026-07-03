@@ -1653,5 +1653,13 @@
   "Read Along": "Đọc theo",
   "Highlight Style": "Kiểu tô sáng",
   "Highlight Color": "Màu tô sáng",
-  "Go to Playing Position": "Đến vị trí đang phát"
+  "Go to Playing Position": "Đến vị trí đang phát",
+  "Sleep Timer": "Hẹn giờ ngủ",
+  "Off": "Tắt",
+  "End of Chapter": "Hết chương",
+  "{{min}} min": "{{min}} phút",
+  "min": "phút",
+  "Extend Sleep Timer": "Gia hạn hẹn giờ ngủ",
+  "Sleep Timer Remaining": "Hẹn giờ ngủ còn lại",
+  "Delete Bookmark": "Xóa dấu trang"
 }

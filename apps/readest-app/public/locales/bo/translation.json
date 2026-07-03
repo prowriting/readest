@@ -1653,5 +1653,13 @@
   "Read Along": "མཉམ་དུ་ཀློག",
   "Highlight Style": "མདངས་གསལ་རྣམ་པ།",
   "Highlight Color": "མདངས་གསལ་ཚོས་གཞི།",
-  "Go to Playing Position": "གཏོང་བཞིན་པའི་གནས་སར་འགྲོ།"
+  "Go to Playing Position": "གཏོང་བཞིན་པའི་གནས་སར་འགྲོ།",
+  "Sleep Timer": "གཉིད་ཀྱི་དུས་ཚོད།",
+  "Off": "ཁ་རྒྱག",
+  "End of Chapter": "ལེའུའི་མཇུག",
+  "{{min}} min": "སྐར་མ་{{min}}",
+  "min": "སྐར་མ།",
+  "Extend Sleep Timer": "གཉིད་དུས་ཚོད་རིང་དུ་གཏོང་།",
+  "Sleep Timer Remaining": "གཉིད་དུས་ཚོད་ལྷག་མ།",
+  "Delete Bookmark": "དཔེ་རྟགས་བསུབ།"
 }

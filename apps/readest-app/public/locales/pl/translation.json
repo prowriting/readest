@@ -1746,5 +1746,13 @@
   "Read Along": "Czytaj razem",
   "Highlight Style": "Styl wyróżnienia",
   "Highlight Color": "Kolor wyróżnienia",
-  "Go to Playing Position": "Przejdź do miejsca odtwarzania"
+  "Go to Playing Position": "Przejdź do miejsca odtwarzania",
+  "Sleep Timer": "Wyłącznik czasowy",
+  "Off": "Wyłączony",
+  "End of Chapter": "Koniec rozdziału",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Przedłuż wyłącznik",
+  "Sleep Timer Remaining": "Pozostały czas wyłącznika",
+  "Delete Bookmark": "Usuń zakładkę"
 }

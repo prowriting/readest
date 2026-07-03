@@ -1746,5 +1746,13 @@
   "Read Along": "Sledenje branju",
   "Highlight Style": "Slog poudarka",
   "Highlight Color": "Barva poudarka",
-  "Go to Playing Position": "Na mesto predvajanja"
+  "Go to Playing Position": "Na mesto predvajanja",
+  "Sleep Timer": "Časovnik spanja",
+  "Off": "Izklopljeno",
+  "End of Chapter": "Konec poglavja",
+  "{{min}} min": "{{min}} min",
+  "min": "min",
+  "Extend Sleep Timer": "Podaljšaj časovnik",
+  "Sleep Timer Remaining": "Preostali čas časovnika",
+  "Delete Bookmark": "Izbriši zaznamek"
 }

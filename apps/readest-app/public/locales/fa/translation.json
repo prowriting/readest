@@ -1684,5 +1684,13 @@
   "Read Along": "همخوانی",
   "Highlight Style": "سبک برجسته‌سازی",
   "Highlight Color": "رنگ برجسته‌سازی",
-  "Go to Playing Position": "رفتن به موقعیت پخش"
+  "Go to Playing Position": "رفتن به موقعیت پخش",
+  "Sleep Timer": "تایمر خواب",
+  "Off": "خاموش",
+  "End of Chapter": "پایان فصل",
+  "{{min}} min": "{{min}} دقیقه",
+  "min": "دقیقه",
+  "Extend Sleep Timer": "تمدید تایمر خواب",
+  "Sleep Timer Remaining": "باقی‌مانده تایمر خواب",
+  "Delete Bookmark": "حذف نشانک"
 }

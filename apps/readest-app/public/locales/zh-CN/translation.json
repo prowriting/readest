@@ -1653,5 +1653,13 @@
   "Read Along": "跟读",
   "Highlight Style": "高亮样式",
   "Highlight Color": "高亮颜色",
-  "Go to Playing Position": "转到播放位置"
+  "Go to Playing Position": "转到播放位置",
+  "Sleep Timer": "睡眠定时",
+  "Off": "关闭",
+  "End of Chapter": "本章结束",
+  "{{min}} min": "{{min}} 分钟",
+  "min": "分钟",
+  "Extend Sleep Timer": "延长睡眠定时",
+  "Sleep Timer Remaining": "睡眠定时剩余",
+  "Delete Bookmark": "删除书签"
 }

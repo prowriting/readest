@@ -1715,5 +1715,13 @@
   "Read Along": "קריאה בעקבות",
   "Highlight Style": "סגנון הדגשה",
   "Highlight Color": "צבע הדגשה",
-  "Go to Playing Position": "מעבר למיקום הניגון"
+  "Go to Playing Position": "מעבר למיקום הניגון",
+  "Sleep Timer": "טיימר שינה",
+  "Off": "כבוי",
+  "End of Chapter": "סוף הפרק",
+  "{{min}} min": "{{min}} דק׳",
+  "min": "דק׳",
+  "Extend Sleep Timer": "הארכת טיימר השינה",
+  "Sleep Timer Remaining": "זמן שנותר בטיימר",
+  "Delete Bookmark": "מחיקת סימנייה"
 }

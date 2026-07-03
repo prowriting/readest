@@ -1684,5 +1684,13 @@
   "Read Along": "உடன் படித்தல்",
   "Highlight Style": "சிறப்பு பாணி",
   "Highlight Color": "சிறப்பு நிறம்",
-  "Go to Playing Position": "இயங்கும் இடத்திற்கு செல்"
+  "Go to Playing Position": "இயங்கும் இடத்திற்கு செல்",
+  "Sleep Timer": "உறக்க நேரங்காட்டி",
+  "Off": "அணை",
+  "End of Chapter": "அத்தியாய முடிவு",
+  "{{min}} min": "{{min}} நிமி.",
+  "min": "நிமி.",
+  "Extend Sleep Timer": "உறக்க நேரத்தை நீட்டி",
+  "Sleep Timer Remaining": "உறக்க நேரம் மீதம்",
+  "Delete Bookmark": "புத்தகக்குறியை நீக்கு"
 }

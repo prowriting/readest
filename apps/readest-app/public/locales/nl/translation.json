@@ -1684,5 +1684,13 @@
   "Read Along": "Meelezen",
   "Highlight Style": "Markeerstijl",
   "Highlight Color": "Markeerkleur",
-  "Go to Playing Position": "Naar afspeelpositie"
+  "Go to Playing Position": "Naar afspeelpositie",
+  "Sleep Timer": "Slaaptimer",
+  "Off": "Uit",
+  "End of Chapter": "Einde van hoofdstuk",
+  "{{min}} min": "{{min}} min.",
+  "min": "min.",
+  "Extend Sleep Timer": "Slaaptimer verlengen",
+  "Sleep Timer Remaining": "Resterende slaaptimer",
+  "Delete Bookmark": "Bladwijzer verwijderen"
 }

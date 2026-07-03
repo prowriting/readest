@@ -1684,5 +1684,13 @@
   "Read Along": "Takip ederek oku",
   "Highlight Style": "Vurgu stili",
   "Highlight Color": "Vurgu rengi",
-  "Go to Playing Position": "Oynatma konumuna git"
+  "Go to Playing Position": "Oynatma konumuna git",
+  "Sleep Timer": "Uyku zamanlayıcısı",
+  "Off": "Kapalı",
+  "End of Chapter": "Bölüm sonu",
+  "{{min}} min": "{{min}} dk",
+  "min": "dk",
+  "Extend Sleep Timer": "Uyku zamanlayıcısını uzat",
+  "Sleep Timer Remaining": "Kalan uyku süresi",
+  "Delete Bookmark": "Yer imini sil"
 }

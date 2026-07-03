@@ -1746,5 +1746,13 @@
   "Read Along": "Читати разом",
   "Highlight Style": "Стиль виділення",
   "Highlight Color": "Колір виділення",
-  "Go to Playing Position": "До позиції відтворення"
+  "Go to Playing Position": "До позиції відтворення",
+  "Sleep Timer": "Таймер сну",
+  "Off": "Вимкнено",
+  "End of Chapter": "Кінець розділу",
+  "{{min}} min": "{{min}} хв",
+  "min": "хв",
+  "Extend Sleep Timer": "Подовжити таймер сну",
+  "Sleep Timer Remaining": "Залишок таймера сну",
+  "Delete Bookmark": "Видалити закладку"
 }

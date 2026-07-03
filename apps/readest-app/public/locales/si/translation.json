@@ -1684,5 +1684,13 @@
   "Read Along": "සමඟ කියවන්න",
   "Highlight Style": "ඉස්මතු විලාසය",
   "Highlight Color": "ඉස්මතු වර්ණය",
-  "Go to Playing Position": "ධාවන ස්ථානයට යන්න"
+  "Go to Playing Position": "ධාවන ස්ථානයට යන්න",
+  "Sleep Timer": "නින්ද ටයිමරය",
+  "Off": "අක්‍රියයි",
+  "End of Chapter": "පරිච්ඡේදය අවසානය",
+  "{{min}} min": "මිනි. {{min}}",
+  "min": "මිනි.",
+  "Extend Sleep Timer": "නින්ද ටයිමරය දිගු කරන්න",
+  "Sleep Timer Remaining": "නින්ද ටයිමර ඉතිරිය",
+  "Delete Bookmark": "පිටු සලකුණ මකන්න"
 }

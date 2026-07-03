@@ -1653,5 +1653,13 @@
   "Read Along": "Baca ikut",
   "Highlight Style": "Gaya sorotan",
   "Highlight Color": "Warna sorotan",
-  "Go to Playing Position": "Pergi ke kedudukan main"
+  "Go to Playing Position": "Pergi ke kedudukan main",
+  "Sleep Timer": "Pemasa tidur",
+  "Off": "Mati",
+  "End of Chapter": "Akhir bab",
+  "{{min}} min": "{{min}} minit",
+  "min": "minit",
+  "Extend Sleep Timer": "Lanjutkan pemasa tidur",
+  "Sleep Timer Remaining": "Baki pemasa tidur",
+  "Delete Bookmark": "Padam penanda buku"
 }
