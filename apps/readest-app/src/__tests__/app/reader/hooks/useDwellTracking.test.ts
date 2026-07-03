@@ -315,3 +315,30 @@ describe('MAX_DWELL_MS', () => {
     vi.useRealTimers();
   });
 });
+
+describe('DwellAccumulator with media-overlay playback relocates', () => {
+  it('attributes listening time to the sentence just played, across section hops', () => {
+    const acc = new DwellAccumulator();
+    const t0 = 1_751_500_000_000;
+    // Playback highlights relocate every ~1.5s within section 0...
+    acc.onRelocate(0, 0, 90, 'hash', t0);
+    acc.onRelocate(0, 90, 180, 'hash', t0 + 1500);
+    // ...then auto-advance hops to section 1.
+    acc.onRelocate(1, 0, 90, 'hash', t0 + 3000);
+    const dwells = acc.flush();
+    expect(dwells).toHaveLength(2);
+    expect(dwells[0]).toMatchObject({
+      startSection: 0,
+      startChar: 0,
+      endChar: 90,
+      timeMilliseconds: 1500,
+    });
+    expect(dwells[1]).toMatchObject({
+      startSection: 0,
+      startChar: 90,
+      endChar: 180,
+      timeMilliseconds: 1500,
+    });
+    expect(dwells.reduce((sum, d) => sum + d.timeMilliseconds, 0)).toBe(3000);
+  });
+});

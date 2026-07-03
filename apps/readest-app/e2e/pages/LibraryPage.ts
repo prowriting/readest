@@ -57,4 +57,21 @@ export class LibraryPage extends BasePage {
   async openFirstBook(): Promise<void> {
     await this.bookCards().first().click();
   }
+
+  /**
+   * Import into a non-empty library via the bookshelf's trailing "+" tile
+   * (the hero import action only exists in the empty state).
+   */
+  async importAnotherBook(filePath: string): Promise<void> {
+    const chooserPromise = this.page.waitForEvent('filechooser');
+    await this.bookshelf.locator('button').last().click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles(filePath);
+  }
+
+  /** Toggle the "Audiobooks Only" filter in the library view menu. */
+  async toggleAudiobooksOnly(): Promise<void> {
+    await this.page.getByRole('button', { name: 'View Menu' }).click();
+    await this.page.getByRole('menuitem', { name: 'Audiobooks Only' }).click();
+  }
 }

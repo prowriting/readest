@@ -219,10 +219,14 @@ const Bookshelf: React.FC<BookshelfProps> = ({
     [router, searchParams],
   );
 
+  const audiobooksOnly = useSettingsStore((s) => s.settings.libraryFilterAudiobooks);
   const filteredBooks = useMemo(() => {
+    const audioFiltered = audiobooksOnly
+      ? libraryBooks.filter((book) => book.hasAudio)
+      : libraryBooks;
     const bookFilter = createBookFilter(queryTerm);
-    return queryTerm ? libraryBooks.filter((book) => bookFilter(book)) : libraryBooks;
-  }, [libraryBooks, queryTerm]);
+    return queryTerm ? audioFiltered.filter((book) => bookFilter(book)) : audioFiltered;
+  }, [libraryBooks, queryTerm, audiobooksOnly]);
 
   const currentBookshelfItems = useMemo(() => {
     if (groupBy === LibraryGroupByType.Group) {

@@ -152,6 +152,7 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
   telemetryEnabled: true,
   discordRichPresenceEnabled: false,
   libraryViewMode: 'grid',
+  libraryFilterAudiobooks: false,
   librarySortBy: LibrarySortByType.Updated,
   librarySortAscending: false,
   librarySortByAuto: true,

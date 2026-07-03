@@ -113,6 +113,8 @@ export interface Book {
   isAudioOnly?: boolean;
   // Declared total overlay duration in seconds (media:duration).
   audioDuration?: number;
+  // Last saved listening position on the whole-book timeline, in seconds.
+  audioPosition?: number;
 
   metadata?: BookMetadata;
 }

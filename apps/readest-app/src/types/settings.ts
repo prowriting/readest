@@ -295,6 +295,8 @@ export interface SystemSettings {
   telemetryEnabled: boolean;
   discordRichPresenceEnabled: boolean;
   libraryViewMode: LibraryViewModeType;
+  /** Show only books with audio (media overlays) in the library. */
+  libraryFilterAudiobooks: boolean;
   librarySortBy: LibrarySortByType;
   librarySortAscending: boolean;
   /**

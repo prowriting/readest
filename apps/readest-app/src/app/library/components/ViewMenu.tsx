@@ -176,6 +176,23 @@ const ViewMenu: React.FC<ViewMenuProps> = ({ setIsDropdownOpen }) => {
         />
       ))}
 
+      {/* Filter */}
+      <hr aria-hidden='true' className='border-base-200 my-1' />
+      <MenuItem
+        label={_('Audiobooks Only')}
+        buttonClass='h-8'
+        toggled={settings.libraryFilterAudiobooks}
+        transient
+        setIsDropdownOpen={setIsDropdownOpen}
+        onClick={() =>
+          void saveSysSettings(
+            envConfig,
+            'libraryFilterAudiobooks',
+            !settings.libraryFilterAudiobooks,
+          )
+        }
+      />
+
       {/* Columns */}
       <hr aria-hidden='true' className='border-base-200 my-1' />
       <MenuItem label={_('Columns')} buttonClass='h-8' labelClass='text-sm sm:text-xs' disabled />

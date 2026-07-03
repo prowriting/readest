@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEnv } from '@/context/EnvContext';
 import { useBookDataStore } from '@/store/bookDataStore';
+import { useLibraryStore } from '@/store/libraryStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -59,6 +60,7 @@ export const useAudiobookControl = (bookKey: string) => {
   const { envConfig } = useEnv();
   const { settings } = useSettingsStore();
   const { getConfig, setConfig, saveConfig, getBookData, updateBooknotes } = useBookDataStore();
+  const { updateBook } = useLibraryStore();
   const { getView, getViewSettings, setViewSettings } = useReaderStore();
 
   const view = getView(bookKey);
@@ -155,7 +157,28 @@ export const useAudiobookControl = (bookKey: string) => {
     setConfig(bookKey, { mediaOverlayLocation: location });
     const updated = getConfig(bookKey);
     if (updated) saveConfig(envConfig, bookKey, updated, settings);
-  }, [engine, bookKey, getConfig, setConfig, saveConfig, envConfig, settings]);
+    // Denormalize onto the library record so the Continue Listening strip
+    // can show time-left without loading per-book configs.
+    const book = getBookData(bookKey)?.book;
+    if (book) {
+      void updateBook(envConfig, {
+        ...book,
+        audioPosition: timeline.elapsed(location.sectionIndex, location.offset),
+        updatedAt: Date.now(),
+      });
+    }
+  }, [
+    engine,
+    bookKey,
+    getConfig,
+    setConfig,
+    saveConfig,
+    envConfig,
+    settings,
+    getBookData,
+    updateBook,
+    timeline,
+  ]);
 
   // Engine events → machine. `highlight` doubles as the "audio is live"
   // confirmation; the machine ignores it outside of `loading`.

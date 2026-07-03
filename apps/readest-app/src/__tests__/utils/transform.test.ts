@@ -284,3 +284,25 @@ describe('transformBookConfigToDB / transformBookConfigFromDB rsvpPosition', () 
     expect(restored.rsvpPosition).toEqual(config.rsvpPosition);
   });
 });
+
+describe('media overlay location through the sync transform', () => {
+  const location = { sectionIndex: 1, offset: 7.25, updatedAt: 1751500000000 };
+
+  it('round-trips as a JSON string column', () => {
+    const config: BookConfig = {
+      bookHash: 'abc123',
+      mediaOverlayLocation: location,
+      updatedAt: 1751500001000,
+    };
+    const db = transformBookConfigToDB(config, 'user1');
+    expect(db.media_overlay_location).toBe(JSON.stringify(location));
+    const back = transformBookConfigFromDB(db);
+    expect(back.mediaOverlayLocation).toEqual(location);
+  });
+
+  it('stays absent when never set', () => {
+    const db = transformBookConfigToDB({ bookHash: 'abc123', updatedAt: 1 }, 'user1');
+    expect(db.media_overlay_location).toBeFalsy();
+    expect(transformBookConfigFromDB(db).mediaOverlayLocation).toBeFalsy();
+  });
+});

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSync } from '@/hooks/useSync';
 import { BookConfig, FIXED_LAYOUT_FORMATS } from '@/types/book';
+import { mergeSyncedConfig } from '@/utils/configMerge';
 import { useBookDataStore } from '@/store/bookDataStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -210,14 +211,7 @@ export const useProgressSync = (bookKey: string) => {
           remoteCFILocation = candidateCFI;
         }
       }
-      const filteredSyncedConfig = Object.fromEntries(
-        Object.entries(syncedConfig).filter(([_, value]) => value !== null && value !== undefined),
-      );
-      if (syncedConfig.updatedAt >= config.updatedAt) {
-        setConfig(bookKey, { ...config, ...filteredSyncedConfig });
-      } else {
-        setConfig(bookKey, { ...filteredSyncedConfig, ...config });
-      }
+      setConfig(bookKey, mergeSyncedConfig(config, syncedConfig));
       if (remoteCFILocation && configCFI) {
         if (CFI.compare(configCFI, remoteCFILocation) < 0) {
           // While previewing a deep-link target, do NOT yank the view to the
