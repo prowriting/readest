@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -37,7 +38,27 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      // AAC needs licensed codecs that bundled Chromium lacks.
+      testIgnore: /audiobook-aac\.spec\.ts/,
+    },
+    // Codec-coverage lane: branded Chrome decodes AAC/M4B. Included only
+    // where Chrome is installed so `pnpm test:e2e:web` stays green anywhere.
+    ...(existsSync('/Applications/Google Chrome.app') ||
+    existsSync('/usr/bin/google-chrome') ||
+    existsSync('C:/Program Files/Google/Chrome/Application/chrome.exe')
+      ? [
+          {
+            name: 'chrome-aac',
+            use: { ...devices['Desktop Chrome'], channel: 'chrome' as const },
+            testMatch: /audiobook-aac\.spec\.ts/,
+          },
+        ]
+      : []),
+  ],
   webServer: {
     // CI runs against a production build (`pnpm build-web` runs first as a
     // separate CI step) — `next dev` shows an error overlay on the app's

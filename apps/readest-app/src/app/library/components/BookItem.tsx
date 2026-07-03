@@ -148,14 +148,18 @@ const BookItem: React.FC<BookItemProps> = ({
         <div
           className={clsx(
             'flex items-center',
-            book.progress || book.readingStatus ? 'justify-between' : 'justify-end',
+            book.progress || book.readingStatus || (book.isAudioOnly && book.audioDuration)
+              ? 'justify-between'
+              : 'justify-end',
           )}
           style={{
             height: `${iconSize15}px`,
             minHeight: `${iconSize15}px`,
           }}
         >
-          {(book.progress || book.readingStatus) && <ReadingProgress book={book} />}
+          {(book.progress || book.readingStatus || (book.isAudioOnly && book.audioDuration)) && (
+            <ReadingProgress book={book} />
+          )}
           <div className='flex items-center justify-center gap-x-2'>
             {!appService?.isMobile && (
               <button

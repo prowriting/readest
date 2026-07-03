@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { findTapFragment, fragmentFromCfi, hasMediaOverlay } from '@/utils/audiobook';
+import {
+  detectAudioOnly,
+  findTapFragment,
+  fragmentFromCfi,
+  hasMediaOverlay,
+} from '@/utils/audiobook';
 
 describe('hasMediaOverlay', () => {
   it('detects a book where any section carries a media overlay', () => {
@@ -63,5 +68,66 @@ describe('fragmentFromCfi', () => {
   it('ignores side-bias and text-assertion brackets', () => {
     // Character offsets may carry [text;s=b] style assertions — not element ids.
     expect(fragmentFromCfi('epubcfi(/6/8!/4/2[s5]/1:3[;s=a])')).toBe('s5');
+  });
+});
+
+describe('detectAudioOnly', () => {
+  const section = (text: string, overlay = true, linear?: string) => ({
+    mediaOverlay: overlay ? { href: 'x.smil' } : undefined,
+    linear,
+    createDocument: async () =>
+      new DOMParser().parseFromString(`<html><body>${text}</body></html>`, 'text/html'),
+  });
+  const prose = 'Sentence one of chapter narrated aloud for the fixture. '.repeat(8);
+
+  it('classifies title-only overlay chapters as audio-only', async () => {
+    const bookDoc = {
+      sections: [
+        section('<h1>Chapter 1</h1>'),
+        section('<h1>Chapter 2</h1>'),
+        section('<h1>Chapter 3</h1>'),
+      ],
+    };
+    expect(await detectAudioOnly(bookDoc)).toBe(true);
+  });
+
+  it('classifies prose read-along chapters as text books', async () => {
+    const bookDoc = { sections: [section(prose), section(prose), section(prose)] };
+    expect(await detectAudioOnly(bookDoc)).toBe(false);
+  });
+
+  it('requires overlays on (nearly) the whole spine', async () => {
+    const bookDoc = {
+      sections: [section('<h1>Intro</h1>'), section(prose, false), section(prose, false)],
+    };
+    expect(await detectAudioOnly(bookDoc)).toBe(false);
+  });
+
+  it('ignores non-linear sections when judging coverage', async () => {
+    const bookDoc = {
+      sections: [
+        section(prose, false, 'no'), // cover page outside the reading order
+        section('<h1>Chapter 1</h1>'),
+        section('<h1>Chapter 2</h1>'),
+      ],
+    };
+    expect(await detectAudioOnly(bookDoc)).toBe(true);
+  });
+
+  it('never throws on empty or unreadable books', async () => {
+    expect(await detectAudioOnly({})).toBe(false);
+    expect(await detectAudioOnly({ sections: [] })).toBe(false);
+    expect(
+      await detectAudioOnly({
+        sections: [
+          {
+            mediaOverlay: {},
+            createDocument: async () => {
+              throw new Error('corrupt');
+            },
+          },
+        ],
+      }),
+    ).toBe(false);
   });
 });

@@ -239,6 +239,21 @@ describe('MediaOverlay engine — text offsets (Phase 4)', () => {
   });
 });
 
+describe('audio-only detection on real fixtures (Phase 5)', () => {
+  it('classifies the generated fixtures correctly', async () => {
+    const { detectAudioOnly } = await import('@/utils/audiobook');
+    expect(await detectAudioOnly(book)).toBe(false); // sentence-level read-along
+    const url = new URL('../../../e2e/fixtures/books/mo-audio-only.epub', import.meta.url).href;
+    const resp = await fetch(url);
+    const file = new File([await resp.arrayBuffer()], 'mo-audio-only.epub', {
+      type: 'application/epub+zip',
+    });
+    const audioOnlyBook = (await new DocumentLoader(file).open()).book;
+    expect(await detectAudioOnly(audioOnlyBook)).toBe(true);
+    expect(audioOnlyBook.media?.duration).toBe(30);
+  });
+});
+
 describe('foliate-view media overlay integration (view.js)', () => {
   const createView = async (): Promise<FoliateView> => {
     await import('foliate-js/view.js');

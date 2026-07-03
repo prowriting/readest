@@ -109,6 +109,10 @@ export interface Book {
   primaryLanguage?: string;
   // Whether the book carries EPUB3 Media Overlays (read-along audio).
   hasAudio?: boolean;
+  // Audio-only audiobook: overlays cover the spine and chapters have no prose.
+  isAudioOnly?: boolean;
+  // Declared total overlay duration in seconds (media:duration).
+  audioDuration?: number;
 
   metadata?: BookMetadata;
 }

@@ -3,6 +3,7 @@ import { memo, useMemo } from 'react';
 import type { Book } from '@/types/book';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SHOW_UNREAD_STATUS_BADGE } from '@/services/constants';
+import { formatPlaybackTime } from '@/services/audiobook/bookTimeline';
 import StatusBadge from './StatusBadge';
 
 interface ReadingProgressProps {
@@ -29,6 +30,17 @@ const ReadingProgress: React.FC<ReadingProgressProps> = memo(
       return (
         <div className='flex justify-start'>
           <StatusBadge status={book.readingStatus}>{_('Finished')}</StatusBadge>
+        </div>
+      );
+    }
+
+    // Audio-only books measure in listening time, not pages.
+    if (book.isAudioOnly && book.audioDuration) {
+      return (
+        <div className='flex justify-start'>
+          <span className='text-neutral-content text-xs' dir='ltr'>
+            {formatPlaybackTime(book.audioDuration)}
+          </span>
         </div>
       );
     }

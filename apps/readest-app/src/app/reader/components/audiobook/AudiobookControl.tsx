@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useEnv } from '@/context/EnvContext';
+import { useBookDataStore } from '@/store/bookDataStore';
 import { Insets } from '@/types/misc';
 import { useAudiobookControl } from '../../hooks/useAudiobookControl';
 import AudiobookMiniBar from './AudiobookMiniBar';
@@ -8,24 +9,38 @@ import AudiobookPlayer from './AudiobookPlayer';
 interface AudiobookControlProps {
   bookKey: string;
   gridInsets: Insets;
+  /**
+   * 'overlay' (default) floats a mini bar + expandable bottom sheet over the
+   * reader; 'fullscreen' embeds the always-open player into a parent screen.
+   */
+  variant?: 'overlay' | 'fullscreen';
 }
 
 /**
  * Mounts the audiobook player surfaces for books with EPUB3 Media Overlays:
  * a persistent mini bar and an expandable full player.
  */
-const AudiobookControl: React.FC<AudiobookControlProps> = ({ bookKey, gridInsets }) => {
+const AudiobookControl: React.FC<AudiobookControlProps> = ({
+  bookKey,
+  gridInsets,
+  variant = 'overlay',
+}) => {
   const { appService } = useEnv();
+  const { getBookData } = useBookDataStore();
   const audiobook = useAudiobookControl(bookKey);
   const [expanded, setExpanded] = useState(false);
+  const fullscreen = variant === 'fullscreen';
 
   if (!audiobook.isAvailable) return null;
+  // Audio-only books get their dedicated screen; the floating overlay would
+  // duplicate the same controls on top of it.
+  if (!fullscreen && getBookData(bookKey)?.book?.isAudioOnly) return null;
 
   const bottomInset = appService?.hasSafeAreaInset ? Math.round(gridInsets.bottom * 0.33) : 0;
 
   return (
     <>
-      {!expanded && (
+      {!fullscreen && !expanded && (
         <AudiobookMiniBar
           state={audiobook.state}
           title={audiobook.title}
@@ -38,8 +53,9 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({ bookKey, gridInsets
           onExpand={() => setExpanded(true)}
         />
       )}
-      {expanded && (
+      {(fullscreen || expanded) && (
         <AudiobookPlayer
+          fullscreen={fullscreen}
           state={audiobook.state}
           title={audiobook.title}
           elapsed={audiobook.elapsed}

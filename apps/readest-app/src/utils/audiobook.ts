@@ -39,3 +39,43 @@ export const fragmentFromCfi = (cfi: string): string | null => {
   const matches = [...cfi.matchAll(/\/\d+\[([^\];]+)\]/g)];
   return matches.length ? (matches[matches.length - 1]?.[1] ?? null) : null;
 };
+
+interface DetectableSection {
+  mediaOverlay?: unknown;
+  linear?: string;
+  createDocument?: () => Promise<Document>;
+}
+
+/** Overlay coverage below this share of the linear spine is a text book. */
+const AUDIO_ONLY_MIN_COVERAGE = 0.8;
+/** Average body text above this many characters per chapter means real prose. */
+const AUDIO_ONLY_MAX_CHARS = 200;
+const AUDIO_ONLY_SAMPLE_SECTIONS = 3;
+
+/**
+ * Whether a media-overlay book is an audio-only audiobook: overlays cover
+ * (nearly) the whole linear spine and the sampled chapters carry only
+ * incidental text (titles, track listings) rather than readable prose.
+ */
+export const detectAudioOnly = async (bookDoc: {
+  sections?: Array<DetectableSection | undefined>;
+}): Promise<boolean> => {
+  const sections = (bookDoc.sections ?? []).filter((s): s is DetectableSection => Boolean(s));
+  const linear = sections.filter((s) => s.linear !== 'no');
+  if (linear.length === 0) return false;
+  const withOverlay = linear.filter((s) => Boolean(s.mediaOverlay));
+  if (withOverlay.length / linear.length < AUDIO_ONLY_MIN_COVERAGE) return false;
+
+  const sample = withOverlay.slice(0, AUDIO_ONLY_SAMPLE_SECTIONS);
+  let totalChars = 0;
+  for (const section of sample) {
+    if (!section.createDocument) return false;
+    try {
+      const doc = await section.createDocument();
+      totalChars += (doc.body?.textContent ?? '').trim().length;
+    } catch {
+      return false;
+    }
+  }
+  return totalChars / sample.length < AUDIO_ONLY_MAX_CHARS;
+};

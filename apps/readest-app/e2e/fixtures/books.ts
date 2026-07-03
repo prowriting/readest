@@ -26,3 +26,8 @@ export const AUDIOBOOK_MO_EPUB = path.join(fixturesDir, 'books/mo-sentences.epub
 export const AUDIOBOOK_AUDIO_ONLY_EPUB = path.join(fixturesDir, 'books/mo-audio-only.epub');
 /** Chapter 2 references missing audio; chapter 3 SMIL is not well-formed. */
 export const AUDIOBOOK_MALFORMED_EPUB = path.join(fixturesDir, 'books/mo-malformed.epub');
+/**
+ * AAC-in-MP4 audio — bundled Chromium cannot decode it; only the
+ * `chrome-aac` Playwright project (branded Chrome) runs against this.
+ */
+export const AUDIOBOOK_AAC_EPUB = path.join(fixturesDir, 'books/mo-aac.epub');

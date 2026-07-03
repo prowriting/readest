@@ -405,6 +405,52 @@ export const buildMoMalformedEpub = (): FixtureEpub => {
   return { name: 'mo-malformed.epub', bytes };
 };
 
+/**
+ * Two-chapter audio-only book whose audio is AAC in an MP4 container —
+ * encoded externally (afconvert/ffmpeg) because pure-JS AAC encoding isn't
+ * worth carrying. Playwright's bundled Chromium cannot decode it; the
+ * `chrome-aac` Playwright project runs it against branded Chrome.
+ */
+export const buildMoAacEpub = (m4aBySlug: Record<'c1' | 'c2', Uint8Array>): FixtureEpub => {
+  const chapters: ChapterRef[] = [
+    { slug: 'c1', label: 'Chapter 1' },
+    { slug: 'c2', label: 'Chapter 2' },
+  ];
+  const title = 'MO AAC (Bookarc e2e)';
+  const files: Array<[string, string | Uint8Array]> = [
+    ['META-INF/container.xml', CONTAINER_XML],
+    [
+      'OEBPS/content.opf',
+      opfDoc({
+        uuid: '3b2a5f04-0000-4000-8000-000000000004',
+        title,
+        chapters,
+        audioFiles: ['c1.m4a', 'c2.m4a'],
+        overlayDurations: { c1: 10, c2: 10 },
+        totalDuration: 20,
+      }).replace(/media-type="audio\/wav"/g, 'media-type="audio/mp4"'),
+    ],
+    ['OEBPS/nav.xhtml', navXhtml(title, chapters)],
+  ];
+  chapters.forEach((chapter, i) => {
+    const n = i + 1;
+    files.push(
+      [
+        `OEBPS/text/${chapter.slug}.xhtml`,
+        chapterXhtml(chapter.label, `    <h1 id="t${n}">${chapter.label}</h1>`),
+      ],
+      [
+        `OEBPS/smil/${chapter.slug}.smil`,
+        smilDoc(chapter.slug, [
+          { fragment: `t${n}`, audioFile: `${chapter.slug}.m4a`, clipBegin: 0, clipEnd: 10 },
+        ]),
+      ],
+      [`OEBPS/audio/${chapter.slug}.m4a`, m4aBySlug[chapter.slug as 'c1' | 'c2']],
+    );
+  });
+  return { name: 'mo-aac.epub', bytes: packEpub(files) };
+};
+
 export const buildAllAudiobookFixtures = (): FixtureEpub[] => [
   buildMoSentencesEpub(),
   buildMoAudioOnlyEpub(),

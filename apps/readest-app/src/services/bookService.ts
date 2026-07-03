@@ -34,7 +34,7 @@ import { ClosableFile } from '@/utils/file';
 import { TxtToEpubConverter } from '@/utils/txt';
 import { svg2png } from '@/utils/svg';
 import { normalizeMetadataIsbn } from '@/utils/isbn';
-import { hasMediaOverlay } from '@/utils/audiobook';
+import { detectAudioOnly, hasMediaOverlay } from '@/utils/audiobook';
 import { BookFileNotFoundError } from './errors';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import {
@@ -329,6 +329,8 @@ export async function importBook(
     }
 
     const primaryLanguage = getPrimaryLanguage(loadedBook.metadata.language);
+    const bookHasAudio = hasMediaOverlay(loadedBook);
+    const bookIsAudioOnly = bookHasAudio && (await detectAudioOnly(loadedBook));
     const book: Book = {
       hash,
       format,
@@ -338,7 +340,9 @@ export async function importBook(
       primaryLanguage,
       author: formatAuthors(loadedBook.metadata.author, primaryLanguage),
       metadata: loadedBook.metadata,
-      hasAudio: hasMediaOverlay(loadedBook) || undefined,
+      hasAudio: bookHasAudio || undefined,
+      isAudioOnly: bookIsAudioOnly || undefined,
+      audioDuration: (bookHasAudio && loadedBook.media?.duration) || undefined,
       createdAt: existingBook ? existingBook.createdAt : Date.now(),
       uploadedAt: existingBook ? existingBook.uploadedAt : null,
       deletedAt: transient ? Date.now() : null,
@@ -367,6 +371,8 @@ export async function importBook(
       existingBook.primaryLanguage = book.primaryLanguage;
       existingBook.metadata = book.metadata;
       existingBook.hasAudio = book.hasAudio;
+      existingBook.isAudioOnly = book.isAudioOnly;
+      existingBook.audioDuration = book.audioDuration;
       existingBook.uploadedAt = null;
       existingBook.downloadedAt = Date.now();
     } else if (existingBook) {
@@ -379,6 +385,8 @@ export async function importBook(
       existingBook.primaryLanguage = existingBook.primaryLanguage ?? book.primaryLanguage;
       existingBook.metadata = book.metadata;
       existingBook.hasAudio = book.hasAudio ?? existingBook.hasAudio;
+      existingBook.isAudioOnly = book.isAudioOnly ?? existingBook.isAudioOnly;
+      existingBook.audioDuration = book.audioDuration ?? existingBook.audioDuration;
       existingBook.downloadedAt = Date.now();
     }
 

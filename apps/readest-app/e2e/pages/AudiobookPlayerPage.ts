@@ -40,6 +40,11 @@ export class AudiobookPlayerPage extends BasePage {
   /** Shown when the reader navigated away from the playing position. */
   readonly returnToPlayingButton: Locator;
 
+  // — audio-only player screen —
+  /** Full-screen player shown for books with no meaningful text. */
+  readonly audioOnlyScreen: Locator;
+  readonly screenBackButton: Locator;
+
   // — sleep timer & bookmarks (full player) —
   readonly sleepTimerSelect: Locator;
   readonly sleepTimerRemaining: Locator;
@@ -72,6 +77,12 @@ export class AudiobookPlayerPage extends BasePage {
     this.highlightStyleSelect = page.getByRole('combobox', { name: 'Highlight Style' });
     this.returnToPlayingButton = page.getByRole('button', {
       name: 'Go to Playing Position',
+      exact: true,
+    });
+
+    this.audioOnlyScreen = page.locator('[aria-label="Audiobook Screen"]');
+    this.screenBackButton = this.audioOnlyScreen.getByRole('button', {
+      name: 'Go to Library',
       exact: true,
     });
 
