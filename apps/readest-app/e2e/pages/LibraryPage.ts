@@ -37,14 +37,17 @@ export class LibraryPage extends BasePage {
   }
 
   /**
-   * Import a book file via the empty-state "Import Books" button.
+   * Import a book file via the empty-state's inline "importing a book" action
+   * (the hero copy weaves import/discover/claim links into one sentence).
    *
    * The file `<input>` is created off-DOM (see `useFileSelector.selectFileWeb`),
    * so a `filechooser` event must be awaited rather than locating an
    * `<input type="file">`.
    */
   async importBook(filePath: string): Promise<void> {
-    const importButton = this.page.locator('.hero').getByRole('button', { name: 'Import Books' });
+    const importButton = this.page
+      .locator('.hero')
+      .getByRole('button', { name: 'importing a book' });
     const chooserPromise = this.page.waitForEvent('filechooser');
     await importButton.click();
     const chooser = await chooserPromise;
