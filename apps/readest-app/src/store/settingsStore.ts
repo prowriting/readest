@@ -10,6 +10,7 @@ interface SettingsState {
   settings: SystemSettings;
   settingsDialogBookKey: string;
   isSettingsDialogOpen: boolean;
+  isAudiobookStorageDialogOpen: boolean;
   fontPanelView: FontPanelView;
   activeSettingsItemId: string | null;
   /**
@@ -30,6 +31,7 @@ interface SettingsState {
   saveSettings: (envConfig: EnvConfigType, settings: SystemSettings) => Promise<void>;
   setSettingsDialogBookKey: (bookKey: string) => void;
   setSettingsDialogOpen: (open: boolean) => void;
+  setAudiobookStorageDialogOpen: (open: boolean) => void;
   setFontPanelView: (view: FontPanelView) => void;
   setActiveSettingsItemId: (id: string | null) => void;
   setRequestedPanel: (panel: string | null) => void;
@@ -42,6 +44,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   settings: {} as SystemSettings,
   settingsDialogBookKey: '',
   isSettingsDialogOpen: false,
+  isAudiobookStorageDialogOpen: false,
   fontPanelView: 'main-fonts',
   activeSettingsItemId: null,
   requestedPanel: null,
@@ -53,6 +56,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   },
   setSettingsDialogBookKey: (bookKey) => set({ settingsDialogBookKey: bookKey }),
   setSettingsDialogOpen: (open) => set({ isSettingsDialogOpen: open }),
+  setAudiobookStorageDialogOpen: (open) => set({ isAudiobookStorageDialogOpen: open }),
   setFontPanelView: (view) => set({ fontPanelView: view }),
   setActiveSettingsItemId: (id) => set({ activeSettingsItemId: id }),
   setRequestedPanel: (panel) => set({ requestedPanel: panel }),

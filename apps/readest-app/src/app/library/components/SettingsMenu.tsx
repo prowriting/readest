@@ -319,6 +319,12 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
         Icon={themeMode === 'dark' ? PiMoon : themeMode === 'light' ? PiSun : TbSunMoon}
         onClick={cycleThemeMode}
       />
+      <MenuItem
+        label={_('Audiobook Storage')}
+        transient
+        setIsDropdownOpen={setIsDropdownOpen}
+        onClick={() => useSettingsStore.getState().setAudiobookStorageDialogOpen(true)}
+      />
       <MenuItem label={_('Settings')} Icon={PiGear} onClick={openSettingsDialog} />
       <hr aria-hidden='true' className='border-base-200 my-1' />
       {isWebAppPlatform() && <MenuItem label={_('Download Bookarc')} onClick={downloadReadest} />}

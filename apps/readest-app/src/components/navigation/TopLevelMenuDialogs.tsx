@@ -7,6 +7,7 @@ import { useTransferStore } from '@/store/transferStore';
 import { AboutWindow } from '@/components/AboutWindow';
 import ModalPortal from '@/components/ModalPortal';
 import SettingsDialog from '@/components/settings/SettingsDialog';
+import AudiobookStorageDialog from '@/components/settings/AudiobookStorageDialog';
 import { MigrateDataWindow } from '@/app/library/components/MigrateDataWindow';
 import { BackupWindow } from '@/app/library/components/BackupWindow';
 import TransferQueuePanel from '@/app/library/components/TransferQueuePanel';
@@ -25,6 +26,12 @@ interface TopLevelMenuDialogsProps {
  */
 const TopLevelMenuDialogs: React.FC<TopLevelMenuDialogsProps> = ({ onPullLibrary }) => {
   const isSettingsDialogOpen = useSettingsStore((state) => state.isSettingsDialogOpen);
+  const isAudiobookStorageDialogOpen = useSettingsStore(
+    (state) => state.isAudiobookStorageDialogOpen,
+  );
+  const setAudiobookStorageDialogOpen = useSettingsStore(
+    (state) => state.setAudiobookStorageDialogOpen,
+  );
   const isTransferQueueOpen = useTransferStore((state) => state.isTransferQueueOpen);
 
   return (
@@ -38,6 +45,9 @@ const TopLevelMenuDialogs: React.FC<TopLevelMenuDialogsProps> = ({ onPullLibrary
         </ModalPortal>
       )}
       {isSettingsDialogOpen && <SettingsDialog bookKey={''} />}
+      {isAudiobookStorageDialogOpen && (
+        <AudiobookStorageDialog onClose={() => setAudiobookStorageDialogOpen(false)} />
+      )}
     </>
   );
 };

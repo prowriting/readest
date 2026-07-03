@@ -297,6 +297,8 @@ export interface SystemSettings {
   libraryViewMode: LibraryViewModeType;
   /** Show only books with audio (media overlays) in the library. */
   libraryFilterAudiobooks: boolean;
+  /** Never download books over cellular data. */
+  wifiOnlyDownloads: boolean;
   librarySortBy: LibrarySortByType;
   librarySortAscending: boolean;
   /**

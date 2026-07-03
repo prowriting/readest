@@ -45,6 +45,15 @@ mo-sentences.epub`) or any real EPUB3 media-overlay title.
 - [ ] Another app taking audio focus (start a song in a music app) pauses
       the audiobook; the position is preserved.
 
+## Downloads & offline
+
+- [ ] Airplane mode: a downloaded audiobook plays fully offline.
+- [ ] Wi-Fi Only Downloads on + Wi-Fi off (cellular only): downloading a
+      cloud audiobook is blocked with the explanatory toast; turning the
+      preference off allows it.
+- [ ] Remove Download (Audiobook Storage dialog) frees the space and the
+      book re-downloads from the cloud on next open.
+
 ## Hardware controls
 
 - [ ] Wired/Bluetooth headphone play/pause toggles playback.

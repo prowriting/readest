@@ -14,6 +14,7 @@ import { formatAuthors, formatTitle, getPrimaryLanguage, listFormater } from '@/
 import { getImportErrorMessage } from '@/services/errors';
 import { ingestFile } from '@/services/ingestService';
 import { eventDispatcher } from '@/utils/event';
+import { evaluateDownloadGate, networkKindFrom } from '@/utils/downloadGate';
 import { ProgressPayload } from '@/utils/transfer';
 import { throttle } from '@/utils/throttle';
 import { transferManager } from '@/services/transferManager';
@@ -807,6 +808,18 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   const handleBookDownload = useCallback(
     async (book: Book, downloadOptions: { redownload?: boolean; queued?: boolean } = {}) => {
       const { redownload = false, queued = false } = downloadOptions;
+      const gate = evaluateDownloadGate(settings.wifiOnlyDownloads, networkKindFrom(navigator));
+      if (!gate.allowed) {
+        eventDispatcher.dispatch('toast', {
+          type: 'info',
+          timeout: 3000,
+          message:
+            gate.reason === 'wifi-only'
+              ? _('Download blocked: Wi-Fi only downloads are enabled.')
+              : _('Download unavailable while offline.'),
+        });
+        return false;
+      }
       if (redownload || !queued) {
         try {
           await appService?.downloadBook(book, false, redownload, (progress) => {

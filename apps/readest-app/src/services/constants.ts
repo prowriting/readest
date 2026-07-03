@@ -153,6 +153,7 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
   discordRichPresenceEnabled: false,
   libraryViewMode: 'grid',
   libraryFilterAudiobooks: false,
+  wifiOnlyDownloads: false,
   librarySortBy: LibrarySortByType.Updated,
   librarySortAscending: false,
   librarySortByAuto: true,
