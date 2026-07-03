@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { MdCheckCircle, MdCheckCircleOutline } from 'react-icons/md';
+import { MdCheckCircle, MdCheckCircleOutline, MdHeadphones } from 'react-icons/md';
 import {
   LiaCloudUploadAltSolid,
   LiaCloudDownloadAltSolid,
@@ -95,6 +95,15 @@ const BookItem: React.FC<BookItemProps> = ({
           imageClassName='rounded shadow-md'
           onAspectRatioChange={setCoverAspect}
         />
+        {book.hasAudio && (
+          <div
+            aria-label={_('Audiobook')}
+            title={_('Audiobook')}
+            className='bg-base-100/90 eink-bordered absolute left-1 top-1 rounded-full p-1 shadow'
+          >
+            <MdHeadphones size={iconSize15} />
+          </div>
+        )}
         {bookSelected && (
           <div className='absolute inset-0 bg-black opacity-30 transition-opacity duration-300'></div>
         )}

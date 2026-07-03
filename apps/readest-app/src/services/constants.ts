@@ -12,6 +12,7 @@ import {
   ScreenConfig,
   TranslatorConfig,
   TTSConfig,
+  MediaOverlayConfig,
   ViewConfig,
   ViewSettings,
   ViewSettingsConfig,
@@ -392,6 +393,12 @@ export const DEFAULT_TTS_CONFIG: TTSConfig = {
   showTTSBar: false,
   ttsHighlightOptions: { style: 'highlight', color: '#808080' },
   ttsMediaMetadata: 'sentence',
+};
+
+export const DEFAULT_MEDIA_OVERLAY_CONFIG: MediaOverlayConfig = {
+  moPlaybackRate: 1.0,
+  moSkipForwardSec: 30,
+  moSkipBackSec: 15,
 };
 
 export const DEFAULT_TRANSLATOR_CONFIG: TranslatorConfig = {

@@ -107,6 +107,8 @@ export interface Book {
   readingStatus?: ReadingStatus;
   analyticsStatus?: AnalyticsStatus;
   primaryLanguage?: string;
+  // Whether the book carries EPUB3 Media Overlays (read-along audio).
+  hasAudio?: boolean;
 
   metadata?: BookMetadata;
 }
@@ -372,6 +374,20 @@ export interface ViewSettingsConfig {
   isGlobal: boolean;
 }
 
+export interface MediaOverlayConfig {
+  moPlaybackRate: number;
+  moSkipForwardSec: number;
+  moSkipBackSec: number;
+}
+
+/** A saved listening position inside a Media Overlay audiobook. */
+export interface MediaOverlayLocation {
+  sectionIndex: number;
+  /** Seconds from the start of the section's concatenated audio timeline. */
+  offset: number;
+  updatedAt: number;
+}
+
 export interface ViewSettings
   extends BookLayout,
     BookStyle,
@@ -379,6 +395,7 @@ export interface ViewSettings
     BookLanguage,
     ViewConfig,
     TTSConfig,
+    MediaOverlayConfig,
     TranslatorConfig,
     ScreenConfig,
     ProofreadRulesConfig,
@@ -439,6 +456,7 @@ export interface BookConfig {
   xpointer?: string; // XPointer of the current location (for Koreader interoperability)
   booknotes?: BookNote[];
   rsvpPosition?: { cfi: string; wordText: string };
+  mediaOverlayLocation?: MediaOverlayLocation;
   searchConfig?: Partial<BookSearchConfig>;
   viewSettings?: Partial<ViewSettings>;
 

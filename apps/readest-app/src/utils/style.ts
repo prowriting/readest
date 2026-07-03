@@ -744,7 +744,17 @@ export const getStyles = (viewSettings: ViewSettings, themeCode?: ThemeCode) => 
   const warichuStyles = getWarichuStyles();
   const rubyStyles = getRubyStyles();
   const userStylesheet = viewSettings.userStylesheet!;
-  return `${pageLayoutStyles}\n${paragraphLayoutStyles}\n${fontStyles}\n${colorStyles}\n${translationStyles}\n${warichuStyles}\n${rubyStyles}\n${userStylesheet}`;
+  // Read-along highlight for EPUB3 Media Overlays. The class name comes from
+  // the package's media:active-class metadata; foliate-js applies it to the
+  // element whose SMIL clip is playing. Styling configurability is a later
+  // audiobook phase; this keeps the highlight visible on all themes.
+  const mediaOverlayStyles = `
+    .-epub-media-overlay-active {
+      background-color: rgba(250, 204, 21, 0.45);
+      border-radius: 2px;
+    }
+  `;
+  return `${pageLayoutStyles}\n${paragraphLayoutStyles}\n${fontStyles}\n${colorStyles}\n${translationStyles}\n${warichuStyles}\n${rubyStyles}\n${mediaOverlayStyles}\n${userStylesheet}`;
 };
 
 export const applyTranslationStyle = (viewSettings: ViewSettings) => {

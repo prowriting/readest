@@ -46,6 +46,23 @@ export class ReaderPage extends BasePage {
     await this.foliateView.waitFor({ state: 'attached' });
   }
 
+  /**
+   * Text of the media-overlay read-along highlight, or '' when nothing is
+   * highlighted. The active element lives inside one of the (possibly
+   * prerendered) section iframes, so every frame is scanned. Poll this from
+   * specs — the highlight moves with audio playback.
+   */
+  async mediaOverlayHighlightText(): Promise<string> {
+    for (const frame of this.page.frames()) {
+      const el = frame.locator('.-epub-media-overlay-active').first();
+      const count = await el.count().catch(() => 0);
+      if (count > 0) {
+        return (await el.textContent().catch(() => '')) ?? '';
+      }
+    }
+    return '';
+  }
+
   // --- chrome (auto-hidden header / footer bars) ---
 
   /** Reveal the header bar by clicking its top hover strip. */

@@ -1,4 +1,5 @@
 import { BookFormat } from '@/types/book';
+import type { MediaOverlayEngine } from '@/types/mediaOverlay';
 import { Collection, Contributor, Identifier, LanguageMap } from '@/utils/book';
 import { configureZip } from '@/utils/zip';
 import * as epubcfi from 'foliate-js/epubcfi.js';
@@ -45,6 +46,11 @@ export interface SectionItem {
 
   loadText?: () => Promise<string | null>;
   createDocument: () => Promise<Document>;
+
+  /** EPUB3 Media Overlay SMIL manifest item for this section, if any. */
+  mediaOverlay?: { id: string; href: string } | null;
+  /** Declared `media:duration` of this section's overlay, in seconds. */
+  mediaOverlayDuration?: number;
 }
 
 export type BookMetadata = {
@@ -88,6 +94,14 @@ export interface BookDoc {
   transformTarget?: EventTarget;
   splitTOCHref(href: string): Array<string | number>;
   getCover(): Promise<Blob | null>;
+  /** EPUB3 Media Overlay package metadata (active classes, total duration). */
+  media?: {
+    activeClass?: string | null;
+    playbackActiveClass?: string | null;
+    duration?: number | null;
+  };
+  /** Present when any section carries a media overlay (EPUB only). */
+  getMediaOverlay?: () => MediaOverlayEngine;
 }
 
 export const EXTS: Record<BookFormat, string> = {

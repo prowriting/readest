@@ -15,6 +15,7 @@ import { RSVPControl } from '../rsvp';
 import MobileFooterBar from './MobileFooterBar';
 import DesktopFooterBar from './DesktopFooterBar';
 import TTSControl from '../tts/TTSControl';
+import AudiobookControl from '../audiobook/AudiobookControl';
 
 const FooterBar: React.FC<FooterBarProps> = ({
   bookKey,
@@ -270,6 +271,7 @@ const FooterBar: React.FC<FooterBarProps> = ({
       )}
 
       <TTSControl bookKey={bookKey} gridInsets={gridInsets} />
+      <AudiobookControl bookKey={bookKey} gridInsets={gridInsets} />
       <RSVPControl bookKey={bookKey} gridInsets={gridInsets} />
     </>
   );

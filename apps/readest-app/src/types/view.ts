@@ -2,6 +2,7 @@ import { BookDoc } from '@/libs/document';
 import { BookNote, BookSearchConfig, BookSearchResult } from '@/types/book';
 import { TTSGranularity } from '@/services/tts';
 import { TTS } from 'foliate-js/tts.js';
+import type { MediaOverlayEngine } from './mediaOverlay';
 import { LocaleWithTextInfo } from './misc';
 
 export const NOTE_PREFIX = 'foliate-note:';
@@ -101,6 +102,10 @@ export interface FoliateView extends HTMLElement {
   ) => Promise<void>;
   book: BookDoc;
   tts: TTS | null;
+  /** Media overlay engine, present once an MO book is opened. */
+  mediaOverlay?: MediaOverlayEngine | null;
+  /** Start the media overlay at the currently visible section. */
+  startMediaOverlay?: () => Promise<void>;
   isFixedLayout: boolean;
   language: {
     locale?: LocaleWithTextInfo;
