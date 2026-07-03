@@ -1817,5 +1817,8 @@
   "Extend Sleep Timer": "تمديد مؤقّت النوم",
   "Sleep Timer Remaining": "المتبقي من مؤقّت النوم",
   "Delete Bookmark": "حذف الإشارة المرجعية",
-  "Audiobook Screen": "شاشة الكتاب الصوتي"
+  "Audiobook Screen": "شاشة الكتاب الصوتي",
+  "Continue listening": "متابعة الاستماع",
+  "Continue listening {{title}}": "متابعة الاستماع إلى {{title}}",
+  "Audiobooks Only": "الكتب الصوتية فقط"
 }

@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "تمدید تایمر خواب",
   "Sleep Timer Remaining": "باقی‌مانده تایمر خواب",
   "Delete Bookmark": "حذف نشانک",
-  "Audiobook Screen": "صفحه کتاب صوتی"
+  "Audiobook Screen": "صفحه کتاب صوتی",
+  "Continue listening": "ادامه شنیدن",
+  "Continue listening {{title}}": "ادامه شنیدن {{title}}",
+  "Audiobooks Only": "فقط کتاب‌های صوتی"
 }

@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Slaaptimer verlengen",
   "Sleep Timer Remaining": "Resterende slaaptimer",
   "Delete Bookmark": "Bladwijzer verwijderen",
-  "Audiobook Screen": "Luisterboekscherm"
+  "Audiobook Screen": "Luisterboekscherm",
+  "Continue listening": "Verder luisteren",
+  "Continue listening {{title}}": "Verder luisteren naar {{title}}",
+  "Audiobooks Only": "Alleen luisterboeken"
 }

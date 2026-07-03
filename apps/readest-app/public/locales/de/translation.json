@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Einschlaftimer verlängern",
   "Sleep Timer Remaining": "Verbleibender Einschlaftimer",
   "Delete Bookmark": "Lesezeichen löschen",
-  "Audiobook Screen": "Hörbuch-Ansicht"
+  "Audiobook Screen": "Hörbuch-Ansicht",
+  "Continue listening": "Weiterhören",
+  "Continue listening {{title}}": "{{title}} weiterhören",
+  "Audiobooks Only": "Nur Hörbücher"
 }

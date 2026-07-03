@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Alvásidőzítő meghosszabbítása",
   "Sleep Timer Remaining": "Hátralévő alvásidő",
   "Delete Bookmark": "Könyvjelző törlése",
-  "Audiobook Screen": "Hangoskönyv-képernyő"
+  "Audiobook Screen": "Hangoskönyv-képernyő",
+  "Continue listening": "Hallgatás folytatása",
+  "Continue listening {{title}}": "{{title}} hallgatásának folytatása",
+  "Audiobooks Only": "Csak hangoskönyvek"
 }

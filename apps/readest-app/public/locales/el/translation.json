@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Παράταση χρονομέτρου",
   "Sleep Timer Remaining": "Υπόλοιπο χρονομέτρου ύπνου",
   "Delete Bookmark": "Διαγραφή σελιδοδείκτη",
-  "Audiobook Screen": "Οθόνη ηχητικού βιβλίου"
+  "Audiobook Screen": "Οθόνη ηχητικού βιβλίου",
+  "Continue listening": "Συνέχεια ακρόασης",
+  "Continue listening {{title}}": "Συνέχεια ακρόασης του {{title}}",
+  "Audiobooks Only": "Μόνο ηχητικά βιβλία"
 }

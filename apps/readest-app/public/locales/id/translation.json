@@ -1662,5 +1662,8 @@
   "Extend Sleep Timer": "Perpanjang timer tidur",
   "Sleep Timer Remaining": "Sisa timer tidur",
   "Delete Bookmark": "Hapus markah",
-  "Audiobook Screen": "Layar buku audio"
+  "Audiobook Screen": "Layar buku audio",
+  "Continue listening": "Lanjutkan mendengarkan",
+  "Continue listening {{title}}": "Lanjutkan mendengarkan {{title}}",
+  "Audiobooks Only": "Hanya buku audio"
 }

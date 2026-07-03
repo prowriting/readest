@@ -1662,5 +1662,8 @@
   "Extend Sleep Timer": "གཉིད་དུས་ཚོད་རིང་དུ་གཏོང་།",
   "Sleep Timer Remaining": "གཉིད་དུས་ཚོད་ལྷག་མ།",
   "Delete Bookmark": "དཔེ་རྟགས་བསུབ།",
-  "Audiobook Screen": "སྒྲ་དེབ་ངོས།"
+  "Audiobook Screen": "སྒྲ་དེབ་ངོས།",
+  "Continue listening": "མུ་མཐུད་ཉན།",
+  "Continue listening {{title}}": "{{title}}མུ་མཐུད་ཉན།",
+  "Audiobooks Only": "སྒྲ་དེབ་ཁོ་ན།"
 }

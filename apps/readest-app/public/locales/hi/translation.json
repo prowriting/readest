@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "स्लीप टाइमर बढ़ाएँ",
   "Sleep Timer Remaining": "स्लीप टाइमर शेष",
   "Delete Bookmark": "बुकमार्क हटाएँ",
-  "Audiobook Screen": "ऑडियोबुक स्क्रीन"
+  "Audiobook Screen": "ऑडियोबुक स्क्रीन",
+  "Continue listening": "सुनना जारी रखें",
+  "Continue listening {{title}}": "{{title}} सुनना जारी रखें",
+  "Audiobooks Only": "केवल ऑडियोबुक"
 }

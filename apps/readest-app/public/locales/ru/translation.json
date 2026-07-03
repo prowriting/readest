@@ -1755,5 +1755,8 @@
   "Extend Sleep Timer": "Продлить таймер сна",
   "Sleep Timer Remaining": "Осталось до таймера сна",
   "Delete Bookmark": "Удалить закладку",
-  "Audiobook Screen": "Экран аудиокниги"
+  "Audiobook Screen": "Экран аудиокниги",
+  "Continue listening": "Продолжить прослушивание",
+  "Continue listening {{title}}": "Продолжить прослушивание {{title}}",
+  "Audiobooks Only": "Только аудиокниги"
 }

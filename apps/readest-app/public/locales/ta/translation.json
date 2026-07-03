@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "உறக்க நேரத்தை நீட்டி",
   "Sleep Timer Remaining": "உறக்க நேரம் மீதம்",
   "Delete Bookmark": "புத்தகக்குறியை நீக்கு",
-  "Audiobook Screen": "ஒலிப்புத்தக திரை"
+  "Audiobook Screen": "ஒலிப்புத்தக திரை",
+  "Continue listening": "தொடர்ந்து கேள்",
+  "Continue listening {{title}}": "{{title}} தொடர்ந்து கேள்",
+  "Audiobooks Only": "ஒலிப்புத்தகங்கள் மட்டும்"
 }

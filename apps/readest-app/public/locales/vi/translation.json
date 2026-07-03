@@ -1662,5 +1662,8 @@
   "Extend Sleep Timer": "Gia hạn hẹn giờ ngủ",
   "Sleep Timer Remaining": "Hẹn giờ ngủ còn lại",
   "Delete Bookmark": "Xóa dấu trang",
-  "Audiobook Screen": "Màn hình sách nói"
+  "Audiobook Screen": "Màn hình sách nói",
+  "Continue listening": "Nghe tiếp",
+  "Continue listening {{title}}": "Nghe tiếp {{title}}",
+  "Audiobooks Only": "Chỉ sách nói"
 }

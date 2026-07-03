@@ -1724,5 +1724,8 @@
   "Extend Sleep Timer": "Prolonger la minuterie",
   "Sleep Timer Remaining": "Minuterie de veille restante",
   "Delete Bookmark": "Supprimer le signet",
-  "Audiobook Screen": "Écran du livre audio"
+  "Audiobook Screen": "Écran du livre audio",
+  "Continue listening": "Reprendre l’écoute",
+  "Continue listening {{title}}": "Reprendre l’écoute de {{title}}",
+  "Audiobooks Only": "Livres audio uniquement"
 }

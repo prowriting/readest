@@ -1662,5 +1662,8 @@
   "Extend Sleep Timer": "延長睡眠定時",
   "Sleep Timer Remaining": "睡眠定時剩餘",
   "Delete Bookmark": "刪除書籤",
-  "Audiobook Screen": "有聲書畫面"
+  "Audiobook Screen": "有聲書畫面",
+  "Continue listening": "繼續收聽",
+  "Continue listening {{title}}": "繼續收聽《{{title}}》",
+  "Audiobooks Only": "僅有聲書"
 }

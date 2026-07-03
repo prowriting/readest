@@ -1724,5 +1724,8 @@
   "Extend Sleep Timer": "Prolongar el temporizador",
   "Sleep Timer Remaining": "Tiempo restante del temporizador",
   "Delete Bookmark": "Eliminar marcador",
-  "Audiobook Screen": "Pantalla de audiolibro"
+  "Audiobook Screen": "Pantalla de audiolibro",
+  "Continue listening": "Seguir escuchando",
+  "Continue listening {{title}}": "Seguir escuchando {{title}}",
+  "Audiobooks Only": "Solo audiolibros"
 }

@@ -1724,5 +1724,8 @@
   "Extend Sleep Timer": "Prelungește temporizatorul",
   "Sleep Timer Remaining": "Timp rămas temporizator",
   "Delete Bookmark": "Șterge semnul de carte",
-  "Audiobook Screen": "Ecran audiobook"
+  "Audiobook Screen": "Ecran audiobook",
+  "Continue listening": "Continuă ascultarea",
+  "Continue listening {{title}}": "Continuă ascultarea {{title}}",
+  "Audiobooks Only": "Doar audiobookuri"
 }

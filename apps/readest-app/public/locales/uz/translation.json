@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Uyqu taymerini uzaytirish",
   "Sleep Timer Remaining": "Uyqu taymeri qoldig‘i",
   "Delete Bookmark": "Xatcho‘pni o‘chirish",
-  "Audiobook Screen": "Audiokitob ekrani"
+  "Audiobook Screen": "Audiokitob ekrani",
+  "Continue listening": "Tinglashni davom ettirish",
+  "Continue listening {{title}}": "{{title}} tinglashni davom ettirish",
+  "Audiobooks Only": "Faqat audiokitoblar"
 }

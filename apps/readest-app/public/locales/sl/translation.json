@@ -1755,5 +1755,8 @@
   "Extend Sleep Timer": "Podaljšaj časovnik",
   "Sleep Timer Remaining": "Preostali čas časovnika",
   "Delete Bookmark": "Izbriši zaznamek",
-  "Audiobook Screen": "Zaslon zvočne knjige"
+  "Audiobook Screen": "Zaslon zvočne knjige",
+  "Continue listening": "Nadaljuj poslušanje",
+  "Continue listening {{title}}": "Nadaljuj poslušanje {{title}}",
+  "Audiobooks Only": "Samo zvočne knjige"
 }

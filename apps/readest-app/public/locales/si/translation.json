@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "නින්ද ටයිමරය දිගු කරන්න",
   "Sleep Timer Remaining": "නින්ද ටයිමර ඉතිරිය",
   "Delete Bookmark": "පිටු සලකුණ මකන්න",
-  "Audiobook Screen": "ශ්‍රව්‍ය පොත් තිරය"
+  "Audiobook Screen": "ශ්‍රව්‍ය පොත් තිරය",
+  "Continue listening": "අසන එක දිගටම",
+  "Continue listening {{title}}": "{{title}} ඇසීම දිගටම",
+  "Audiobooks Only": "ශ්‍රව්‍ය පොත් පමණයි"
 }

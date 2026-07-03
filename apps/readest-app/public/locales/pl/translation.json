@@ -1755,5 +1755,8 @@
   "Extend Sleep Timer": "Przedłuż wyłącznik",
   "Sleep Timer Remaining": "Pozostały czas wyłącznika",
   "Delete Bookmark": "Usuń zakładkę",
-  "Audiobook Screen": "Ekran audiobooka"
+  "Audiobook Screen": "Ekran audiobooka",
+  "Continue listening": "Kontynuuj słuchanie",
+  "Continue listening {{title}}": "Kontynuuj słuchanie {{title}}",
+  "Audiobooks Only": "Tylko audiobooki"
 }

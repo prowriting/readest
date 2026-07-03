@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Förläng sovtimern",
   "Sleep Timer Remaining": "Återstående sovtimer",
   "Delete Bookmark": "Ta bort bokmärke",
-  "Audiobook Screen": "Ljudboksvy"
+  "Audiobook Screen": "Ljudboksvy",
+  "Continue listening": "Fortsätt lyssna",
+  "Continue listening {{title}}": "Fortsätt lyssna på {{title}}",
+  "Audiobooks Only": "Endast ljudböcker"
 }

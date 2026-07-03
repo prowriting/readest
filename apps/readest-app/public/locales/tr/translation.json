@@ -1693,5 +1693,8 @@
   "Extend Sleep Timer": "Uyku zamanlayıcısını uzat",
   "Sleep Timer Remaining": "Kalan uyku süresi",
   "Delete Bookmark": "Yer imini sil",
-  "Audiobook Screen": "Sesli kitap ekranı"
+  "Audiobook Screen": "Sesli kitap ekranı",
+  "Continue listening": "Dinlemeye devam et",
+  "Continue listening {{title}}": "{{title}} dinlemeye devam et",
+  "Audiobooks Only": "Yalnızca sesli kitaplar"
 }

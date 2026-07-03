@@ -1724,5 +1724,8 @@
   "Extend Sleep Timer": "הארכת טיימר השינה",
   "Sleep Timer Remaining": "זמן שנותר בטיימר",
   "Delete Bookmark": "מחיקת סימנייה",
-  "Audiobook Screen": "מסך ספר השמע"
+  "Audiobook Screen": "מסך ספר השמע",
+  "Continue listening": "להמשיך להאזין",
+  "Continue listening {{title}}": "להמשיך להאזין ל-{{title}}",
+  "Audiobooks Only": "ספרי שמע בלבד"
 }

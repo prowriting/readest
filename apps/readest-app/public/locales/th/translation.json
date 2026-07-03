@@ -1662,5 +1662,8 @@
   "Extend Sleep Timer": "ขยายเวลาตัวตั้งเวลานอน",
   "Sleep Timer Remaining": "เวลาที่เหลือของตัวตั้งเวลานอน",
   "Delete Bookmark": "ลบที่คั่นหน้า",
-  "Audiobook Screen": "หน้าจอหนังสือเสียง"
+  "Audiobook Screen": "หน้าจอหนังสือเสียง",
+  "Continue listening": "ฟังต่อ",
+  "Continue listening {{title}}": "ฟัง {{title}} ต่อ",
+  "Audiobooks Only": "หนังสือเสียงเท่านั้น"
 }
