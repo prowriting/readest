@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Ljudboksvy",
   "Continue listening": "Fortsätt lyssna",
   "Continue listening {{title}}": "Fortsätt lyssna på {{title}}",
-  "Audiobooks Only": "Endast ljudböcker"
+  "Audiobooks Only": "Endast ljudböcker",
+  "Audiobook Storage": "Ljudbokslagring",
+  "Total Audio Storage": "Total ljudlagring",
+  "Wi-Fi Only Downloads": "Hämta endast via Wi-Fi",
+  "Never download audiobooks over cellular data.": "Hämta aldrig ljudböcker via mobildata.",
+  "Remove Download": "Ta bort hämtning",
+  "No cloud copy to restore from yet": "Ingen molnkopia att återställa från ännu",
+  "No downloaded audiobooks on this device.": "Inga hämtade ljudböcker på den här enheten.",
+  "Download removed: {{title}}": "Hämtning borttagen: {{title}}",
+  "Failed to remove download: {{title}}": "Kunde inte ta bort hämtningen: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Hämtning blockerad: endast Wi-Fi är aktiverat.",
+  "Download unavailable while offline.": "Hämtning otillgänglig offline."
 }

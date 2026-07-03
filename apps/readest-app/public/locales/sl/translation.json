@@ -1758,5 +1758,16 @@
   "Audiobook Screen": "Zaslon zvočne knjige",
   "Continue listening": "Nadaljuj poslušanje",
   "Continue listening {{title}}": "Nadaljuj poslušanje {{title}}",
-  "Audiobooks Only": "Samo zvočne knjige"
+  "Audiobooks Only": "Samo zvočne knjige",
+  "Audiobook Storage": "Prostor zvočnih knjig",
+  "Total Audio Storage": "Skupni zvočni prostor",
+  "Wi-Fi Only Downloads": "Prenosi samo prek Wi-Fi",
+  "Never download audiobooks over cellular data.": "Zvočnih knjig nikoli ne prenašaj prek mobilnih podatkov.",
+  "Remove Download": "Odstrani prenos",
+  "No cloud copy to restore from yet": "Še ni oblačne kopije za obnovitev",
+  "No downloaded audiobooks on this device.": "Na tej napravi ni prenesenih zvočnih knjig.",
+  "Download removed: {{title}}": "Prenos odstranjen: {{title}}",
+  "Failed to remove download: {{title}}": "Prenosa ni bilo mogoče odstraniti: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Prenos blokiran: omogočeni so samo prenosi prek Wi-Fi.",
+  "Download unavailable while offline.": "Prenos ni na voljo brez povezave."
 }

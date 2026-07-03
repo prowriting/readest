@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "སྒྲ་དེབ་ངོས།",
   "Continue listening": "མུ་མཐུད་ཉན།",
   "Continue listening {{title}}": "{{title}}མུ་མཐུད་ཉན།",
-  "Audiobooks Only": "སྒྲ་དེབ་ཁོ་ན།"
+  "Audiobooks Only": "སྒྲ་དེབ་ཁོ་ན།",
+  "Audiobook Storage": "སྒྲ་དེབ་གསོག་མཛོད།",
+  "Total Audio Storage": "སྒྲའི་གསོག་མཛོད་ཡོངས།",
+  "Wi-Fi Only Downloads": "Wi-Fi ཁོ་ནར་ཕབ་ལེན།",
+  "Never download audiobooks over cellular data.": "སྒྲ་དེབ་ནམ་ཡང་ཁ་པར་གྱི་གྲངས་ཐོག་ཕབ་ལེན་མི་བྱེད།",
+  "Remove Download": "ཕབ་ལེན་བསུབ།",
+  "No cloud copy to restore from yet": "སྤྲིན་གྱི་འདྲ་བཤུས་ད་དུང་མེད།",
+  "No downloaded audiobooks on this device.": "སྒྲིག་ཆས་འདིར་ཕབ་ལེན་བྱས་པའི་སྒྲ་དེབ་མེད།",
+  "Download removed: {{title}}": "ཕབ་ལེན་བསུབ་ཟིན།: {{title}}",
+  "Failed to remove download: {{title}}": "ཕབ་ལེན་བསུབ་མ་ཐུབ།: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "ཕབ་ལེན་བཀག Wi-Fi ཁོ་ན་སྒྲིག་འགོད་ཡོད།",
+  "Download unavailable while offline.": "དྲ་མེད་སྐབས་ཕབ་ལེན་མི་ཐུབ།"
 }

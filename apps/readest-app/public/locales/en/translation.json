@@ -99,5 +99,16 @@
   "Continue listening": "Continue listening",
   "Continue listening {{title}}": "Continue listening {{title}}",
   "{{time}} left": "{{time}} left",
-  "Audiobooks Only": "Audiobooks Only"
+  "Audiobooks Only": "Audiobooks Only",
+  "Audiobook Storage": "Audiobook Storage",
+  "Total Audio Storage": "Total Audio Storage",
+  "Wi-Fi Only Downloads": "Wi-Fi Only Downloads",
+  "Never download audiobooks over cellular data.": "Never download audiobooks over cellular data.",
+  "Remove Download": "Remove Download",
+  "No cloud copy to restore from yet": "No cloud copy to restore from yet",
+  "No downloaded audiobooks on this device.": "No downloaded audiobooks on this device.",
+  "Download removed: {{title}}": "Download removed: {{title}}",
+  "Failed to remove download: {{title}}": "Failed to remove download: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Download blocked: Wi-Fi only downloads are enabled.",
+  "Download unavailable while offline.": "Download unavailable while offline."
 }

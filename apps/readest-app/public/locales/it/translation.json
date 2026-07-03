@@ -1727,5 +1727,16 @@
   "Audiobook Screen": "Schermata audiolibro",
   "Continue listening": "Continua ad ascoltare",
   "Continue listening {{title}}": "Continua ad ascoltare {{title}}",
-  "Audiobooks Only": "Solo audiolibri"
+  "Audiobooks Only": "Solo audiolibri",
+  "Audiobook Storage": "Spazio audiolibri",
+  "Total Audio Storage": "Spazio audio totale",
+  "Wi-Fi Only Downloads": "Download solo via Wi-Fi",
+  "Never download audiobooks over cellular data.": "Non scaricare mai audiolibri tramite dati mobili.",
+  "Remove Download": "Rimuovi download",
+  "No cloud copy to restore from yet": "Nessuna copia cloud da cui ripristinare",
+  "No downloaded audiobooks on this device.": "Nessun audiolibro scaricato su questo dispositivo.",
+  "Download removed: {{title}}": "Download rimosso: {{title}}",
+  "Failed to remove download: {{title}}": "Impossibile rimuovere il download: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Download bloccato: è attivo il solo Wi-Fi.",
+  "Download unavailable while offline.": "Download non disponibile offline."
 }

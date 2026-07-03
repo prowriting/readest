@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Luisterboekscherm",
   "Continue listening": "Verder luisteren",
   "Continue listening {{title}}": "Verder luisteren naar {{title}}",
-  "Audiobooks Only": "Alleen luisterboeken"
+  "Audiobooks Only": "Alleen luisterboeken",
+  "Audiobook Storage": "Luisterboekopslag",
+  "Total Audio Storage": "Totale audio-opslag",
+  "Wi-Fi Only Downloads": "Alleen downloaden via wifi",
+  "Never download audiobooks over cellular data.": "Luisterboeken nooit via mobiele data downloaden.",
+  "Remove Download": "Download verwijderen",
+  "No cloud copy to restore from yet": "Nog geen cloudkopie om te herstellen",
+  "No downloaded audiobooks on this device.": "Geen gedownloade luisterboeken op dit apparaat.",
+  "Download removed: {{title}}": "Download verwijderd: {{title}}",
+  "Failed to remove download: {{title}}": "Kon download niet verwijderen: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Download geblokkeerd: alleen-wifi staat aan.",
+  "Download unavailable while offline.": "Downloaden niet beschikbaar offline."
 }

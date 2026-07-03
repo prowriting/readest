@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "Skrin buku audio",
   "Continue listening": "Terus mendengar",
   "Continue listening {{title}}": "Terus mendengar {{title}}",
-  "Audiobooks Only": "Buku audio sahaja"
+  "Audiobooks Only": "Buku audio sahaja",
+  "Audiobook Storage": "Storan buku audio",
+  "Total Audio Storage": "Jumlah storan audio",
+  "Wi-Fi Only Downloads": "Muat turun melalui Wi-Fi sahaja",
+  "Never download audiobooks over cellular data.": "Jangan muat turun buku audio melalui data selular.",
+  "Remove Download": "Alih keluar muat turun",
+  "No cloud copy to restore from yet": "Belum ada salinan awan untuk dipulihkan",
+  "No downloaded audiobooks on this device.": "Tiada buku audio dimuat turun pada peranti ini.",
+  "Download removed: {{title}}": "Muat turun dialih keluar: {{title}}",
+  "Failed to remove download: {{title}}": "Gagal mengalih keluar muat turun: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Muat turun disekat: hanya Wi-Fi dibenarkan.",
+  "Download unavailable while offline.": "Muat turun tidak tersedia luar talian."
 }

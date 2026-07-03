@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "オーディオブック画面",
   "Continue listening": "続きを聴く",
   "Continue listening {{title}}": "{{title}}の続きを聴く",
-  "Audiobooks Only": "オーディオブックのみ"
+  "Audiobooks Only": "オーディオブックのみ",
+  "Audiobook Storage": "オーディオブックの容量",
+  "Total Audio Storage": "音声の合計容量",
+  "Wi-Fi Only Downloads": "Wi-Fiのみでダウンロード",
+  "Never download audiobooks over cellular data.": "モバイルデータ通信ではオーディオブックをダウンロードしません。",
+  "Remove Download": "ダウンロードを削除",
+  "No cloud copy to restore from yet": "復元に使えるクラウドコピーがまだありません",
+  "No downloaded audiobooks on this device.": "この端末にダウンロード済みのオーディオブックはありません。",
+  "Download removed: {{title}}": "ダウンロードを削除しました: {{title}}",
+  "Failed to remove download: {{title}}": "ダウンロードを削除できませんでした: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "ダウンロードをブロックしました: Wi-Fiのみの設定が有効です。",
+  "Download unavailable while offline.": "オフラインではダウンロードできません。"
 }

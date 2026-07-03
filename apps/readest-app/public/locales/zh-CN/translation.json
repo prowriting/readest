@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "有声书界面",
   "Continue listening": "继续收听",
   "Continue listening {{title}}": "继续收听《{{title}}》",
-  "Audiobooks Only": "仅有声书"
+  "Audiobooks Only": "仅有声书",
+  "Audiobook Storage": "有声书存储",
+  "Total Audio Storage": "音频总占用",
+  "Wi-Fi Only Downloads": "仅 Wi-Fi 下载",
+  "Never download audiobooks over cellular data.": "绝不通过蜂窝数据下载有声书。",
+  "Remove Download": "移除下载",
+  "No cloud copy to restore from yet": "尚无可恢复的云端副本",
+  "No downloaded audiobooks on this device.": "此设备上没有已下载的有声书。",
+  "Download removed: {{title}}": "已移除下载：{{title}}",
+  "Failed to remove download: {{title}}": "移除下载失败：{{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "下载已阻止：已启用仅 Wi-Fi 下载。",
+  "Download unavailable while offline.": "离线时无法下载。"
 }

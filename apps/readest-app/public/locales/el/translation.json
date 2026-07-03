@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Οθόνη ηχητικού βιβλίου",
   "Continue listening": "Συνέχεια ακρόασης",
   "Continue listening {{title}}": "Συνέχεια ακρόασης του {{title}}",
-  "Audiobooks Only": "Μόνο ηχητικά βιβλία"
+  "Audiobooks Only": "Μόνο ηχητικά βιβλία",
+  "Audiobook Storage": "Αποθηκευτικός χώρος ηχητικών βιβλίων",
+  "Total Audio Storage": "Συνολικός χώρος ήχου",
+  "Wi-Fi Only Downloads": "Λήψεις μόνο μέσω Wi-Fi",
+  "Never download audiobooks over cellular data.": "Να μη γίνεται ποτέ λήψη ηχητικών βιβλίων μέσω δεδομένων κινητής.",
+  "Remove Download": "Αφαίρεση λήψης",
+  "No cloud copy to restore from yet": "Δεν υπάρχει ακόμη αντίγραφο στο cloud για επαναφορά",
+  "No downloaded audiobooks on this device.": "Δεν υπάρχουν ληφθέντα ηχητικά βιβλία σε αυτήν τη συσκευή.",
+  "Download removed: {{title}}": "Η λήψη αφαιρέθηκε: {{title}}",
+  "Failed to remove download: {{title}}": "Αποτυχία αφαίρεσης της λήψης: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Η λήψη αποκλείστηκε: επιτρέπεται μόνο μέσω Wi-Fi.",
+  "Download unavailable while offline.": "Η λήψη δεν είναι διαθέσιμη εκτός σύνδεσης."
 }

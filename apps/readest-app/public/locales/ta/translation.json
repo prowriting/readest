@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "ஒலிப்புத்தக திரை",
   "Continue listening": "தொடர்ந்து கேள்",
   "Continue listening {{title}}": "{{title}} தொடர்ந்து கேள்",
-  "Audiobooks Only": "ஒலிப்புத்தகங்கள் மட்டும்"
+  "Audiobooks Only": "ஒலிப்புத்தகங்கள் மட்டும்",
+  "Audiobook Storage": "ஒலிப்புத்தக சேமிப்பு",
+  "Total Audio Storage": "மொத்த ஒலி சேமிப்பு",
+  "Wi-Fi Only Downloads": "Wi-Fi மட்டும் பதிவிறக்கம்",
+  "Never download audiobooks over cellular data.": "செல்லுலார் தரவில் ஒலிப்புத்தகங்களை ஒருபோதும் பதிவிறக்காதே.",
+  "Remove Download": "பதிவிறக்கத்தை நீக்கு",
+  "No cloud copy to restore from yet": "மீட்டெடுக்க இன்னும் கிளவுட் நகல் இல்லை",
+  "No downloaded audiobooks on this device.": "இந்த சாதனத்தில் பதிவிறக்கிய ஒலிப்புத்தகங்கள் இல்லை.",
+  "Download removed: {{title}}": "பதிவிறக்கம் நீக்கப்பட்டது: {{title}}",
+  "Failed to remove download: {{title}}": "பதிவிறக்கத்தை நீக்க முடியவில்லை: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "பதிவிறக்கம் தடுக்கப்பட்டது: Wi-Fi மட்டும் இயக்கத்தில் உள்ளது.",
+  "Download unavailable while offline.": "ஆஃப்லைனில் பதிவிறக்கம் இயலாது."
 }

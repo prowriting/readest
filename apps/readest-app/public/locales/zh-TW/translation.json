@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "有聲書畫面",
   "Continue listening": "繼續收聽",
   "Continue listening {{title}}": "繼續收聽《{{title}}》",
-  "Audiobooks Only": "僅有聲書"
+  "Audiobooks Only": "僅有聲書",
+  "Audiobook Storage": "有聲書儲存空間",
+  "Total Audio Storage": "音訊總佔用",
+  "Wi-Fi Only Downloads": "僅 Wi-Fi 下載",
+  "Never download audiobooks over cellular data.": "絕不透過行動數據下載有聲書。",
+  "Remove Download": "移除下載",
+  "No cloud copy to restore from yet": "尚無可還原的雲端副本",
+  "No downloaded audiobooks on this device.": "此裝置上沒有已下載的有聲書。",
+  "Download removed: {{title}}": "已移除下載：{{title}}",
+  "Failed to remove download: {{title}}": "移除下載失敗：{{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "已封鎖下載：已啟用僅 Wi-Fi 下載。",
+  "Download unavailable while offline.": "離線時無法下載。"
 }

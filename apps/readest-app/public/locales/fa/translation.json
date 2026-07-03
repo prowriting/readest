@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "صفحه کتاب صوتی",
   "Continue listening": "ادامه شنیدن",
   "Continue listening {{title}}": "ادامه شنیدن {{title}}",
-  "Audiobooks Only": "فقط کتاب‌های صوتی"
+  "Audiobooks Only": "فقط کتاب‌های صوتی",
+  "Audiobook Storage": "فضای کتاب‌های صوتی",
+  "Total Audio Storage": "کل فضای صوتی",
+  "Wi-Fi Only Downloads": "دانلود فقط با Wi-Fi",
+  "Never download audiobooks over cellular data.": "کتاب‌های صوتی هرگز با داده همراه دانلود نشوند.",
+  "Remove Download": "حذف دانلود",
+  "No cloud copy to restore from yet": "هنوز نسخه ابری برای بازیابی وجود ندارد",
+  "No downloaded audiobooks on this device.": "هیچ کتاب صوتی دانلودشده‌ای روی این دستگاه نیست.",
+  "Download removed: {{title}}": "دانلود حذف شد: {{title}}",
+  "Failed to remove download: {{title}}": "حذف دانلود ناموفق بود: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "دانلود مسدود شد: دانلود فقط با Wi-Fi فعال است.",
+  "Download unavailable while offline.": "دانلود در حالت آفلاین ممکن نیست."
 }

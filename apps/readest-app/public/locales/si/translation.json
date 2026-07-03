@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "ශ්‍රව්‍ය පොත් තිරය",
   "Continue listening": "අසන එක දිගටම",
   "Continue listening {{title}}": "{{title}} ඇසීම දිගටම",
-  "Audiobooks Only": "ශ්‍රව්‍ය පොත් පමණයි"
+  "Audiobooks Only": "ශ්‍රව්‍ය පොත් පමණයි",
+  "Audiobook Storage": "ශ්‍රව්‍ය පොත් ගබඩාව",
+  "Total Audio Storage": "සම්පූර්ණ ශ්‍රව්‍ය ගබඩාව",
+  "Wi-Fi Only Downloads": "Wi-Fi පමණක් බාගැනීම්",
+  "Never download audiobooks over cellular data.": "සෙලියුලර් දත්ත හරහා ශ්‍රව්‍ය පොත් කිසිදා බාගන්න එපා.",
+  "Remove Download": "බාගැනීම ඉවත් කරන්න",
+  "No cloud copy to restore from yet": "ප්‍රතිසාධනයට තවම වලාකුළු පිටපතක් නැත",
+  "No downloaded audiobooks on this device.": "මෙම උපාංගයේ බාගත් ශ්‍රව්‍ය පොත් නැත.",
+  "Download removed: {{title}}": "බාගැනීම ඉවත් කළා: {{title}}",
+  "Failed to remove download: {{title}}": "බාගැනීම ඉවත් කළ නොහැකි විය: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "බාගැනීම අවහිරයි: Wi-Fi පමණක් සක්‍රීයයි.",
+  "Download unavailable while offline.": "නොබැඳිව බාගැනීම නොහැක."
 }

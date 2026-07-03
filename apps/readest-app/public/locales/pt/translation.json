@@ -1727,5 +1727,16 @@
   "Audiobook Screen": "Ecrã do audiolivro",
   "Continue listening": "Continuar a ouvir",
   "Continue listening {{title}}": "Continuar a ouvir {{title}}",
-  "Audiobooks Only": "Apenas audiolivros"
+  "Audiobooks Only": "Apenas audiolivros",
+  "Audiobook Storage": "Armazenamento de audiolivros",
+  "Total Audio Storage": "Armazenamento de áudio total",
+  "Wi-Fi Only Downloads": "Transferências apenas por Wi-Fi",
+  "Never download audiobooks over cellular data.": "Nunca transferir audiolivros por dados móveis.",
+  "Remove Download": "Remover transferência",
+  "No cloud copy to restore from yet": "Ainda não há cópia na nuvem para restaurar",
+  "No downloaded audiobooks on this device.": "Não há audiolivros transferidos neste dispositivo.",
+  "Download removed: {{title}}": "Transferência removida: {{title}}",
+  "Failed to remove download: {{title}}": "Falha ao remover a transferência: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Transferência bloqueada: apenas Wi-Fi está ativado.",
+  "Download unavailable while offline.": "Transferência indisponível offline."
 }

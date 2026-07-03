@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "ऑडियोबुक स्क्रीन",
   "Continue listening": "सुनना जारी रखें",
   "Continue listening {{title}}": "{{title}} सुनना जारी रखें",
-  "Audiobooks Only": "केवल ऑडियोबुक"
+  "Audiobooks Only": "केवल ऑडियोबुक",
+  "Audiobook Storage": "ऑडियोबुक संग्रहण",
+  "Total Audio Storage": "कुल ऑडियो संग्रहण",
+  "Wi-Fi Only Downloads": "केवल Wi-Fi पर डाउनलोड",
+  "Never download audiobooks over cellular data.": "ऑडियोबुक कभी भी सेल्युलर डेटा पर डाउनलोड न करें।",
+  "Remove Download": "डाउनलोड हटाएँ",
+  "No cloud copy to restore from yet": "पुनर्स्थापना हेतु अभी कोई क्लाउड प्रति नहीं",
+  "No downloaded audiobooks on this device.": "इस डिवाइस पर कोई डाउनलोड किया ऑडियोबुक नहीं।",
+  "Download removed: {{title}}": "डाउनलोड हटाया गया: {{title}}",
+  "Failed to remove download: {{title}}": "डाउनलोड हटाने में विफल: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "डाउनलोड अवरुद्ध: केवल Wi-Fi डाउनलोड सक्षम है।",
+  "Download unavailable while offline.": "ऑफ़लाइन में डाउनलोड उपलब्ध नहीं।"
 }

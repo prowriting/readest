@@ -1727,5 +1727,16 @@
   "Audiobook Screen": "מסך ספר השמע",
   "Continue listening": "להמשיך להאזין",
   "Continue listening {{title}}": "להמשיך להאזין ל-{{title}}",
-  "Audiobooks Only": "ספרי שמע בלבד"
+  "Audiobooks Only": "ספרי שמע בלבד",
+  "Audiobook Storage": "אחסון ספרי שמע",
+  "Total Audio Storage": "סך אחסון השמע",
+  "Wi-Fi Only Downloads": "הורדות ב-Wi-Fi בלבד",
+  "Never download audiobooks over cellular data.": "לעולם לא להוריד ספרי שמע ברשת סלולרית.",
+  "Remove Download": "הסרת ההורדה",
+  "No cloud copy to restore from yet": "אין עדיין עותק בענן לשחזור",
+  "No downloaded audiobooks on this device.": "אין ספרי שמע שהורדו במכשיר זה.",
+  "Download removed: {{title}}": "ההורדה הוסרה: {{title}}",
+  "Failed to remove download: {{title}}": "הסרת ההורדה נכשלה: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "ההורדה נחסמה: מופעל מצב Wi-Fi בלבד.",
+  "Download unavailable while offline.": "הורדה אינה זמינה במצב לא מקוון."
 }

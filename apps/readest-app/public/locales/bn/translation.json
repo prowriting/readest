@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "অডিওবুক স্ক্রিন",
   "Continue listening": "শোনা চালিয়ে যান",
   "Continue listening {{title}}": "{{title}} শোনা চালিয়ে যান",
-  "Audiobooks Only": "শুধুমাত্র অডিওবুক"
+  "Audiobooks Only": "শুধুমাত্র অডিওবুক",
+  "Audiobook Storage": "অডিওবুক স্টোরেজ",
+  "Total Audio Storage": "মোট অডিও স্টোরেজ",
+  "Wi-Fi Only Downloads": "শুধু Wi-Fi-তে ডাউনলোড",
+  "Never download audiobooks over cellular data.": "সেলুলার ডেটায় কখনও অডিওবুক ডাউনলোড করবেন না।",
+  "Remove Download": "ডাউনলোড সরান",
+  "No cloud copy to restore from yet": "পুনরুদ্ধারের জন্য এখনও ক্লাউড কপি নেই",
+  "No downloaded audiobooks on this device.": "এই ডিভাইসে ডাউনলোড করা অডিওবুক নেই।",
+  "Download removed: {{title}}": "ডাউনলোড সরানো হয়েছে: {{title}}",
+  "Failed to remove download: {{title}}": "ডাউনলোড সরানো যায়নি: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "ডাউনলোড আটকানো হয়েছে: শুধু Wi-Fi চালু আছে।",
+  "Download unavailable while offline.": "অফলাইনে ডাউনলোড অনুপলব্ধ।"
 }

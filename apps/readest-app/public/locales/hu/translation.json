@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Hangoskönyv-képernyő",
   "Continue listening": "Hallgatás folytatása",
   "Continue listening {{title}}": "{{title}} hallgatásának folytatása",
-  "Audiobooks Only": "Csak hangoskönyvek"
+  "Audiobooks Only": "Csak hangoskönyvek",
+  "Audiobook Storage": "Hangoskönyv-tárhely",
+  "Total Audio Storage": "Teljes hangtárhely",
+  "Wi-Fi Only Downloads": "Letöltés csak Wi-Fi-n",
+  "Never download audiobooks over cellular data.": "Soha ne tölts le hangoskönyvet mobiladaton.",
+  "Remove Download": "Letöltés eltávolítása",
+  "No cloud copy to restore from yet": "Még nincs felhőmásolat a visszaállításhoz",
+  "No downloaded audiobooks on this device.": "Nincs letöltött hangoskönyv ezen az eszközön.",
+  "Download removed: {{title}}": "Letöltés eltávolítva: {{title}}",
+  "Failed to remove download: {{title}}": "A letöltés eltávolítása sikertelen: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Letöltés letiltva: csak Wi-Fi engedélyezett.",
+  "Download unavailable while offline.": "Letöltés offline nem érhető el."
 }

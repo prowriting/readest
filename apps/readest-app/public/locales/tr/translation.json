@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Sesli kitap ekranı",
   "Continue listening": "Dinlemeye devam et",
   "Continue listening {{title}}": "{{title}} dinlemeye devam et",
-  "Audiobooks Only": "Yalnızca sesli kitaplar"
+  "Audiobooks Only": "Yalnızca sesli kitaplar",
+  "Audiobook Storage": "Sesli kitap depolama",
+  "Total Audio Storage": "Toplam ses depolaması",
+  "Wi-Fi Only Downloads": "Yalnızca Wi-Fi ile indir",
+  "Never download audiobooks over cellular data.": "Sesli kitapları asla hücresel veriyle indirme.",
+  "Remove Download": "İndirmeyi kaldır",
+  "No cloud copy to restore from yet": "Geri yüklenecek bulut kopyası henüz yok",
+  "No downloaded audiobooks on this device.": "Bu cihazda indirilmiş sesli kitap yok.",
+  "Download removed: {{title}}": "İndirme kaldırıldı: {{title}}",
+  "Failed to remove download: {{title}}": "İndirme kaldırılamadı: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "İndirme engellendi: yalnızca Wi-Fi etkin.",
+  "Download unavailable while offline.": "Çevrimdışıyken indirme yapılamaz."
 }

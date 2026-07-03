@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "오디오북 화면",
   "Continue listening": "이어서 듣기",
   "Continue listening {{title}}": "{{title}} 이어서 듣기",
-  "Audiobooks Only": "오디오북만"
+  "Audiobooks Only": "오디오북만",
+  "Audiobook Storage": "오디오북 저장 공간",
+  "Total Audio Storage": "총 오디오 저장 공간",
+  "Wi-Fi Only Downloads": "Wi-Fi에서만 다운로드",
+  "Never download audiobooks over cellular data.": "셀룰러 데이터로는 오디오북을 다운로드하지 않습니다.",
+  "Remove Download": "다운로드 삭제",
+  "No cloud copy to restore from yet": "복원할 클라우드 사본이 아직 없습니다",
+  "No downloaded audiobooks on this device.": "이 기기에 다운로드된 오디오북이 없습니다.",
+  "Download removed: {{title}}": "다운로드 삭제됨: {{title}}",
+  "Failed to remove download: {{title}}": "다운로드를 삭제하지 못했습니다: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "다운로드 차단됨: Wi-Fi 전용 다운로드가 켜져 있습니다.",
+  "Download unavailable while offline.": "오프라인에서는 다운로드할 수 없습니다."
 }

@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Audiokitob ekrani",
   "Continue listening": "Tinglashni davom ettirish",
   "Continue listening {{title}}": "{{title}} tinglashni davom ettirish",
-  "Audiobooks Only": "Faqat audiokitoblar"
+  "Audiobooks Only": "Faqat audiokitoblar",
+  "Audiobook Storage": "Audiokitob xotirasi",
+  "Total Audio Storage": "Jami audio xotira",
+  "Wi-Fi Only Downloads": "Faqat Wi-Fi orqali yuklab olish",
+  "Never download audiobooks over cellular data.": "Audiokitoblarni hech qachon mobil internet orqali yuklab olmaslik.",
+  "Remove Download": "Yuklab olishni olib tashlash",
+  "No cloud copy to restore from yet": "Tiklash uchun hali bulut nusxasi yo‘q",
+  "No downloaded audiobooks on this device.": "Bu qurilmada yuklab olingan audiokitoblar yo‘q.",
+  "Download removed: {{title}}": "Yuklab olish olib tashlandi: {{title}}",
+  "Failed to remove download: {{title}}": "Yuklab olishni olib tashlab bo‘lmadi: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Yuklab olish bloklandi: faqat Wi-Fi yoqilgan.",
+  "Download unavailable while offline.": "Oflaynda yuklab olish mumkin emas."
 }

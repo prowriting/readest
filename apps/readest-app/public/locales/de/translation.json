@@ -1696,5 +1696,16 @@
   "Audiobook Screen": "Hörbuch-Ansicht",
   "Continue listening": "Weiterhören",
   "Continue listening {{title}}": "{{title}} weiterhören",
-  "Audiobooks Only": "Nur Hörbücher"
+  "Audiobooks Only": "Nur Hörbücher",
+  "Audiobook Storage": "Hörbuch-Speicher",
+  "Total Audio Storage": "Gesamter Audio-Speicher",
+  "Wi-Fi Only Downloads": "Downloads nur über WLAN",
+  "Never download audiobooks over cellular data.": "Hörbücher nie über Mobilfunkdaten herunterladen.",
+  "Remove Download": "Download entfernen",
+  "No cloud copy to restore from yet": "Noch keine Cloud-Kopie zum Wiederherstellen",
+  "No downloaded audiobooks on this device.": "Keine heruntergeladenen Hörbücher auf diesem Gerät.",
+  "Download removed: {{title}}": "Download entfernt: {{title}}",
+  "Failed to remove download: {{title}}": "Download konnte nicht entfernt werden: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Download blockiert: Nur-WLAN-Downloads sind aktiviert.",
+  "Download unavailable while offline.": "Download offline nicht möglich."
 }

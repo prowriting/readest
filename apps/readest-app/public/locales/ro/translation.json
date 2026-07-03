@@ -1727,5 +1727,16 @@
   "Audiobook Screen": "Ecran audiobook",
   "Continue listening": "Continuă ascultarea",
   "Continue listening {{title}}": "Continuă ascultarea {{title}}",
-  "Audiobooks Only": "Doar audiobookuri"
+  "Audiobooks Only": "Doar audiobookuri",
+  "Audiobook Storage": "Stocare audiobookuri",
+  "Total Audio Storage": "Stocare audio totală",
+  "Wi-Fi Only Downloads": "Descărcări doar prin Wi-Fi",
+  "Never download audiobooks over cellular data.": "Nu descărca niciodată audiobookuri prin date mobile.",
+  "Remove Download": "Elimină descărcarea",
+  "No cloud copy to restore from yet": "Încă nu există o copie în cloud pentru restaurare",
+  "No downloaded audiobooks on this device.": "Niciun audiobook descărcat pe acest dispozitiv.",
+  "Download removed: {{title}}": "Descărcare eliminată: {{title}}",
+  "Failed to remove download: {{title}}": "Eliminarea descărcării a eșuat: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Descărcare blocată: doar Wi-Fi este activat.",
+  "Download unavailable while offline.": "Descărcare indisponibilă offline."
 }

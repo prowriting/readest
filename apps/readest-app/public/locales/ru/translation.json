@@ -1758,5 +1758,16 @@
   "Audiobook Screen": "Экран аудиокниги",
   "Continue listening": "Продолжить прослушивание",
   "Continue listening {{title}}": "Продолжить прослушивание {{title}}",
-  "Audiobooks Only": "Только аудиокниги"
+  "Audiobooks Only": "Только аудиокниги",
+  "Audiobook Storage": "Хранилище аудиокниг",
+  "Total Audio Storage": "Всего аудиохранилища",
+  "Wi-Fi Only Downloads": "Загрузка только по Wi-Fi",
+  "Never download audiobooks over cellular data.": "Никогда не загружать аудиокниги через мобильный интернет.",
+  "Remove Download": "Удалить загрузку",
+  "No cloud copy to restore from yet": "Пока нет облачной копии для восстановления",
+  "No downloaded audiobooks on this device.": "На этом устройстве нет загруженных аудиокниг.",
+  "Download removed: {{title}}": "Загрузка удалена: {{title}}",
+  "Failed to remove download: {{title}}": "Не удалось удалить загрузку: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Загрузка заблокирована: включён режим «только Wi-Fi».",
+  "Download unavailable while offline.": "Загрузка недоступна офлайн."
 }

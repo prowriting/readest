@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "Màn hình sách nói",
   "Continue listening": "Nghe tiếp",
   "Continue listening {{title}}": "Nghe tiếp {{title}}",
-  "Audiobooks Only": "Chỉ sách nói"
+  "Audiobooks Only": "Chỉ sách nói",
+  "Audiobook Storage": "Bộ nhớ sách nói",
+  "Total Audio Storage": "Tổng bộ nhớ âm thanh",
+  "Wi-Fi Only Downloads": "Chỉ tải qua Wi-Fi",
+  "Never download audiobooks over cellular data.": "Không bao giờ tải sách nói qua dữ liệu di động.",
+  "Remove Download": "Xóa bản tải về",
+  "No cloud copy to restore from yet": "Chưa có bản sao đám mây để khôi phục",
+  "No downloaded audiobooks on this device.": "Không có sách nói đã tải trên thiết bị này.",
+  "Download removed: {{title}}": "Đã xóa bản tải về: {{title}}",
+  "Failed to remove download: {{title}}": "Không thể xóa bản tải về: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Đã chặn tải: chỉ cho phép tải qua Wi-Fi.",
+  "Download unavailable while offline.": "Không thể tải khi ngoại tuyến."
 }

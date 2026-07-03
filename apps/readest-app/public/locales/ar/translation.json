@@ -1820,5 +1820,16 @@
   "Audiobook Screen": "شاشة الكتاب الصوتي",
   "Continue listening": "متابعة الاستماع",
   "Continue listening {{title}}": "متابعة الاستماع إلى {{title}}",
-  "Audiobooks Only": "الكتب الصوتية فقط"
+  "Audiobooks Only": "الكتب الصوتية فقط",
+  "Audiobook Storage": "تخزين الكتب الصوتية",
+  "Total Audio Storage": "إجمالي تخزين الصوت",
+  "Wi-Fi Only Downloads": "التنزيل عبر Wi-Fi فقط",
+  "Never download audiobooks over cellular data.": "لا تُنزّل الكتب الصوتية عبر بيانات الجوال أبدًا.",
+  "Remove Download": "إزالة التنزيل",
+  "No cloud copy to restore from yet": "لا توجد نسخة سحابية للاستعادة بعد",
+  "No downloaded audiobooks on this device.": "لا توجد كتب صوتية منزّلة على هذا الجهاز.",
+  "Download removed: {{title}}": "تمت إزالة التنزيل: {{title}}",
+  "Failed to remove download: {{title}}": "تعذّرت إزالة التنزيل: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "تم حظر التنزيل: التنزيل عبر Wi-Fi فقط مفعّل.",
+  "Download unavailable while offline.": "التنزيل غير متاح دون اتصال."
 }

@@ -1758,5 +1758,16 @@
   "Audiobook Screen": "Екран аудіокниги",
   "Continue listening": "Продовжити слухання",
   "Continue listening {{title}}": "Продовжити слухання {{title}}",
-  "Audiobooks Only": "Лише аудіокниги"
+  "Audiobooks Only": "Лише аудіокниги",
+  "Audiobook Storage": "Сховище аудіокниг",
+  "Total Audio Storage": "Загальне аудіосховище",
+  "Wi-Fi Only Downloads": "Завантаження лише через Wi-Fi",
+  "Never download audiobooks over cellular data.": "Ніколи не завантажувати аудіокниги через мобільні дані.",
+  "Remove Download": "Видалити завантаження",
+  "No cloud copy to restore from yet": "Ще немає хмарної копії для відновлення",
+  "No downloaded audiobooks on this device.": "На цьому пристрої немає завантажених аудіокниг.",
+  "Download removed: {{title}}": "Завантаження видалено: {{title}}",
+  "Failed to remove download: {{title}}": "Не вдалося видалити завантаження: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Завантаження заблоковано: увімкнено лише Wi-Fi.",
+  "Download unavailable while offline.": "Завантаження недоступне офлайн."
 }

@@ -1665,5 +1665,16 @@
   "Audiobook Screen": "Layar buku audio",
   "Continue listening": "Lanjutkan mendengarkan",
   "Continue listening {{title}}": "Lanjutkan mendengarkan {{title}}",
-  "Audiobooks Only": "Hanya buku audio"
+  "Audiobooks Only": "Hanya buku audio",
+  "Audiobook Storage": "Penyimpanan buku audio",
+  "Total Audio Storage": "Total penyimpanan audio",
+  "Wi-Fi Only Downloads": "Unduh hanya via Wi-Fi",
+  "Never download audiobooks over cellular data.": "Jangan pernah mengunduh buku audio lewat data seluler.",
+  "Remove Download": "Hapus unduhan",
+  "No cloud copy to restore from yet": "Belum ada salinan cloud untuk dipulihkan",
+  "No downloaded audiobooks on this device.": "Tidak ada buku audio terunduh di perangkat ini.",
+  "Download removed: {{title}}": "Unduhan dihapus: {{title}}",
+  "Failed to remove download: {{title}}": "Gagal menghapus unduhan: {{title}}",
+  "Download blocked: Wi-Fi only downloads are enabled.": "Unduhan diblokir: hanya via Wi-Fi yang diizinkan.",
+  "Download unavailable while offline.": "Unduhan tidak tersedia saat offline."
 }
