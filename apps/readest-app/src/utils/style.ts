@@ -1,3 +1,4 @@
+import { getMediaOverlayHighlightCss } from '@/services/audiobook/highlightStyle';
 import {
   MONOSPACE_FONTS,
   SANS_SERIF_FONTS,
@@ -5,6 +6,7 @@ import {
   FALLBACK_FONTS,
   CJK_SANS_SERIF_FONTS,
   CJK_SERIF_FONTS,
+  DEFAULT_MEDIA_OVERLAY_CONFIG,
 } from '@/services/constants';
 import { ViewSettings } from '@/types/book';
 import {
@@ -744,16 +746,10 @@ export const getStyles = (viewSettings: ViewSettings, themeCode?: ThemeCode) => 
   const warichuStyles = getWarichuStyles();
   const rubyStyles = getRubyStyles();
   const userStylesheet = viewSettings.userStylesheet!;
-  // Read-along highlight for EPUB3 Media Overlays. The class name comes from
-  // the package's media:active-class metadata; foliate-js applies it to the
-  // element whose SMIL clip is playing. Styling configurability is a later
-  // audiobook phase; this keeps the highlight visible on all themes.
-  const mediaOverlayStyles = `
-    .-epub-media-overlay-active {
-      background-color: rgba(250, 204, 21, 0.45);
-      border-radius: 2px;
-    }
-  `;
+  const mediaOverlayStyles = getMediaOverlayHighlightCss(
+    viewSettings.moHighlightOptions ?? DEFAULT_MEDIA_OVERLAY_CONFIG.moHighlightOptions,
+    !!viewSettings.isEink,
+  );
   return `${pageLayoutStyles}\n${paragraphLayoutStyles}\n${fontStyles}\n${colorStyles}\n${translationStyles}\n${warichuStyles}\n${rubyStyles}\n${mediaOverlayStyles}\n${userStylesheet}`;
 };
 

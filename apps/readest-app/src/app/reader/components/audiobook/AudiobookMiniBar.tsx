@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import React from 'react';
-import { MdOutlinePause, MdPlayArrow } from 'react-icons/md';
+import { MdMyLocation, MdOutlinePause, MdPlayArrow } from 'react-icons/md';
 import { RiExpandDiagonalLine } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
@@ -13,7 +13,10 @@ interface AudiobookMiniBarProps {
   elapsed: number;
   total: number | null;
   bottomInset: number;
+  /** The reader wandered away from the playing position. */
+  followSuspended: boolean;
   onTogglePlay: () => void;
+  onReturnToPlaying: () => void;
   onExpand: () => void;
 }
 
@@ -23,7 +26,9 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   elapsed,
   total,
   bottomInset,
+  followSuspended,
   onTogglePlay,
+  onReturnToPlaying,
   onExpand,
 }) => {
   const _ = useTranslation();
@@ -56,6 +61,17 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
           {total != null ? ` / ${formatPlaybackTime(total)}` : ''}
         </span>
       </div>
+      {followSuspended && (
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          aria-label={_('Go to Playing Position')}
+          title={_('Go to Playing Position')}
+          onClick={onReturnToPlaying}
+        >
+          <MdMyLocation size={iconSize} />
+        </button>
+      )}
       <button
         type='button'
         className='btn btn-ghost btn-circle btn-sm'

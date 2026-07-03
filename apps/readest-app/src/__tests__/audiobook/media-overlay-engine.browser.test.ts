@@ -185,8 +185,49 @@ describe('MediaOverlay engine — seeking (Phase 2)', () => {
   });
 });
 
-describe('foliate-view media overlay highlight (view.js regression)', () => {
-  it('applies the active class without corrupting renderer content indexes', async () => {
+describe('MediaOverlay engine — tap-to-seek (Phase 3)', () => {
+  it('playFromText seeks to the clip whose text target matches', async () => {
+    const engine = createEngine();
+    const first = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    await withGesture(() => engine.start(0));
+    await first;
+
+    const afterSeek = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    expect(await engine.playFromText(0, 's4')).toBe(true);
+    const item = await afterSeek;
+    expect(item.text).toContain('#s4');
+    // Sentence 4's clip spans 4.5–6.0s.
+    await poll(() => engine.audioTime >= 4.4 && engine.audioTime < 6.0);
+  });
+
+  it('playFromText refuses unknown fragments without disturbing playback', async () => {
+    const engine = createEngine();
+    const first = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    await withGesture(() => engine.start(0));
+    await first;
+
+    expect(await engine.playFromText(0, 'not-a-real-id')).toBe(false);
+    expect(engine.activeSectionIndex).toBe(0);
+    const before = engine.audioTime;
+    await poll(() => engine.audioTime > before + 0.2); // still playing
+  });
+
+  it('playFromText can jump into another section', async () => {
+    const engine = createEngine();
+    const first = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    await withGesture(() => engine.start(0));
+    await first;
+
+    const afterSeek = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    expect(await engine.playFromText(2, 'w3')).toBe(true);
+    const item = await afterSeek;
+    expect(item.text).toContain('#w3');
+    expect(engine.activeSectionIndex).toBe(2);
+  });
+});
+
+describe('foliate-view media overlay integration (view.js)', () => {
+  const createView = async (): Promise<FoliateView> => {
     await import('foliate-js/view.js');
     const view = document.createElement('foliate-view') as FoliateView;
     Object.assign(view.style, {
@@ -200,23 +241,69 @@ describe('foliate-view media overlay highlight (view.js regression)', () => {
     await view.open(await loadEPUB());
     view.mediaOverlay!.setVolume(0);
     await view.goToFraction(0);
+    return view;
+  };
+  const destroyView = (view: FoliateView) => {
+    view.mediaOverlay?.stop();
+    view.close();
+    view.remove();
+  };
+  const activeClassCount = (view: FoliateView): number =>
+    view.renderer
+      .getContents()
+      .filter(({ doc }) => doc?.querySelector('.-epub-media-overlay-active') != null).length;
 
+  it('applies the active class without corrupting renderer content indexes', async () => {
+    const view = await createView();
     const highlight = nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
     await withGesture(() => view.startMediaOverlay!());
     await highlight;
 
     // The active class must appear in exactly one section document...
-    await poll(() => {
-      const docs = view.renderer.getContents();
-      return docs.some(({ doc }) => doc?.querySelector('.-epub-media-overlay-active') != null);
-    });
+    await poll(() => activeClassCount(view) > 0);
     // ...and the buggy `find(x => x.index = resolved.index)` predicate would
     // have overwritten content indexes: they must all stay distinct.
     const indexes = view.renderer.getContents().map((c) => c.index);
     expect(new Set(indexes).size).toBe(indexes.length);
+    destroyView(view);
+  });
 
-    view.mediaOverlay!.stop();
-    view.close();
-    view.remove();
+  it('mediaOverlayFollowEnabled=false keeps the reader where it is', async () => {
+    const view = await createView();
+    expect(view.renderer.primaryIndex).toBe(0);
+    view.mediaOverlayFollowEnabled = false;
+
+    // Play section 1 while the reader is looking at section 0.
+    const highlight = nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    await withGesture(() => view.mediaOverlay!.startAtOffset(1, 0));
+    await highlight;
+    // Two more highlight cycles: the renderer must not be dragged along.
+    await nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    expect(view.renderer.primaryIndex).toBe(0);
+
+    // Re-enabling follow lets the next highlight navigate the reader.
+    view.mediaOverlayFollowEnabled = true;
+    await nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    await poll(() => view.renderer.primaryIndex === 1);
+    destroyView(view);
+  });
+
+  it('mediaOverlayHighlightEnabled=false clears and withholds the active class', async () => {
+    const view = await createView();
+    const highlight = nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    await withGesture(() => view.startMediaOverlay!());
+    await highlight;
+    await poll(() => activeClassCount(view) > 0);
+
+    view.mediaOverlayHighlightEnabled = false;
+    // The current highlight is cleared on the next cycle and none reappear.
+    await poll(() => activeClassCount(view) === 0);
+    await nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    expect(activeClassCount(view)).toBe(0);
+
+    view.mediaOverlayHighlightEnabled = true;
+    await nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
+    await poll(() => activeClassCount(view) > 0);
+    destroyView(view);
   });
 });

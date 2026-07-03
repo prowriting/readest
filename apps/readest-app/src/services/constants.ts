@@ -399,6 +399,8 @@ export const DEFAULT_MEDIA_OVERLAY_CONFIG: MediaOverlayConfig = {
   moPlaybackRate: 1.0,
   moSkipForwardSec: 30,
   moSkipBackSec: 15,
+  moReadAlongEnabled: true,
+  moHighlightOptions: { style: 'highlight', color: HIGHLIGHT_COLOR_HEX['yellow']! },
 };
 
 export const DEFAULT_TRANSLATOR_CONFIG: TranslatorConfig = {

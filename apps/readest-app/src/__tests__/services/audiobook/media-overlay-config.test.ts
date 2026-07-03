@@ -8,6 +8,11 @@ describe('media overlay config', () => {
     expect(DEFAULT_MEDIA_OVERLAY_CONFIG.moPlaybackRate).toBe(1.0);
     expect(DEFAULT_MEDIA_OVERLAY_CONFIG.moSkipForwardSec).toBe(30);
     expect(DEFAULT_MEDIA_OVERLAY_CONFIG.moSkipBackSec).toBe(15);
+    expect(DEFAULT_MEDIA_OVERLAY_CONFIG.moReadAlongEnabled).toBe(true);
+    expect(DEFAULT_MEDIA_OVERLAY_CONFIG.moHighlightOptions).toEqual({
+      style: 'highlight',
+      color: '#facc15',
+    });
   });
 
   it('is part of the default view settings (per-book overrides merge on top)', () => {

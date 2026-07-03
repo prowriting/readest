@@ -14,7 +14,18 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { formatPlaybackTime } from '@/services/audiobook/bookTimeline';
 import type { AudiobookPlaybackState } from '@/services/audiobook/playbackMachine';
+import type { TTSHighlightOptions } from '@/services/tts';
+import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
+import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
 import type { AudiobookChapter } from '../../hooks/useAudiobookControl';
+
+const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
+  red: 'Red',
+  yellow: 'Yellow',
+  green: 'Green',
+  blue: 'Blue',
+  violet: 'Violet',
+};
 
 const SPEED_PRESETS = [0.75, 1, 1.25, 1.5, 2];
 const SKIP_INTERVAL_OPTIONS = [10, 15, 30, 60];
@@ -29,6 +40,8 @@ interface AudiobookPlayerProps {
   rate: number;
   skipForwardSec: number;
   skipBackSec: number;
+  readAlongEnabled: boolean;
+  highlightOptions: TTSHighlightOptions;
   bottomInset: number;
   onTogglePlay: () => void;
   onSkipForward: () => void;
@@ -40,6 +53,8 @@ interface AudiobookPlayerProps {
   onSetRate: (rate: number) => void;
   onSetSkipForwardSec: (sec: number) => void;
   onSetSkipBackSec: (sec: number) => void;
+  onSetReadAlong: (enabled: boolean) => void;
+  onSetHighlightOptions: (patch: Partial<TTSHighlightOptions>) => void;
   onClose: () => void;
 }
 
@@ -53,6 +68,8 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   rate,
   skipForwardSec,
   skipBackSec,
+  readAlongEnabled,
+  highlightOptions,
   bottomInset,
   onTogglePlay,
   onSkipForward,
@@ -64,6 +81,8 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   onSetRate,
   onSetSkipForwardSec,
   onSetSkipBackSec,
+  onSetReadAlong,
+  onSetHighlightOptions,
   onClose,
 }) => {
   const _ = useTranslation();
@@ -175,6 +194,50 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
               ))}
             </select>
           </label>
+          <label className='flex items-center justify-between gap-2 text-sm'>
+            <span>{_('Read Along')}</span>
+            <input
+              type='checkbox'
+              className='toggle toggle-sm'
+              aria-label={_('Read Along')}
+              checked={readAlongEnabled}
+              onChange={(e) => onSetReadAlong(e.target.checked)}
+            />
+          </label>
+          <label className='flex items-center justify-between gap-2 text-sm'>
+            <span>{_('Highlight Style')}</span>
+            <select
+              className='select select-sm eink-bordered'
+              aria-label={_('Highlight Style')}
+              value={highlightOptions.style === 'underline' ? 'underline' : 'highlight'}
+              onChange={(e) =>
+                onSetHighlightOptions({ style: e.target.value as TTSHighlightOptions['style'] })
+              }
+            >
+              <option value='highlight'>{_('Highlight')}</option>
+              <option value='underline'>{_('Underline')}</option>
+            </select>
+          </label>
+          <div className='flex items-center justify-between gap-2 text-sm'>
+            <span>{_('Highlight Color')}</span>
+            <div className='flex items-center gap-1.5' dir='ltr'>
+              {DEFAULT_HIGHLIGHT_COLORS.map((name) => (
+                <button
+                  key={name}
+                  type='button'
+                  className={clsx(
+                    'eink-bordered size-5 rounded-full border border-black/10',
+                    highlightOptions.color === HIGHLIGHT_COLOR_HEX[name] &&
+                      'ring-primary ring-2 ring-offset-1',
+                  )}
+                  style={{ backgroundColor: HIGHLIGHT_COLOR_HEX[name] }}
+                  aria-label={`${_('Highlight Color')} ${_(COLOR_NAMES[name])}`}
+                  title={_(COLOR_NAMES[name])}
+                  onClick={() => onSetHighlightOptions({ color: HIGHLIGHT_COLOR_HEX[name] })}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

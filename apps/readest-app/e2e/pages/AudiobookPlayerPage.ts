@@ -34,6 +34,12 @@ export class AudiobookPlayerPage extends BasePage {
   readonly skipForwardSelect: Locator;
   readonly skipBackSelect: Locator;
 
+  // — read-along (full player settings) —
+  readonly readAlongToggle: Locator;
+  readonly highlightStyleSelect: Locator;
+  /** Shown when the reader navigated away from the playing position. */
+  readonly returnToPlayingButton: Locator;
+
   constructor(page: Page) {
     super(page);
     this.miniBar = page.locator('[aria-label="Audiobook Mini Player"]');
@@ -53,6 +59,18 @@ export class AudiobookPlayerPage extends BasePage {
     this.remainingLabel = page.locator('[aria-label="Time Remaining"]');
     this.skipForwardSelect = page.getByRole('combobox', { name: 'Skip Forward Interval' });
     this.skipBackSelect = page.getByRole('combobox', { name: 'Skip Back Interval' });
+
+    this.readAlongToggle = page.getByRole('checkbox', { name: 'Read Along' });
+    this.highlightStyleSelect = page.getByRole('combobox', { name: 'Highlight Style' });
+    this.returnToPlayingButton = page.getByRole('button', {
+      name: 'Go to Playing Position',
+      exact: true,
+    });
+  }
+
+  /** A highlight color preset in the player settings, by English color name. */
+  highlightColorSwatch(name: string): Locator {
+    return this.page.getByRole('button', { name: `Highlight Color ${name}`, exact: true });
   }
 
   /** Open the player-settings section of the full player. */

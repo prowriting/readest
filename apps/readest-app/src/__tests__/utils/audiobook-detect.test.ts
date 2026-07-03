@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasMediaOverlay } from '@/utils/audiobook';
+import { findTapFragment, hasMediaOverlay } from '@/utils/audiobook';
 
 describe('hasMediaOverlay', () => {
   it('detects a book where any section carries a media overlay', () => {
@@ -21,5 +21,30 @@ describe('hasMediaOverlay', () => {
 
   it('ignores null overlay markers', () => {
     expect(hasMediaOverlay({ sections: [{ mediaOverlay: null }] })).toBe(false);
+  });
+});
+
+describe('findTapFragment', () => {
+  const buildDoc = (html: string): Document => new DOMParser().parseFromString(html, 'text/html');
+
+  it('returns the id of the tapped element itself', () => {
+    const doc = buildDoc('<p><span id="s3">Sentence three</span></p>');
+    expect(findTapFragment(doc.getElementById('s3'))).toBe('s3');
+  });
+
+  it('walks up to the nearest ancestor with an id', () => {
+    const doc = buildDoc('<p><span id="s5">Sentence <em>five</em></span></p>');
+    expect(findTapFragment(doc.querySelector('em'))).toBe('s5');
+  });
+
+  it('returns null when no ancestor carries an id', () => {
+    const doc = buildDoc('<p><span>plain text</span></p>');
+    expect(findTapFragment(doc.querySelector('span'))).toBe(null);
+    expect(findTapFragment(null)).toBe(null);
+  });
+
+  it('ignores ids on body and html elements', () => {
+    const doc = buildDoc('<body id="book-body"><p>text</p></body>');
+    expect(findTapFragment(doc.querySelector('p'))).toBe(null);
   });
 });

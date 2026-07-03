@@ -106,6 +106,10 @@ export interface FoliateView extends HTMLElement {
   mediaOverlay?: MediaOverlayEngine | null;
   /** Start the media overlay at the currently visible section. */
   startMediaOverlay?: () => Promise<void>;
+  /** Apply the read-along active class to the playing element (default true). */
+  mediaOverlayHighlightEnabled?: boolean;
+  /** Navigate the reader to follow the playing element (default true). */
+  mediaOverlayFollowEnabled?: boolean;
   isFixedLayout: boolean;
   language: {
     locale?: LocaleWithTextInfo;

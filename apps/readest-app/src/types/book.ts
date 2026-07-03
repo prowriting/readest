@@ -378,6 +378,8 @@ export interface MediaOverlayConfig {
   moPlaybackRate: number;
   moSkipForwardSec: number;
   moSkipBackSec: number;
+  moReadAlongEnabled: boolean;
+  moHighlightOptions: TTSHighlightOptions;
 }
 
 /** A saved listening position inside a Media Overlay audiobook. */

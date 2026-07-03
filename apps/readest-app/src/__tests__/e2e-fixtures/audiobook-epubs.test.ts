@@ -150,7 +150,10 @@ const spineChapterOverlays = (opf: Document): { href: string; smilHref: string }
     const smil = items.get(overlayId!);
     expect(smil, 'media-overlay id must resolve to a manifest item').toBeDefined();
     expect(smil!.getAttribute('media-type')).toBe('application/smil+xml');
-    return { href: chapter!.getAttribute('href') ?? '', smilHref: smil!.getAttribute('href') ?? '' };
+    return {
+      href: chapter!.getAttribute('href') ?? '',
+      smilHref: smil!.getAttribute('href') ?? '',
+    };
   });
 };
 
@@ -224,9 +227,7 @@ describe('buildMoSentencesEpub', () => {
       const pars = smilPars(parseXml(zip[`OEBPS/smil/${chapter}.smil`]!));
       for (const par of pars) {
         const fragment = par.text.split('#')[1]!;
-        expect(xhtml, `${chapter}.xhtml must contain id ${fragment}`).toContain(
-          `id="${fragment}"`,
-        );
+        expect(xhtml, `${chapter}.xhtml must contain id ${fragment}`).toContain(`id="${fragment}"`);
       }
     }
   });
@@ -258,9 +259,7 @@ describe('buildMoSentencesEpub', () => {
     expect(clockToSeconds(durations.get('#smil-c2') ?? '')).toBeCloseTo(12, 3);
     expect(clockToSeconds(durations.get('#smil-c3') ?? '')).toBeCloseTo(6, 3);
     expect(clockToSeconds(durations.get(null) ?? '')).toBeCloseTo(30, 3);
-    expect(opfMetaValues(opf, 'media:active-class').get(null)).toBe(
-      '-epub-media-overlay-active',
-    );
+    expect(opfMetaValues(opf, 'media:active-class').get(null)).toBe('-epub-media-overlay-active');
     expect(opfMetaValues(opf, 'media:playback-active-class').get(null)).toBe(
       '-epub-media-overlay-playing',
     );

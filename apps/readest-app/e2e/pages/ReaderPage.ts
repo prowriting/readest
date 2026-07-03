@@ -63,6 +63,75 @@ export class ReaderPage extends BasePage {
     return '';
   }
 
+  /** Whether the media-overlay highlight is on-screen (not in an off-screen prerendered frame). */
+  async mediaOverlayHighlightVisible(): Promise<boolean> {
+    const viewport = this.page.viewportSize() ?? { width: 1280, height: 720 };
+    for (const frame of this.page.frames()) {
+      const el = frame.locator('.-epub-media-overlay-active').first();
+      const count = await el.count().catch(() => 0);
+      if (count === 0) continue;
+      // Prerendered sections can sit stacked at the same coordinates with
+      // visibility:hidden — a bounding box alone is not proof of visibility.
+      const visible = await el.isVisible().catch(() => false);
+      if (!visible) continue;
+      const box = await el.boundingBox().catch(() => null);
+      if (box == null) continue;
+      // Judge by the element's center: prerendered neighbour sections can
+      // bleed a clipped sliver into page coordinates at the viewport edge.
+      const cx = box.x + box.width / 2;
+      const cy = box.y + box.height / 2;
+      if (cx >= 0 && cx < viewport.width && cy >= 0 && cy < viewport.height) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Computed style property of the media-overlay highlight element. */
+  async mediaOverlayHighlightComputed(property: string): Promise<string> {
+    for (const frame of this.page.frames()) {
+      const el = frame.locator('.-epub-media-overlay-active').first();
+      const count = await el.count().catch(() => 0);
+      if (count === 0) continue;
+      return el
+        .evaluate(
+          (node, prop) => getComputedStyle(node)[prop as keyof CSSStyleDeclaration] as string,
+          property,
+        )
+        .catch(() => '');
+    }
+    return '';
+  }
+
+  /** Click an element inside the on-screen book section by CSS selector. */
+  async clickInBookText(selector: string): Promise<void> {
+    const viewport = this.page.viewportSize() ?? { width: 1280, height: 720 };
+    for (const frame of this.page.frames()) {
+      const el = frame.locator(selector).first();
+      const count = await el.count().catch(() => 0);
+      if (count === 0) continue;
+      const box = await el.boundingBox().catch(() => null);
+      if (box && box.x >= 0 && box.x < viewport.width && box.y >= 0 && box.y < viewport.height) {
+        // An inline element's bounding box is the union of its line boxes:
+        // its top-left corner (and its center) can sit on a neighbouring
+        // span's text. Aim inside the element's FIRST client rect instead.
+        const offset = await el.evaluate((node) => {
+          const rect = (node as Element).getClientRects()[0];
+          const bounds = (node as Element).getBoundingClientRect();
+          return rect
+            ? {
+                x: rect.x - bounds.x + Math.min(10, rect.width / 2),
+                y: rect.y - bounds.y + rect.height / 2,
+              }
+            : { x: 4, y: 4 };
+        });
+        await el.click({ position: offset });
+        return;
+      }
+    }
+    throw new Error(`no on-screen book element matches ${selector}`);
+  }
+
   // --- chrome (auto-hidden header / footer bars) ---
 
   /** Reveal the header bar by clicking its top hover strip. */

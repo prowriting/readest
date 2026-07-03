@@ -19,6 +19,11 @@ export interface MediaOverlayEngine extends EventTarget {
   startAtOffset(sectionIndex: number, offset: number): Promise<void>;
   /** Seek by a signed number of seconds, crossing files and sections. */
   seekRelative(seconds: number): Promise<void>;
+  /**
+   * Play the clip whose SMIL text target is `#fragment` in the given
+   * section. Resolves false (with playback untouched) when nothing matches.
+   */
+  playFromText(sectionIndex: number, fragment: string): Promise<boolean>;
   pause(): void;
   resume(): void;
   stop(): void;

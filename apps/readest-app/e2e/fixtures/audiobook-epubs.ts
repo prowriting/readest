@@ -185,15 +185,14 @@ const opfDoc = (spec: OpfSpec): string => {
         `    <item id="chap-${c.slug}" href="text/${c.slug}.xhtml" media-type="application/xhtml+xml" media-overlay="smil-${c.slug}"/>`,
     ),
     ...spec.chapters.map(
-      (c) => `    <item id="smil-${c.slug}" href="smil/${c.slug}.smil" media-type="application/smil+xml"/>`,
+      (c) =>
+        `    <item id="smil-${c.slug}" href="smil/${c.slug}.smil" media-type="application/smil+xml"/>`,
     ),
     ...spec.audioFiles.map(
       (file, i) => `    <item id="aud-${i + 1}" href="audio/${file}" media-type="audio/wav"/>`,
     ),
   ].join('\n');
-  const spine = spec.chapters
-    .map((c) => `    <itemref idref="chap-${c.slug}"/>`)
-    .join('\n');
+  const spine = spec.chapters.map((c) => `    <itemref idref="chap-${c.slug}"/>`).join('\n');
   return `${XML_DECL}<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:identifier id="pub-id">urn:uuid:${spec.uuid}</dc:identifier>

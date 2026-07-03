@@ -5,6 +5,10 @@ import { useReaderStore } from '@/store/readerStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildBookTimeline } from '@/services/audiobook/bookTimeline';
+import { DEFAULT_MEDIA_OVERLAY_CONFIG } from '@/services/constants';
+import type { TTSHighlightOptions } from '@/services/tts';
+import { findTapFragment } from '@/utils/audiobook';
+import { getStyles } from '@/utils/style';
 import {
   isActive,
   transition,
@@ -42,10 +46,16 @@ export const useAudiobookControl = (bookKey: string) => {
   const viewSettings = getViewSettings(bookKey);
   const engine = view?.mediaOverlay ?? null;
   const isAvailable = Boolean(bookData?.book?.hasAudio) && Boolean(engine);
+  const readAlongEnabled = viewSettings?.moReadAlongEnabled ?? true;
+  const highlightOptions =
+    viewSettings?.moHighlightOptions ?? DEFAULT_MEDIA_OVERLAY_CONFIG.moHighlightOptions;
 
   const [state, setState] = useState<AudiobookPlaybackState>('stopped');
   const [sectionIndex, setSectionIndex] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
+  const [followSuspended, setFollowSuspended] = useState(false);
+  const lastHighlightTextRef = useRef<string | null>(null);
+  const tapWiredDocsRef = useRef(new WeakSet<Document>());
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -104,12 +114,15 @@ export const useAudiobookControl = (bookKey: string) => {
   // confirmation; the machine ignores it outside of `loading`.
   useEffect(() => {
     if (!engine) return;
-    const onHighlight = () => {
+    const onHighlight = (e: Event) => {
+      lastHighlightTextRef.current =
+        ((e as CustomEvent).detail as { text?: string } | undefined)?.text ?? null;
       dispatch('STARTED');
       syncPosition();
     };
     const onEnded = () => {
       dispatch('ENDED');
+      setFollowSuspended(false);
       saveLocation();
     };
     const onError = (e: Event) => {
@@ -158,6 +171,68 @@ export const useAudiobookControl = (bookKey: string) => {
       if (isActive(stateRef.current)) saveLocation();
     };
   }, [saveLocation]);
+
+  // Read-along control: the view applies the highlight class and follows the
+  // audio only while read-along is on and the user hasn't wandered off.
+  useEffect(() => {
+    if (!view) return;
+    view.mediaOverlayHighlightEnabled = readAlongEnabled;
+    view.mediaOverlayFollowEnabled = readAlongEnabled && !followSuspended;
+  }, [view, readAlongEnabled, followSuspended]);
+
+  // A relocate into a section other than the one playing is the reader
+  // wandering off (media-overlay navigation always lands on the playing
+  // section) — stop dragging them back until they ask to return.
+  useEffect(() => {
+    if (!view || !engine) return;
+    const onRelocate = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { section?: { current?: number } } | undefined;
+      const current = detail?.section?.current;
+      if (typeof current !== 'number') return;
+      if (!isActive(stateRef.current) || engine.activeSectionIndex < 0) return;
+      if (current !== engine.activeSectionIndex) {
+        // Flip the view flag synchronously: waiting for the React effect
+        // loses the race against the next highlight's navigation.
+        view.mediaOverlayFollowEnabled = false;
+        setFollowSuspended(true);
+      }
+    };
+    view.addEventListener('relocate', onRelocate);
+    return () => view.removeEventListener('relocate', onRelocate);
+  }, [view, engine]);
+
+  // Tap-to-seek: a tap on (or inside) a SMIL text target jumps the audio
+  // there. Section documents live in iframes and can outlive this effect, so
+  // each doc is wired at most once and stale listeners die with their doc.
+  useEffect(() => {
+    if (!view || !engine) return;
+    const wireDoc = (doc: Document | undefined, index: number) => {
+      if (!doc?.addEventListener || index < 0 || tapWiredDocsRef.current.has(doc)) return;
+      tapWiredDocsRef.current.add(doc);
+      doc.addEventListener('click', (ev) => {
+        if (!isActive(stateRef.current)) return;
+        const fragment = findTapFragment(ev.target);
+        if (!fragment) return;
+        void engine.playFromText(index, fragment).then((matched) => {
+          if (matched) {
+            setFollowSuspended(false);
+            syncPosition();
+          }
+        });
+      });
+    };
+    const onLoad = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { doc?: Document; index?: number } | undefined;
+      if (detail?.doc && typeof detail.index === 'number') wireDoc(detail.doc, detail.index);
+    };
+    view.addEventListener('load', onLoad);
+    // Sections rendered before this hook mounted (the opening page) are
+    // already loaded and will never re-emit 'load'.
+    for (const content of view.renderer?.getContents?.() ?? []) {
+      wireDoc(content.doc, content.index ?? -1);
+    }
+    return () => view.removeEventListener('load', onLoad);
+  }, [view, engine, syncPosition]);
 
   const play = useCallback(async () => {
     if (!engine || !view) return;
@@ -228,6 +303,7 @@ export const useAudiobookControl = (bookKey: string) => {
   );
 
   const nextChapter = useCallback(() => {
+    setFollowSuspended(false);
     withActiveEngine((e) => {
       const next = adjacentOverlaySection(e.activeSectionIndex, 1);
       // Past the last chapter counts as finishing the book.
@@ -236,6 +312,7 @@ export const useAudiobookControl = (bookKey: string) => {
   }, [withActiveEngine, adjacentOverlaySection, view]);
 
   const prevChapter = useCallback(() => {
+    setFollowSuspended(false);
     withActiveEngine((e) => {
       if (e.sectionOffset > CHAPTER_RESTART_THRESHOLD_SEC) {
         void e.startAtOffset(e.activeSectionIndex, 0);
@@ -248,6 +325,7 @@ export const useAudiobookControl = (bookKey: string) => {
 
   const goToChapter = useCallback(
     (index: number) => {
+      setFollowSuspended(false);
       withActiveEngine((e) => void e.start(index));
     },
     [withActiveEngine],
@@ -255,6 +333,7 @@ export const useAudiobookControl = (bookKey: string) => {
 
   const seekToBookTime = useCallback(
     (seconds: number) => {
+      setFollowSuspended(false);
       withActiveEngine((e) => {
         const target = timeline.locate(seconds);
         setElapsed(timeline.elapsed(target.sectionIndex, target.offset));
@@ -265,13 +344,15 @@ export const useAudiobookControl = (bookKey: string) => {
   );
 
   const persistViewSettings = useCallback(
-    (patch: Partial<MediaOverlayConfig>) => {
+    (patch: Partial<MediaOverlayConfig>, reapplyStyles = false) => {
       if (!viewSettings) return;
-      setViewSettings(bookKey, { ...viewSettings, ...patch });
+      const next = { ...viewSettings, ...patch };
+      setViewSettings(bookKey, next);
+      if (reapplyStyles) view?.renderer?.setStyles?.(getStyles(next));
       const config = getConfig(bookKey);
       if (config) saveConfig(envConfig, bookKey, config, settings);
     },
-    [viewSettings, setViewSettings, bookKey, getConfig, saveConfig, envConfig, settings],
+    [viewSettings, setViewSettings, bookKey, getConfig, saveConfig, envConfig, settings, view],
   );
 
   const setRate = useCallback(
@@ -281,6 +362,13 @@ export const useAudiobookControl = (bookKey: string) => {
     },
     [engine, persistViewSettings],
   );
+
+  const returnToPlaying = useCallback(() => {
+    if (!view || !engine || engine.activeSectionIndex < 0) return;
+    setFollowSuspended(false);
+    const target = lastHighlightTextRef.current;
+    if (target) view.goTo(target);
+  }, [view, engine]);
 
   return {
     isAvailable,
@@ -303,5 +391,15 @@ export const useAudiobookControl = (bookKey: string) => {
     setRate,
     setSkipForwardSec: (sec: number) => persistViewSettings({ moSkipForwardSec: sec }),
     setSkipBackSec: (sec: number) => persistViewSettings({ moSkipBackSec: sec }),
+    readAlongEnabled,
+    highlightOptions,
+    followSuspended,
+    returnToPlaying,
+    setReadAlongEnabled: (enabled: boolean) => {
+      setFollowSuspended(false);
+      persistViewSettings({ moReadAlongEnabled: enabled });
+    },
+    setHighlightOptions: (patch: Partial<TTSHighlightOptions>) =>
+      persistViewSettings({ moHighlightOptions: { ...highlightOptions, ...patch } }, true),
   };
 };

@@ -32,7 +32,9 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({ bookKey, gridInsets
           elapsed={audiobook.elapsed}
           total={audiobook.total}
           bottomInset={bottomInset}
+          followSuspended={audiobook.followSuspended}
           onTogglePlay={audiobook.togglePlay}
+          onReturnToPlaying={audiobook.returnToPlaying}
           onExpand={() => setExpanded(true)}
         />
       )}
@@ -47,6 +49,8 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({ bookKey, gridInsets
           rate={audiobook.rate}
           skipForwardSec={audiobook.skipForwardSec}
           skipBackSec={audiobook.skipBackSec}
+          readAlongEnabled={audiobook.readAlongEnabled}
+          highlightOptions={audiobook.highlightOptions}
           bottomInset={bottomInset}
           onTogglePlay={audiobook.togglePlay}
           onSkipForward={audiobook.skipForward}
@@ -58,6 +62,8 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({ bookKey, gridInsets
           onSetRate={audiobook.setRate}
           onSetSkipForwardSec={audiobook.setSkipForwardSec}
           onSetSkipBackSec={audiobook.setSkipBackSec}
+          onSetReadAlong={audiobook.setReadAlongEnabled}
+          onSetHighlightOptions={audiobook.setHighlightOptions}
           onClose={() => setExpanded(false)}
         />
       )}
