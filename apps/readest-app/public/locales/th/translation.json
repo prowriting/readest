@@ -1649,5 +1649,9 @@
   "Speed": "ความเร็ว",
   "Playback Speed": "ความเร็วการเล่น",
   "Speed {{rate}}×": "ความเร็ว {{rate}}×",
-  "Could not play this chapter’s audio.": "ไม่สามารถเล่นเสียงของบทนี้ได้"
+  "Could not play this chapter’s audio.": "ไม่สามารถเล่นเสียงของบทนี้ได้",
+  "Read Along": "อ่านตาม",
+  "Highlight Style": "รูปแบบไฮไลต์",
+  "Highlight Color": "สีไฮไลต์",
+  "Go to Playing Position": "ไปยังตำแหน่งที่เล่น"
 }

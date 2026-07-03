@@ -1649,5 +1649,9 @@
   "Speed": "速度",
   "Playback Speed": "再生速度",
   "Speed {{rate}}×": "速度 {{rate}}×",
-  "Could not play this chapter’s audio.": "このチャプターの音声を再生できませんでした。"
+  "Could not play this chapter’s audio.": "このチャプターの音声を再生できませんでした。",
+  "Read Along": "読み上げフォロー",
+  "Highlight Style": "ハイライトのスタイル",
+  "Highlight Color": "ハイライトの色",
+  "Go to Playing Position": "再生位置へ移動"
 }

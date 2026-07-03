@@ -1680,5 +1680,9 @@
   "Speed": "गति",
   "Playback Speed": "प्लेबैक गति",
   "Speed {{rate}}×": "गति {{rate}}×",
-  "Could not play this chapter’s audio.": "इस अध्याय की ऑडियो नहीं चलाई जा सकी।"
+  "Could not play this chapter’s audio.": "इस अध्याय की ऑडियो नहीं चलाई जा सकी।",
+  "Read Along": "साथ पढ़ें",
+  "Highlight Style": "हाइलाइट शैली",
+  "Highlight Color": "हाइलाइट रंग",
+  "Go to Playing Position": "प्लेबैक स्थिति पर जाएँ"
 }

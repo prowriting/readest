@@ -1711,5 +1711,9 @@
   "Speed": "מהירות",
   "Playback Speed": "מהירות ניגון",
   "Speed {{rate}}×": "מהירות {{rate}}×",
-  "Could not play this chapter’s audio.": "לא ניתן היה לנגן את השמע של פרק זה."
+  "Could not play this chapter’s audio.": "לא ניתן היה לנגן את השמע של פרק זה.",
+  "Read Along": "קריאה בעקבות",
+  "Highlight Style": "סגנון הדגשה",
+  "Highlight Color": "צבע הדגשה",
+  "Go to Playing Position": "מעבר למיקום הניגון"
 }

@@ -1711,5 +1711,9 @@
   "Speed": "Velocidade",
   "Playback Speed": "Velocidade de reprodução",
   "Speed {{rate}}×": "Velocidade {{rate}}×",
-  "Could not play this chapter’s audio.": "Não foi possível reproduzir o áudio deste capítulo."
+  "Could not play this chapter’s audio.": "Não foi possível reproduzir o áudio deste capítulo.",
+  "Read Along": "Leitura acompanhada",
+  "Highlight Style": "Estilo de destaque",
+  "Highlight Color": "Cor de destaque",
+  "Go to Playing Position": "Ir para a posição de reprodução"
 }

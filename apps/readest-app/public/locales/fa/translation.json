@@ -1680,5 +1680,9 @@
   "Speed": "سرعت",
   "Playback Speed": "سرعت پخش",
   "Speed {{rate}}×": "سرعت {{rate}}×",
-  "Could not play this chapter’s audio.": "پخش صدای این فصل ممکن نبود."
+  "Could not play this chapter’s audio.": "پخش صدای این فصل ممکن نبود.",
+  "Read Along": "همخوانی",
+  "Highlight Style": "سبک برجسته‌سازی",
+  "Highlight Color": "رنگ برجسته‌سازی",
+  "Go to Playing Position": "رفتن به موقعیت پخش"
 }

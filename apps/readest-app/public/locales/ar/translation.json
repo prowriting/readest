@@ -1804,5 +1804,9 @@
   "Speed": "السرعة",
   "Playback Speed": "سرعة التشغيل",
   "Speed {{rate}}×": "السرعة {{rate}}×",
-  "Could not play this chapter’s audio.": "تعذّر تشغيل صوت هذا الفصل."
+  "Could not play this chapter’s audio.": "تعذّر تشغيل صوت هذا الفصل.",
+  "Read Along": "القراءة المتزامنة",
+  "Highlight Style": "نمط التمييز",
+  "Highlight Color": "لون التمييز",
+  "Go to Playing Position": "الانتقال إلى موضع التشغيل"
 }

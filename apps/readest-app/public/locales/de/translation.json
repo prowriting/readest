@@ -1680,5 +1680,9 @@
   "Speed": "Tempo",
   "Playback Speed": "Wiedergabetempo",
   "Speed {{rate}}×": "Tempo {{rate}}×",
-  "Could not play this chapter’s audio.": "Das Audio dieses Kapitels konnte nicht abgespielt werden."
+  "Could not play this chapter’s audio.": "Das Audio dieses Kapitels konnte nicht abgespielt werden.",
+  "Read Along": "Mitlesen",
+  "Highlight Style": "Hervorhebungsstil",
+  "Highlight Color": "Hervorhebungsfarbe",
+  "Go to Playing Position": "Zur Wiedergabeposition"
 }

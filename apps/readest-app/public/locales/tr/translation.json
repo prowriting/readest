@@ -1680,5 +1680,9 @@
   "Speed": "Hız",
   "Playback Speed": "Oynatma hızı",
   "Speed {{rate}}×": "Hız {{rate}}×",
-  "Could not play this chapter’s audio.": "Bu bölümün sesi oynatılamadı."
+  "Could not play this chapter’s audio.": "Bu bölümün sesi oynatılamadı.",
+  "Read Along": "Takip ederek oku",
+  "Highlight Style": "Vurgu stili",
+  "Highlight Color": "Vurgu rengi",
+  "Go to Playing Position": "Oynatma konumuna git"
 }

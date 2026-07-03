@@ -1742,5 +1742,9 @@
   "Speed": "Скорость",
   "Playback Speed": "Скорость воспроизведения",
   "Speed {{rate}}×": "Скорость {{rate}}×",
-  "Could not play this chapter’s audio.": "Не удалось воспроизвести аудио этой главы."
+  "Could not play this chapter’s audio.": "Не удалось воспроизвести аудио этой главы.",
+  "Read Along": "Читать вместе",
+  "Highlight Style": "Стиль выделения",
+  "Highlight Color": "Цвет выделения",
+  "Go to Playing Position": "К месту воспроизведения"
 }

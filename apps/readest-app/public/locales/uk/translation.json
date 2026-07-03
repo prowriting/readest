@@ -1742,5 +1742,9 @@
   "Speed": "Швидкість",
   "Playback Speed": "Швидкість відтворення",
   "Speed {{rate}}×": "Швидкість {{rate}}×",
-  "Could not play this chapter’s audio.": "Не вдалося відтворити аудіо цього розділу."
+  "Could not play this chapter’s audio.": "Не вдалося відтворити аудіо цього розділу.",
+  "Read Along": "Читати разом",
+  "Highlight Style": "Стиль виділення",
+  "Highlight Color": "Колір виділення",
+  "Go to Playing Position": "До позиції відтворення"
 }

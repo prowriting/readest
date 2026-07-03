@@ -1680,5 +1680,9 @@
   "Speed": "গতি",
   "Playback Speed": "প্লেব্যাক গতি",
   "Speed {{rate}}×": "গতি {{rate}}×",
-  "Could not play this chapter’s audio.": "এই অধ্যায়ের অডিও চালানো যায়নি।"
+  "Could not play this chapter’s audio.": "এই অধ্যায়ের অডিও চালানো যায়নি।",
+  "Read Along": "সাথে পড়ুন",
+  "Highlight Style": "হাইলাইট শৈলী",
+  "Highlight Color": "হাইলাইট রং",
+  "Go to Playing Position": "প্লেয়িং অবস্থানে যান"
 }

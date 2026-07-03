@@ -1680,5 +1680,9 @@
   "Speed": "Sebesség",
   "Playback Speed": "Lejátszási sebesség",
   "Speed {{rate}}×": "Sebesség {{rate}}×",
-  "Could not play this chapter’s audio.": "Nem sikerült lejátszani a fejezet hangját."
+  "Could not play this chapter’s audio.": "Nem sikerült lejátszani a fejezet hangját.",
+  "Read Along": "Együttolvasás",
+  "Highlight Style": "Kiemelés stílusa",
+  "Highlight Color": "Kiemelés színe",
+  "Go to Playing Position": "Ugrás a lejátszási pozícióhoz"
 }

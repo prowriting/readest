@@ -1680,5 +1680,9 @@
   "Speed": "Ταχύτητα",
   "Playback Speed": "Ταχύτητα αναπαραγωγής",
   "Speed {{rate}}×": "Ταχύτητα {{rate}}×",
-  "Could not play this chapter’s audio.": "Δεν ήταν δυνατή η αναπαραγωγή του ήχου αυτού του κεφαλαίου."
+  "Could not play this chapter’s audio.": "Δεν ήταν δυνατή η αναπαραγωγή του ήχου αυτού του κεφαλαίου.",
+  "Read Along": "Συγχρονισμένη ανάγνωση",
+  "Highlight Style": "Στυλ επισήμανσης",
+  "Highlight Color": "Χρώμα επισήμανσης",
+  "Go to Playing Position": "Μετάβαση στη θέση αναπαραγωγής"
 }

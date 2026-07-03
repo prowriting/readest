@@ -1680,5 +1680,9 @@
   "Speed": "Tezlik",
   "Playback Speed": "Ijro tezligi",
   "Speed {{rate}}×": "Tezlik {{rate}}×",
-  "Could not play this chapter’s audio.": "Bu bob audiosini ijro etib bo‘lmadi."
+  "Could not play this chapter’s audio.": "Bu bob audiosini ijro etib bo‘lmadi.",
+  "Read Along": "Birga o‘qish",
+  "Highlight Style": "Ajratish uslubi",
+  "Highlight Color": "Ajratish rangi",
+  "Go to Playing Position": "Ijro joyiga o‘tish"
 }

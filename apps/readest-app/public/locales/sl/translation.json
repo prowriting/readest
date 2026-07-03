@@ -1742,5 +1742,9 @@
   "Speed": "Hitrost",
   "Playback Speed": "Hitrost predvajanja",
   "Speed {{rate}}×": "Hitrost {{rate}}×",
-  "Could not play this chapter’s audio.": "Zvoka tega poglavja ni bilo mogoče predvajati."
+  "Could not play this chapter’s audio.": "Zvoka tega poglavja ni bilo mogoče predvajati.",
+  "Read Along": "Sledenje branju",
+  "Highlight Style": "Slog poudarka",
+  "Highlight Color": "Barva poudarka",
+  "Go to Playing Position": "Na mesto predvajanja"
 }

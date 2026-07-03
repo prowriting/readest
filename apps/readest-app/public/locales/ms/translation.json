@@ -1649,5 +1649,9 @@
   "Speed": "Kelajuan",
   "Playback Speed": "Kelajuan main balik",
   "Speed {{rate}}×": "Kelajuan {{rate}}×",
-  "Could not play this chapter’s audio.": "Audio bab ini tidak dapat dimainkan."
+  "Could not play this chapter’s audio.": "Audio bab ini tidak dapat dimainkan.",
+  "Read Along": "Baca ikut",
+  "Highlight Style": "Gaya sorotan",
+  "Highlight Color": "Warna sorotan",
+  "Go to Playing Position": "Pergi ke kedudukan main"
 }

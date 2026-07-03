@@ -1680,5 +1680,9 @@
   "Speed": "வேகம்",
   "Playback Speed": "இயக்க வேகம்",
   "Speed {{rate}}×": "வேகம் {{rate}}×",
-  "Could not play this chapter’s audio.": "இந்த அத்தியாயத்தின் ஒலியை இயக்க முடியவில்லை."
+  "Could not play this chapter’s audio.": "இந்த அத்தியாயத்தின் ஒலியை இயக்க முடியவில்லை.",
+  "Read Along": "உடன் படித்தல்",
+  "Highlight Style": "சிறப்பு பாணி",
+  "Highlight Color": "சிறப்பு நிறம்",
+  "Go to Playing Position": "இயங்கும் இடத்திற்கு செல்"
 }

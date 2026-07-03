@@ -1649,5 +1649,9 @@
   "Speed": "མྱུར་ཚད།",
   "Playback Speed": "གཏོང་མྱུར་ཚད།",
   "Speed {{rate}}×": "མྱུར་ཚད་{{rate}}×",
-  "Could not play this chapter’s audio.": "ལེའུ་འདིའི་སྒྲ་གཏོང་མ་ཐུབ།"
+  "Could not play this chapter’s audio.": "ལེའུ་འདིའི་སྒྲ་གཏོང་མ་ཐུབ།",
+  "Read Along": "མཉམ་དུ་ཀློག",
+  "Highlight Style": "མདངས་གསལ་རྣམ་པ།",
+  "Highlight Color": "མདངས་གསལ་ཚོས་གཞི།",
+  "Go to Playing Position": "གཏོང་བཞིན་པའི་གནས་སར་འགྲོ།"
 }

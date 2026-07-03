@@ -1711,5 +1711,9 @@
   "Speed": "Viteză",
   "Playback Speed": "Viteza de redare",
   "Speed {{rate}}×": "Viteză {{rate}}×",
-  "Could not play this chapter’s audio.": "Nu s-a putut reda sunetul acestui capitol."
+  "Could not play this chapter’s audio.": "Nu s-a putut reda sunetul acestui capitol.",
+  "Read Along": "Citire ghidată",
+  "Highlight Style": "Stil de evidențiere",
+  "Highlight Color": "Culoare de evidențiere",
+  "Go to Playing Position": "Mergi la poziția de redare"
 }

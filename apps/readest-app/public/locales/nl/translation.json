@@ -1680,5 +1680,9 @@
   "Speed": "Snelheid",
   "Playback Speed": "Afspeelsnelheid",
   "Speed {{rate}}×": "Snelheid {{rate}}×",
-  "Could not play this chapter’s audio.": "Kon de audio van dit hoofdstuk niet afspelen."
+  "Could not play this chapter’s audio.": "Kon de audio van dit hoofdstuk niet afspelen.",
+  "Read Along": "Meelezen",
+  "Highlight Style": "Markeerstijl",
+  "Highlight Color": "Markeerkleur",
+  "Go to Playing Position": "Naar afspeelpositie"
 }

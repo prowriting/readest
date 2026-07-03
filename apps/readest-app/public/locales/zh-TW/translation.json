@@ -1649,5 +1649,9 @@
   "Speed": "速度",
   "Playback Speed": "播放速度",
   "Speed {{rate}}×": "速度 {{rate}}×",
-  "Could not play this chapter’s audio.": "無法播放本章的音訊。"
+  "Could not play this chapter’s audio.": "無法播放本章的音訊。",
+  "Read Along": "跟讀",
+  "Highlight Style": "醒目提示樣式",
+  "Highlight Color": "醒目提示顏色",
+  "Go to Playing Position": "前往播放位置"
 }

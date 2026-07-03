@@ -1680,5 +1680,9 @@
   "Speed": "වේගය",
   "Playback Speed": "ධාවන වේගය",
   "Speed {{rate}}×": "වේගය {{rate}}×",
-  "Could not play this chapter’s audio.": "මෙම පරිච්ඡේදයේ ශ්‍රව්‍යය ධාවනය කළ නොහැකි විය."
+  "Could not play this chapter’s audio.": "මෙම පරිච්ඡේදයේ ශ්‍රව්‍යය ධාවනය කළ නොහැකි විය.",
+  "Read Along": "සමඟ කියවන්න",
+  "Highlight Style": "ඉස්මතු විලාසය",
+  "Highlight Color": "ඉස්මතු වර්ණය",
+  "Go to Playing Position": "ධාවන ස්ථානයට යන්න"
 }

@@ -1649,5 +1649,9 @@
   "Speed": "속도",
   "Playback Speed": "재생 속도",
   "Speed {{rate}}×": "속도 {{rate}}×",
-  "Could not play this chapter’s audio.": "이 챕터의 오디오를 재생할 수 없습니다."
+  "Could not play this chapter’s audio.": "이 챕터의 오디오를 재생할 수 없습니다.",
+  "Read Along": "따라 읽기",
+  "Highlight Style": "하이라이트 스타일",
+  "Highlight Color": "하이라이트 색상",
+  "Go to Playing Position": "재생 위치로 이동"
 }

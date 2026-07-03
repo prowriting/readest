@@ -1680,5 +1680,9 @@
   "Speed": "Hastighet",
   "Playback Speed": "Uppspelningshastighet",
   "Speed {{rate}}×": "Hastighet {{rate}}×",
-  "Could not play this chapter’s audio.": "Kunde inte spela upp kapitlets ljud."
+  "Could not play this chapter’s audio.": "Kunde inte spela upp kapitlets ljud.",
+  "Read Along": "Läs med",
+  "Highlight Style": "Markeringsstil",
+  "Highlight Color": "Markeringsfärg",
+  "Go to Playing Position": "Gå till uppspelningsläget"
 }

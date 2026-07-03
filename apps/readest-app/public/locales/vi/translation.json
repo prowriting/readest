@@ -1649,5 +1649,9 @@
   "Speed": "Tốc độ",
   "Playback Speed": "Tốc độ phát",
   "Speed {{rate}}×": "Tốc độ {{rate}}×",
-  "Could not play this chapter’s audio.": "Không thể phát âm thanh của chương này."
+  "Could not play this chapter’s audio.": "Không thể phát âm thanh của chương này.",
+  "Read Along": "Đọc theo",
+  "Highlight Style": "Kiểu tô sáng",
+  "Highlight Color": "Màu tô sáng",
+  "Go to Playing Position": "Đến vị trí đang phát"
 }

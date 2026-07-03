@@ -1711,5 +1711,9 @@
   "Speed": "Vitesse",
   "Playback Speed": "Vitesse de lecture",
   "Speed {{rate}}×": "Vitesse {{rate}}×",
-  "Could not play this chapter’s audio.": "Impossible de lire l’audio de ce chapitre."
+  "Could not play this chapter’s audio.": "Impossible de lire l’audio de ce chapitre.",
+  "Read Along": "Lecture suivie",
+  "Highlight Style": "Style de surlignage",
+  "Highlight Color": "Couleur de surlignage",
+  "Go to Playing Position": "Aller à la position de lecture"
 }

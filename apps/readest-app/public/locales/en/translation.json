@@ -82,5 +82,9 @@
   "Speed": "Speed",
   "Playback Speed": "Playback Speed",
   "Speed {{rate}}×": "Speed {{rate}}×",
-  "Could not play this chapter’s audio.": "Could not play this chapter’s audio."
+  "Could not play this chapter’s audio.": "Could not play this chapter’s audio.",
+  "Read Along": "Read Along",
+  "Highlight Style": "Highlight Style",
+  "Highlight Color": "Highlight Color",
+  "Go to Playing Position": "Go to Playing Position"
 }
