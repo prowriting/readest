@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findTapFragment, hasMediaOverlay } from '@/utils/audiobook';
+import { findTapFragment, fragmentFromCfi, hasMediaOverlay } from '@/utils/audiobook';
 
 describe('hasMediaOverlay', () => {
   it('detects a book where any section carries a media overlay', () => {
@@ -46,5 +46,22 @@ describe('findTapFragment', () => {
   it('ignores ids on body and html elements', () => {
     const doc = buildDoc('<body id="book-body"><p>text</p></body>');
     expect(findTapFragment(doc.querySelector('p'))).toBe(null);
+  });
+});
+
+describe('fragmentFromCfi', () => {
+  it('recovers the innermost id assertion from a CFI', () => {
+    expect(fragmentFromCfi('epubcfi(/6/8!/4/2[chapter]/2[s3],/1:0,/1:12)')).toBe('s3');
+    expect(fragmentFromCfi('epubcfi(/6/12!/4/2/24[w7]/1:0)')).toBe('w7');
+  });
+
+  it('returns null when the CFI carries no id assertions', () => {
+    expect(fragmentFromCfi('epubcfi(/6/8!/4/2/2/1:0)')).toBe(null);
+    expect(fragmentFromCfi('')).toBe(null);
+  });
+
+  it('ignores side-bias and text-assertion brackets', () => {
+    // Character offsets may carry [text;s=b] style assertions — not element ids.
+    expect(fragmentFromCfi('epubcfi(/6/8!/4/2[s5]/1:3[;s=a])')).toBe('s5');
   });
 });

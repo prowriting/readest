@@ -226,6 +226,19 @@ describe('MediaOverlay engine — tap-to-seek (Phase 3)', () => {
   });
 });
 
+describe('MediaOverlay engine — text offsets (Phase 4)', () => {
+  it('textOffset reports the concatenated-timeline offset of a text target', async () => {
+    const engine = createEngine();
+    // Chapter 1: sentence 3's clip begins at 3.0s.
+    expect(await engine.textOffset(0, 's3')).toBeCloseTo(3.0, 3);
+    // Chapter 2: sentence 5 opens the second audio file — 6.0s into the section.
+    expect(await engine.textOffset(1, 's5')).toBeCloseTo(6.0, 3);
+    // Word chapter: word 4 begins at 1.5s.
+    expect(await engine.textOffset(2, 'w4')).toBeCloseTo(1.5, 3);
+    expect(await engine.textOffset(0, 'not-a-real-id')).toBe(null);
+  });
+});
+
 describe('foliate-view media overlay integration (view.js)', () => {
   const createView = async (): Promise<FoliateView> => {
     await import('foliate-js/view.js');

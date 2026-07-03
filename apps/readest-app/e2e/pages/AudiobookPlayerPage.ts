@@ -40,6 +40,14 @@ export class AudiobookPlayerPage extends BasePage {
   /** Shown when the reader navigated away from the playing position. */
   readonly returnToPlayingButton: Locator;
 
+  // — sleep timer & bookmarks (full player) —
+  readonly sleepTimerSelect: Locator;
+  readonly sleepTimerRemaining: Locator;
+  readonly extendSleepTimerButton: Locator;
+  readonly addBookmarkButton: Locator;
+  readonly removeBookmarkButton: Locator;
+  readonly bookmarkItems: Locator;
+
   constructor(page: Page) {
     super(page);
     this.miniBar = page.locator('[aria-label="Audiobook Mini Player"]');
@@ -66,6 +74,33 @@ export class AudiobookPlayerPage extends BasePage {
       name: 'Go to Playing Position',
       exact: true,
     });
+
+    this.sleepTimerSelect = page.getByRole('combobox', { name: 'Sleep Timer' });
+    this.sleepTimerRemaining = page.locator('[aria-label="Sleep Timer Remaining"]');
+    this.extendSleepTimerButton = page.getByRole('button', {
+      name: 'Extend Sleep Timer',
+      exact: true,
+    });
+    // Scoped to the player dialog — the reader header has its own bookmark toggle.
+    this.addBookmarkButton = this.fullPlayer.getByRole('button', {
+      name: 'Add Bookmark',
+      exact: true,
+    });
+    this.removeBookmarkButton = this.fullPlayer.getByRole('button', {
+      name: 'Remove Bookmark',
+      exact: true,
+    });
+    this.bookmarkItems = this.fullPlayer.locator('[data-bookmark-item]');
+  }
+
+  /** Open the bookmark list of the full player. */
+  async openBookmarks(): Promise<void> {
+    await this.page.getByRole('button', { name: 'Bookmarks', exact: true }).click();
+  }
+
+  /** The delete control of the nth bookmark list entry. */
+  deleteBookmarkButton(index: number): Locator {
+    return this.bookmarkItems.nth(index).getByRole('button', { name: 'Delete Bookmark' });
   }
 
   /** A highlight color preset in the player settings, by English color name. */

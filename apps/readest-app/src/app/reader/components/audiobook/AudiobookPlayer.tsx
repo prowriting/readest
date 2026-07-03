@@ -1,6 +1,9 @@
 import clsx from 'clsx';
 import React, { useState } from 'react';
 import {
+  MdBookmark,
+  MdDeleteOutline,
+  MdOutlineBookmarkAdd,
   MdOutlineClose,
   MdOutlinePause,
   MdOutlineSettings,
@@ -9,6 +12,7 @@ import {
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
+import { RiBookmark3Line } from 'react-icons/ri';
 import { RiForward30Line, RiListUnordered, RiReplay15Line } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
@@ -17,7 +21,8 @@ import type { AudiobookPlaybackState } from '@/services/audiobook/playbackMachin
 import type { TTSHighlightOptions } from '@/services/tts';
 import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
 import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
-import type { AudiobookChapter } from '../../hooks/useAudiobookControl';
+import type { SleepTimerMode } from '@/services/audiobook/sleepTimer';
+import type { AudiobookBookmark, AudiobookChapter } from '../../hooks/useAudiobookControl';
 
 const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
   red: 'Red',
@@ -29,6 +34,8 @@ const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
 
 const SPEED_PRESETS = [0.75, 1, 1.25, 1.5, 2];
 const SKIP_INTERVAL_OPTIONS = [10, 15, 30, 60];
+const SLEEP_MINUTE_OPTIONS = [5, 15, 30, 60];
+const SLEEP_EXTEND_MINUTES = 15;
 
 interface AudiobookPlayerProps {
   state: AudiobookPlaybackState;
@@ -42,6 +49,10 @@ interface AudiobookPlayerProps {
   skipBackSec: number;
   readAlongEnabled: boolean;
   highlightOptions: TTSHighlightOptions;
+  sleepTimerMode: SleepTimerMode | null;
+  sleepRemainingSec: number | null;
+  bookmarks: AudiobookBookmark[];
+  isCurrentBookmarked: boolean;
   bottomInset: number;
   onTogglePlay: () => void;
   onSkipForward: () => void;
@@ -55,6 +66,11 @@ interface AudiobookPlayerProps {
   onSetSkipBackSec: (sec: number) => void;
   onSetReadAlong: (enabled: boolean) => void;
   onSetHighlightOptions: (patch: Partial<TTSHighlightOptions>) => void;
+  onSetSleepTimer: (mode: SleepTimerMode | null) => void;
+  onExtendSleepTimer: (minutes: number) => void;
+  onToggleBookmark: () => void;
+  onDeleteBookmark: (id: string) => void;
+  onJumpToBookmark: (bookmark: AudiobookBookmark) => void;
   onClose: () => void;
 }
 
@@ -70,6 +86,10 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   skipBackSec,
   readAlongEnabled,
   highlightOptions,
+  sleepTimerMode,
+  sleepRemainingSec,
+  bookmarks,
+  isCurrentBookmarked,
   bottomInset,
   onTogglePlay,
   onSkipForward,
@@ -83,6 +103,11 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   onSetSkipBackSec,
   onSetReadAlong,
   onSetHighlightOptions,
+  onSetSleepTimer,
+  onExtendSleepTimer,
+  onToggleBookmark,
+  onDeleteBookmark,
+  onJumpToBookmark,
   onClose,
 }) => {
   const _ = useTranslation();
@@ -90,6 +115,13 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   const playIconSize = useResponsiveSize(32);
   const [showChapters, setShowChapters] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const sleepValue =
+    sleepTimerMode == null
+      ? 'off'
+      : sleepTimerMode.type === 'end-of-chapter'
+        ? 'end-of-chapter'
+        : String(sleepTimerMode.minutes);
   const isPlaying = state === 'playing' || state === 'loading';
   const remaining = total != null ? Math.max(0, total - elapsed) : null;
 
@@ -109,10 +141,37 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
           <button
             type='button'
             className='btn btn-ghost btn-circle btn-sm eink-bordered'
+            aria-label={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
+            title={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
+            onClick={onToggleBookmark}
+          >
+            {isCurrentBookmarked ? (
+              <MdBookmark size={iconSize} />
+            ) : (
+              <MdOutlineBookmarkAdd size={iconSize} />
+            )}
+          </button>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle btn-sm eink-bordered'
+            aria-label={_('Bookmarks')}
+            title={_('Bookmarks')}
+            onClick={() => {
+              setShowBookmarks((v) => !v);
+              setShowChapters(false);
+              setShowSettings(false);
+            }}
+          >
+            <RiBookmark3Line size={iconSize} />
+          </button>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle btn-sm eink-bordered'
             aria-label={_('Chapters')}
             title={_('Chapters')}
             onClick={() => {
               setShowChapters((v) => !v);
+              setShowBookmarks(false);
               setShowSettings(false);
             }}
           >
@@ -126,6 +185,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
             onClick={() => {
               setShowSettings((v) => !v);
               setShowChapters(false);
+              setShowBookmarks(false);
             }}
           >
             <MdOutlineSettings size={iconSize} />
@@ -160,6 +220,53 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
             </li>
           ))}
         </ul>
+      )}
+
+      {showBookmarks && (
+        <ul className='menu bg-base-200 eink-bordered rounded-box max-h-48 flex-nowrap overflow-y-auto'>
+          {bookmarks.map((bookmark) => (
+            <li key={bookmark.id} data-bookmark-item className='flex-row items-center'>
+              <button
+                type='button'
+                className='min-w-0 flex-1 justify-start gap-2 text-start'
+                onClick={() => onJumpToBookmark(bookmark)}
+              >
+                {bookmark.bookTime != null && (
+                  <span className='text-base-content/70 text-xs tabular-nums' dir='ltr'>
+                    {formatPlaybackTime(bookmark.bookTime)}
+                  </span>
+                )}
+                <span className='truncate text-sm'>{bookmark.snippet}</span>
+              </button>
+              <button
+                type='button'
+                className='btn btn-ghost btn-circle btn-xs shrink-0'
+                aria-label={_('Delete Bookmark')}
+                title={_('Delete Bookmark')}
+                onClick={() => onDeleteBookmark(bookmark.id)}
+              >
+                <MdDeleteOutline size={16} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {sleepTimerMode != null && sleepRemainingSec != null && (
+        <div className='flex items-center justify-center gap-2 text-sm'>
+          <span aria-label={_('Sleep Timer Remaining')} className='tabular-nums' dir='ltr'>
+            {formatPlaybackTime(sleepRemainingSec)}
+          </span>
+          <button
+            type='button'
+            className='btn btn-ghost btn-xs eink-bordered'
+            aria-label={_('Extend Sleep Timer')}
+            title={_('Extend Sleep Timer')}
+            onClick={() => onExtendSleepTimer(SLEEP_EXTEND_MINUTES)}
+          >
+            +{SLEEP_EXTEND_MINUTES} {_('min')}
+          </button>
+        </div>
       )}
 
       {showSettings && (
@@ -216,6 +323,28 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
             >
               <option value='highlight'>{_('Highlight')}</option>
               <option value='underline'>{_('Underline')}</option>
+            </select>
+          </label>
+          <label className='flex items-center justify-between gap-2 text-sm'>
+            <span>{_('Sleep Timer')}</span>
+            <select
+              className='select select-sm eink-bordered'
+              aria-label={_('Sleep Timer')}
+              value={sleepValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'off') onSetSleepTimer(null);
+                else if (value === 'end-of-chapter') onSetSleepTimer({ type: 'end-of-chapter' });
+                else onSetSleepTimer({ type: 'duration', minutes: Number(value) });
+              }}
+            >
+              <option value='off'>{_('Off')}</option>
+              {SLEEP_MINUTE_OPTIONS.map((min) => (
+                <option key={min} value={min}>
+                  {_('{{min}} min', { min })}
+                </option>
+              ))}
+              <option value='end-of-chapter'>{_('End of Chapter')}</option>
             </select>
           </label>
           <div className='flex items-center justify-between gap-2 text-sm'>

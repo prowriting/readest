@@ -27,3 +27,15 @@ export const findTapFragment = (target: EventTarget | null): string | null => {
   }
   return null;
 };
+
+/**
+ * Innermost element-id assertion of a CFI (e.g. `/2[s3]` → `s3`), or null.
+ * Media-overlay text targets always carry ids, and foliate's getCFI embeds
+ * them as assertions — so a bookmark's audio position is recoverable from
+ * its ordinary CFI with no extra persisted fields. Text/side-bias assertions
+ * (attached to character offsets, or containing `;` parameters) are ignored.
+ */
+export const fragmentFromCfi = (cfi: string): string | null => {
+  const matches = [...cfi.matchAll(/\/\d+\[([^\];]+)\]/g)];
+  return matches.length ? (matches[matches.length - 1]?.[1] ?? null) : null;
+};

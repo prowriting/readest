@@ -24,6 +24,11 @@ export interface MediaOverlayEngine extends EventTarget {
    * section. Resolves false (with playback untouched) when nothing matches.
    */
   playFromText(sectionIndex: number, fragment: string): Promise<boolean>;
+  /**
+   * Concatenated-timeline offset (seconds) of the clip whose text target is
+   * `#fragment`, or null when nothing matches. Never touches playback.
+   */
+  textOffset(sectionIndex: number, fragment: string): Promise<number | null>;
   pause(): void;
   resume(): void;
   stop(): void;

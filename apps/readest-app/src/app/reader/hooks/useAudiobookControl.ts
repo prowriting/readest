@@ -6,8 +6,19 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildBookTimeline } from '@/services/audiobook/bookTimeline';
 import { DEFAULT_MEDIA_OVERLAY_CONFIG } from '@/services/constants';
+import {
+  CLEARED_TIMER,
+  extendTimer,
+  fadeVolume,
+  isExpired,
+  remainingSeconds,
+  startTimer,
+  type SleepTimerMode,
+  type SleepTimerState,
+} from '@/services/audiobook/sleepTimer';
 import type { TTSHighlightOptions } from '@/services/tts';
-import { findTapFragment } from '@/utils/audiobook';
+import { findTapFragment, fragmentFromCfi } from '@/utils/audiobook';
+import { uniqueId } from '@/utils/misc';
 import { getStyles } from '@/utils/style';
 import {
   isActive,
@@ -15,7 +26,7 @@ import {
   type AudiobookPlaybackEvent,
   type AudiobookPlaybackState,
 } from '@/services/audiobook/playbackMachine';
-import type { MediaOverlayConfig, MediaOverlayLocation } from '@/types/book';
+import type { BookNote, MediaOverlayConfig, MediaOverlayLocation } from '@/types/book';
 import { eventDispatcher } from '@/utils/event';
 
 const POSITION_POLL_MS = 500;
@@ -28,6 +39,15 @@ export interface AudiobookChapter {
   sectionIndex: number;
 }
 
+export interface AudiobookBookmark {
+  id: string;
+  sectionIndex: number;
+  fragment: string | null;
+  /** Whole-book time of the bookmarked clip, when resolvable. */
+  bookTime: number | null;
+  snippet: string;
+}
+
 /**
  * Owns the audiobook playback lifecycle for one reader instance: drives the
  * foliate-js MediaOverlay engine, mirrors it into the pure playback state
@@ -38,7 +58,7 @@ export const useAudiobookControl = (bookKey: string) => {
   const _ = useTranslation();
   const { envConfig } = useEnv();
   const { settings } = useSettingsStore();
-  const { getConfig, setConfig, saveConfig, getBookData } = useBookDataStore();
+  const { getConfig, setConfig, saveConfig, getBookData, updateBooknotes } = useBookDataStore();
   const { getView, getViewSettings, setViewSettings } = useReaderStore();
 
   const view = getView(bookKey);
@@ -54,12 +74,23 @@ export const useAudiobookControl = (bookKey: string) => {
   const [sectionIndex, setSectionIndex] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
   const [followSuspended, setFollowSuspended] = useState(false);
+  const [sleepTimer, setSleepTimerState] = useState<SleepTimerState>(CLEARED_TIMER);
+  const [sleepRemainingSec, setSleepRemainingSec] = useState<number | null>(null);
+  const [bookmarkEntries, setBookmarkEntries] = useState<AudiobookBookmark[]>([]);
+  const sleepTimerRef = useRef(sleepTimer);
+  const prevSectionRef = useRef(-1);
+  // Epoch ms of the last user-driven navigation (chapter jump, seek, tap).
+  // Section changes landing shortly after are manual, not a chapter rollover.
+  const manualNavAtRef = useRef(0);
   const lastHighlightTextRef = useRef<string | null>(null);
   const tapWiredDocsRef = useRef(new WeakSet<Document>());
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  useEffect(() => {
+    sleepTimerRef.current = sleepTimer;
+  }, [sleepTimer]);
 
   const dispatch = useCallback((type: AudiobookPlaybackEvent['type']) => {
     setState((prev) => transition(prev, { type }));
@@ -94,7 +125,23 @@ export const useAudiobookControl = (bookKey: string) => {
     if (index < 0) return;
     setSectionIndex(index);
     setElapsed(timeline.elapsed(index, engine.sectionOffset));
-  }, [engine, timeline]);
+    // End-of-chapter sleep timer: a section change that the user did NOT
+    // drive (no manual navigation flagged) is the chapter rolling over.
+    if (prevSectionRef.current >= 0 && index !== prevSectionRef.current) {
+      const isManual = Date.now() - manualNavAtRef.current < 1200;
+      if (
+        sleepTimerRef.current.mode?.type === 'end-of-chapter' &&
+        !isManual &&
+        isActive(stateRef.current)
+      ) {
+        engine.pause();
+        dispatch('PAUSE');
+        setSleepTimerState(CLEARED_TIMER);
+        setSleepRemainingSec(null);
+      }
+    }
+    prevSectionRef.current = index;
+  }, [engine, timeline, dispatch]);
 
   const saveLocation = useCallback(() => {
     if (!engine || engine.activeSectionIndex < 0) return;
@@ -234,6 +281,52 @@ export const useAudiobookControl = (bookKey: string) => {
     return () => view.removeEventListener('load', onLoad);
   }, [view, engine, syncPosition]);
 
+  // Duration sleep timer: tick the countdown, fade the last seconds, pause
+  // at expiry, and always leave the volume restored for the next session.
+  useEffect(() => {
+    if (!sleepTimer.mode) {
+      setSleepRemainingSec(null);
+      return;
+    }
+    const tick = () => {
+      const now = Date.now();
+      setSleepRemainingSec(remainingSeconds(sleepTimerRef.current, now));
+      if (sleepTimerRef.current.mode?.type !== 'duration' || !engine) return;
+      if (isExpired(sleepTimerRef.current, now)) {
+        if (isActive(stateRef.current)) {
+          engine.pause();
+          dispatch('PAUSE');
+          saveLocation();
+        }
+        engine.setVolume(1);
+        setSleepTimerState(CLEARED_TIMER);
+        setSleepRemainingSec(null);
+      } else {
+        engine.setVolume(fadeVolume(sleepTimerRef.current, now));
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 500);
+    return () => clearInterval(timer);
+  }, [sleepTimer.mode, engine, dispatch, saveLocation]);
+
+  const setSleepTimer = useCallback(
+    (mode: SleepTimerMode | null) => {
+      if (!mode) {
+        engine?.setVolume(1);
+        setSleepTimerState(CLEARED_TIMER);
+        setSleepRemainingSec(null);
+        return;
+      }
+      setSleepTimerState(startTimer(mode, Date.now()));
+    },
+    [engine],
+  );
+
+  const extendSleepTimer = useCallback((minutes: number) => {
+    setSleepTimerState((prev) => (prev.mode ? extendTimer(prev, minutes, Date.now()) : prev));
+  }, []);
+
   const play = useCallback(async () => {
     if (!engine || !view) return;
     const current = stateRef.current;
@@ -277,6 +370,7 @@ export const useAudiobookControl = (bookKey: string) => {
   const withActiveEngine = useCallback(
     (action: (activeEngine: NonNullable<typeof engine>) => void) => {
       if (!engine || engine.activeSectionIndex < 0) return;
+      manualNavAtRef.current = Date.now();
       action(engine);
       syncPosition();
     },
@@ -363,6 +457,132 @@ export const useAudiobookControl = (bookKey: string) => {
     [engine, persistViewSettings],
   );
 
+  // ── Bookmarks: ordinary BookNote bookmarks whose CFI id-assertion is the
+  // SMIL text target, so audio position is recoverable with no new schema.
+  const booknotes = getConfig(bookKey)?.booknotes;
+  useEffect(() => {
+    if (!view || !engine) return;
+    const bookmarks = (booknotes ?? []).filter((n) => n.type === 'bookmark' && !n.deletedAt);
+    let cancelled = false;
+    void (async () => {
+      const entries: AudiobookBookmark[] = [];
+      for (const bookmark of bookmarks) {
+        const fragment = fragmentFromCfi(bookmark.cfi);
+        let index = -1;
+        try {
+          index = view.resolveCFI(bookmark.cfi)?.index ?? -1;
+        } catch {
+          // Foreign or stale CFIs must not break the list.
+        }
+        const offset =
+          fragment != null && index >= 0 ? await engine.textOffset(index, fragment) : null;
+        entries.push({
+          id: bookmark.id,
+          sectionIndex: index,
+          fragment,
+          bookTime: offset != null ? timeline.elapsed(index, offset) : null,
+          snippet: bookmark.text ?? '',
+        });
+      }
+      entries.sort((a, b) => (a.bookTime ?? Infinity) - (b.bookTime ?? Infinity));
+      if (!cancelled) setBookmarkEntries(entries);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [booknotes, view, engine, timeline, bookKey, getConfig]);
+
+  const activeFragment = (() => {
+    const text = lastHighlightTextRef.current;
+    return text ? (text.split('#')[1] ?? null) : null;
+  })();
+  const isCurrentBookmarked =
+    activeFragment != null &&
+    bookmarkEntries.some((b) => b.fragment === activeFragment && b.sectionIndex === sectionIndex);
+
+  const persistBooknotes = useCallback(
+    (notes: BookNote[]) => {
+      const updatedConfig = updateBooknotes(bookKey, notes);
+      if (updatedConfig) saveConfig(envConfig, bookKey, updatedConfig, settings);
+    },
+    [bookKey, updateBooknotes, saveConfig, envConfig, settings],
+  );
+
+  const toggleBookmark = useCallback(() => {
+    if (!view || !engine || engine.activeSectionIndex < 0) return;
+    const text = lastHighlightTextRef.current;
+    if (!text) return;
+    const fragment = text.split('#')[1] ?? null;
+    const notes = getConfig(bookKey)?.booknotes ?? [];
+    const existing = notes.find(
+      (n) => n.type === 'bookmark' && !n.deletedAt && fragmentFromCfi(n.cfi) === fragment,
+    );
+    if (existing) {
+      existing.deletedAt = Date.now();
+      existing.updatedAt = Date.now();
+      persistBooknotes(notes);
+      return;
+    }
+    const resolved = view.resolveNavigation(text);
+    if (!resolved || resolved.index < 0) return;
+    const doc = view.renderer.getContents().find((c) => c.index === resolved.index)?.doc;
+    if (!doc) return;
+    // The anchor yields either the target element or a Range, depending on
+    // the navigation kind; normalize to both shapes.
+    const anchored = resolved.anchor?.(doc) as unknown;
+    let range: Range | null = null;
+    let el: Element | null = null;
+    if (anchored && typeof (anchored as Node).nodeType === 'number') {
+      const node = anchored as Node;
+      el = node.nodeType === 1 ? (node as Element) : (node.parentElement ?? null);
+      if (el) {
+        range = doc.createRange();
+        range.selectNodeContents(el);
+      }
+    } else if (anchored && (anchored as Range).commonAncestorContainer) {
+      range = anchored as Range;
+      const node = range.commonAncestorContainer;
+      el = node.nodeType === 1 ? (node as Element) : (node.parentElement ?? null);
+    }
+    if (!range || !el) return;
+    const snippet = (el.textContent ?? '').slice(0, 128);
+    const bookmark: BookNote = {
+      id: uniqueId(),
+      type: 'bookmark',
+      cfi: view.getCFI(resolved.index, range),
+      text: snippet,
+      note: '',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    persistBooknotes([...notes, bookmark]);
+  }, [view, engine, bookKey, getConfig, persistBooknotes]);
+
+  const deleteBookmark = useCallback(
+    (id: string) => {
+      const notes = getConfig(bookKey)?.booknotes ?? [];
+      const target = notes.find((n) => n.id === id);
+      if (!target) return;
+      target.deletedAt = Date.now();
+      target.updatedAt = Date.now();
+      persistBooknotes(notes);
+    },
+    [bookKey, getConfig, persistBooknotes],
+  );
+
+  const jumpToBookmark = useCallback(
+    (bookmark: AudiobookBookmark) => {
+      if (!engine || bookmark.fragment == null || bookmark.sectionIndex < 0) return;
+      if (!isActive(stateRef.current)) dispatch('PLAY');
+      setFollowSuspended(false);
+      manualNavAtRef.current = Date.now();
+      void engine.playFromText(bookmark.sectionIndex, bookmark.fragment).then((matched) => {
+        if (matched) syncPosition();
+      });
+    },
+    [engine, dispatch, syncPosition],
+  );
+
   const returnToPlaying = useCallback(() => {
     if (!view || !engine || engine.activeSectionIndex < 0) return;
     setFollowSuspended(false);
@@ -401,5 +621,14 @@ export const useAudiobookControl = (bookKey: string) => {
     },
     setHighlightOptions: (patch: Partial<TTSHighlightOptions>) =>
       persistViewSettings({ moHighlightOptions: { ...highlightOptions, ...patch } }, true),
+    sleepTimerMode: sleepTimer.mode,
+    sleepRemainingSec,
+    setSleepTimer,
+    extendSleepTimer,
+    bookmarks: bookmarkEntries,
+    isCurrentBookmarked,
+    toggleBookmark,
+    deleteBookmark,
+    jumpToBookmark,
   };
 };

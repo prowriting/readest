@@ -16,6 +16,7 @@ import type { Page } from '@playwright/test';
 interface InstrumentedWindow {
   __audioSeeks: number[];
   __audioRates: number[];
+  __audioVolumes: number[];
   __audioLastTime: number;
 }
 
@@ -24,6 +25,7 @@ export async function installAudioInstrumentation(page: Page): Promise<void> {
     const tracked = window as unknown as InstrumentedWindow;
     tracked.__audioSeeks = [];
     tracked.__audioRates = [];
+    tracked.__audioVolumes = [];
     tracked.__audioLastTime = -1;
 
     const timeDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime');
@@ -38,6 +40,22 @@ export async function installAudioInstrumentation(page: Page): Promise<void> {
         },
         set(this: HTMLMediaElement, value: number) {
           if (this instanceof HTMLAudioElement && !this.loop) tracked.__audioSeeks.push(value);
+          nativeSet.call(this, value);
+        },
+        configurable: true,
+      });
+    }
+
+    const volumeDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume');
+    if (volumeDesc?.get && volumeDesc.set) {
+      const nativeGet = volumeDesc.get;
+      const nativeSet = volumeDesc.set;
+      Object.defineProperty(HTMLMediaElement.prototype, 'volume', {
+        get(this: HTMLMediaElement): number {
+          return nativeGet.call(this) as number;
+        },
+        set(this: HTMLMediaElement, value: number) {
+          if (this instanceof HTMLAudioElement && !this.loop) tracked.__audioVolumes.push(value);
           nativeSet.call(this, value);
         },
         configurable: true,
@@ -65,6 +83,11 @@ export async function installAudioInstrumentation(page: Page): Promise<void> {
 /** Every `currentTime` assignment on non-looping audio, in order. */
 export async function recordedSeeks(page: Page): Promise<number[]> {
   return page.evaluate(() => (window as unknown as InstrumentedWindow).__audioSeeks ?? []);
+}
+
+/** Every `volume` assignment on non-looping audio, in order. */
+export async function recordedVolumes(page: Page): Promise<number[]> {
+  return page.evaluate(() => (window as unknown as InstrumentedWindow).__audioVolumes ?? []);
 }
 
 /** Every `playbackRate` assignment on non-looping audio, in order. */
