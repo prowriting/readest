@@ -19,6 +19,8 @@ import {
 } from '@/services/audiobook/sleepTimer';
 import type { TTSHighlightOptions } from '@/services/tts';
 import { findTapFragment, fragmentFromCfi } from '@/utils/audiobook';
+import { getMediaSession, TauriMediaSession } from '@/libs/mediaSession';
+import { fetchImageAsBase64 } from '@/utils/image';
 import { uniqueId } from '@/utils/misc';
 import { getStyles } from '@/utils/style';
 import {
@@ -606,6 +608,167 @@ export const useAudiobookControl = (bookKey: string) => {
     [engine, dispatch, syncPosition],
   );
 
+  // ── Media session: lock-screen / notification / headphone transport. The
+  // handlers live behind a ref so the OS-facing registration happens once
+  // per active playback period while always driving the freshest callbacks.
+  const sessionActionsRef = useRef({
+    play: () => {},
+    pause: () => {},
+    nextChapter: () => {},
+    prevChapter: () => {},
+    seekBy: (_seconds: number) => {},
+    seekToBookTime: (_seconds: number) => {},
+    skipForwardSec: 30,
+    skipBackSec: 15,
+  });
+  sessionActionsRef.current = {
+    play: () => void play(),
+    pause,
+    nextChapter,
+    prevChapter,
+    seekBy: (seconds: number) => withActiveEngine((e) => void e.seekRelative(seconds)),
+    seekToBookTime,
+    skipForwardSec: viewSettings?.moSkipForwardSec ?? 30,
+    skipBackSec: viewSettings?.moSkipBackSec ?? 15,
+  };
+
+  const sessionActive = isActive(state);
+  const total = timeline.isComplete ? timeline.total : null;
+  const chapterLabel = chapters.find((c) => c.sectionIndex === sectionIndex)?.label ?? '';
+  const author = bookData?.book?.author ?? '';
+  const coverImageUrl = bookData?.book?.coverImageUrl ?? null;
+
+  useEffect(() => {
+    if (!sessionActive) return;
+    const session = getMediaSession();
+    if (!session) return;
+    const actions = sessionActionsRef;
+
+    if (session instanceof TauriMediaSession) {
+      void session.setActive({
+        active: true,
+        keepAppInForeground: settings.alwaysInForeground,
+        notificationTitle: bookData?.book?.title ?? '',
+        notificationText: chapterLabel,
+      });
+      session.setActionHandler('play', () => actions.current.play());
+      session.setActionHandler('pause', () => actions.current.pause());
+      session.setActionHandler('nexttrack', () => actions.current.nextChapter());
+      session.setActionHandler('previoustrack', () => actions.current.prevChapter());
+      session.setActionHandler('seekto', (positionMs: number) =>
+        actions.current.seekToBookTime(positionMs / 1000),
+      );
+      return () => {
+        for (const action of ['play', 'pause', 'nexttrack', 'previoustrack', 'seekto']) {
+          session.setActionHandler(action, null);
+        }
+        void session.setActive({ active: false, keepAppInForeground: settings.alwaysInForeground });
+      };
+    }
+
+    const ms = session as MediaSession;
+    ms.setActionHandler('play', () => actions.current.play());
+    ms.setActionHandler('pause', () => actions.current.pause());
+    ms.setActionHandler('nexttrack', () => actions.current.nextChapter());
+    ms.setActionHandler('previoustrack', () => actions.current.prevChapter());
+    ms.setActionHandler('seekforward', (details) =>
+      actions.current.seekBy(details?.seekOffset ?? actions.current.skipForwardSec),
+    );
+    ms.setActionHandler('seekbackward', (details) =>
+      actions.current.seekBy(-(details?.seekOffset ?? actions.current.skipBackSec)),
+    );
+    ms.setActionHandler('seekto', (details) => {
+      if (typeof details?.seekTime === 'number') actions.current.seekToBookTime(details.seekTime);
+    });
+    return () => {
+      const sessionActions: MediaSessionAction[] = [
+        'play',
+        'pause',
+        'nexttrack',
+        'previoustrack',
+        'seekforward',
+        'seekbackward',
+        'seekto',
+      ];
+      for (const action of sessionActions) {
+        try {
+          ms.setActionHandler(action, null);
+        } catch {
+          // Some engines reject actions they never supported; ignore.
+        }
+      }
+      ms.metadata = null;
+      ms.playbackState = 'none';
+      try {
+        ms.setPositionState?.();
+      } catch {
+        // Clearing position state is best-effort.
+      }
+    };
+    // The registration is intentionally scoped to the active period only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionActive, settings.alwaysInForeground]);
+
+  // Advertised metadata follows the book and playing chapter.
+  useEffect(() => {
+    if (!sessionActive) return;
+    const session = getMediaSession();
+    if (!session) return;
+    const title = bookData?.book?.title ?? '';
+    if (session instanceof TauriMediaSession) {
+      let cancelled = false;
+      void (async () => {
+        let artwork: string | undefined;
+        try {
+          artwork = await fetchImageAsBase64(coverImageUrl || '/icon.png');
+        } catch {
+          artwork = undefined;
+        }
+        if (cancelled) return;
+        void session.updateMetadata({ title, artist: author, album: chapterLabel, artwork });
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    const ms = session as MediaSession;
+    ms.metadata = new MediaMetadata({
+      title,
+      artist: author,
+      album: chapterLabel,
+      artwork: [{ src: coverImageUrl || '/icon.png' }],
+    });
+    return undefined;
+  }, [sessionActive, bookData, author, chapterLabel, coverImageUrl]);
+
+  // Playback + whole-book position state, refreshed with the position poll.
+  useEffect(() => {
+    if (!sessionActive) return;
+    const session = getMediaSession();
+    if (!session) return;
+    if (session instanceof TauriMediaSession) {
+      void session.updatePlaybackState({
+        playing: state === 'playing' || state === 'loading',
+        position: Math.round(elapsed * 1000),
+        duration: total != null ? Math.round(total * 1000) : undefined,
+      });
+      return;
+    }
+    const ms = session as MediaSession;
+    ms.playbackState = state === 'playing' || state === 'loading' ? 'playing' : 'paused';
+    if (total != null && Number.isFinite(total) && total > 0) {
+      try {
+        ms.setPositionState?.({
+          duration: total,
+          position: Math.min(Math.max(0, elapsed), total),
+          playbackRate: viewSettings?.moPlaybackRate ?? 1,
+        });
+      } catch {
+        // Invalid transient values must never break playback.
+      }
+    }
+  }, [sessionActive, state, elapsed, total, viewSettings?.moPlaybackRate]);
+
   const returnToPlaying = useCallback(() => {
     if (!view || !engine || engine.activeSectionIndex < 0) return;
     setFollowSuspended(false);
@@ -619,7 +782,7 @@ export const useAudiobookControl = (bookKey: string) => {
     title: bookData?.book?.title ?? '',
     sectionIndex,
     elapsed,
-    total: timeline.isComplete ? timeline.total : null,
+    total,
     chapters,
     rate: viewSettings?.moPlaybackRate ?? 1,
     skipForwardSec: viewSettings?.moSkipForwardSec ?? 30,

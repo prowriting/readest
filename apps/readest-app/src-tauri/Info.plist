@@ -4,6 +4,10 @@
   <dict>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>audio</string>
+    </array>
     <key>LSSupportsOpeningDocumentsInPlace</key>
     <false/>
     <key>UIViewControllerBasedStatusBarAppearance</key>

@@ -59,6 +59,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         var currentTitle: String = "Read Aloud"
         var currentArtist: String = "Reading your content"
         var currentArtwork: Bitmap? = null
+        var currentDurationMs: Long = -1L
     }
 
     override fun onCreate() {
@@ -85,7 +86,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 PlaybackStateCompat.ACTION_PAUSE or
                 PlaybackStateCompat.ACTION_STOP or
                 PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                PlaybackStateCompat.ACTION_SEEK_TO
             )
             setPlaybackState(stateBuilder.build())
             setCallback(SessionCallback())
@@ -132,6 +134,17 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         override fun onSkipToPrevious() {
             player.seekTo(0)
             pluginEventTrigger?.invoke("media-session-previous", JSObject())
+        }
+
+        override fun onSeekTo(pos: Long) {
+            val data = JSObject()
+            data.put("position", pos)
+            pluginEventTrigger?.invoke("media-session-seek", data)
+            // Reflect the scrub immediately; the app confirms with the next
+            // UPDATE_PLAYBACK_STATE once the real seek lands.
+            val state = if (player.isPlaying) PlaybackStateCompat.STATE_PLAYING
+                else PlaybackStateCompat.STATE_PAUSED
+            mediaSession?.setPlaybackState(stateBuilder.setState(state, pos, 1f).build())
         }
     }
     
@@ -235,6 +248,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentArtist)
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentArtwork)
+            if (currentDurationMs > 0) {
+                metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentDurationMs)
+            }
             
             mediaSession?.setMetadata(metadataBuilder.build())
 
@@ -250,6 +266,16 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 player.pause()
             }
             player.seekTo(position)
+
+            if (duration > 0 && duration != currentDurationMs) {
+                currentDurationMs = duration
+                val metadataBuilder = MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentArtist)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentArtwork)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+                mediaSession?.setMetadata(metadataBuilder.build())
+            }
 
             val state = if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
             mediaSession?.setPlaybackState(
