@@ -1,0 +1,195 @@
+diff --git a/epub.js b/epub.js
+index a5539f0..84aca86 100644
+--- a/epub.js
++++ b/epub.js
+@@ -429,13 +429,17 @@ const getFontMediaType = (path) => {
+ class MediaOverlay extends EventTarget {
+     #entries
+     #lastMediaOverlayItem
+-    #sectionIndex
+-    #audioIndex
+-    #itemIndex
++    #sectionIndex = -1
++    #audioIndex = -1
++    #itemIndex = -1
+     #audio
+     #volume = 1
+     #rate = 1
+     #state
++    #cachedUrl = null
++    #cachedSrc = null
++    // Cache of sectionIndex → total duration (seconds), populated as sections are played.
++    #sectionDurations = new Map()
+     constructor(book, loadXML) {
+         super()
+         this.book = book
+@@ -463,7 +467,7 @@ class MediaOverlay extends EventTarget {
+         this.#lastMediaOverlayItem = item
+     }
+     get #activeAudio() {
+-        return this.#entries[this.#audioIndex]
++        return this.#entries?.[this.#audioIndex]
+     }
+     get #activeItem() {
+         return this.#activeAudio?.items?.[this.#itemIndex]
+@@ -485,7 +489,26 @@ class MediaOverlay extends EventTarget {
+         const src = this.#activeAudio?.src
+         if (!src || !this.#activeItem) return this.start(this.#sectionIndex + 1)
+ 
+-        const url = URL.createObjectURL(await this.book.loadBlob(src))
++        const audioMime = ({ mp3: 'audio/mpeg', mp4: 'audio/mp4', m4a: 'audio/mp4',
++            ogg: 'audio/ogg', opus: 'audio/ogg; codecs=opus', wav: 'audio/wav' })
++            [src.split('.').pop()?.toLowerCase() ?? ''] ?? 'audio/mpeg'
++        let url
++        if (this.#cachedSrc === src && this.#cachedUrl) {
++            url = this.#cachedUrl
++        } else {
++            const rawBlob = await this.book.loadBlob(src, audioMime)
++            if (!rawBlob) return this.start(this.#sectionIndex + 1)
++            // Use data URL for universal WKWebView / blob URL compatibility
++            url = await new Promise((resolve, reject) => {
++                const reader = new FileReader()
++                reader.onload = () => resolve(reader.result)
++                reader.onerror = reject
++                reader.readAsDataURL(rawBlob)
++            }).catch(() => null)
++            if (!url) return this.start(this.#sectionIndex + 1)
++            this.#cachedSrc = src
++            this.#cachedUrl = url
++        }
+         const audio = new Audio(url)
+         this.#audio = audio
+         audio.volume = this.#volume
+@@ -526,11 +549,25 @@ class MediaOverlay extends EventTarget {
+             audio.play().catch(e => this.#error(e))
+         }, { once: true })
+     }
++    #computeCurrentSectionDuration() {
++        if (!this.#entries?.length) return 0
++        let max = 0
++        for (const entry of this.#entries)
++            for (const item of entry.items)
++                if (item.end > max) max = item.end
++        return max
++    }
+     async start(sectionIndex, filter = () => true) {
++        // Cache the duration of the section we're leaving before overwriting state.
++        if (this.#sectionIndex >= 0 && this.#entries && !this.#sectionDurations.has(this.#sectionIndex))
++            this.#sectionDurations.set(this.#sectionIndex, this.#computeCurrentSectionDuration())
+         this.#audio?.pause()
+         const section = this.book.sections[sectionIndex]
+         const href = section?.id
+-        if (!href) return
++        if (!href) {
++            this.dispatchEvent(new CustomEvent('ended'))
++            return
++        }
+ 
+         const { mediaOverlay } = section
+         if (!mediaOverlay) return this.start(sectionIndex + 1)
+@@ -551,7 +588,13 @@ class MediaOverlay extends EventTarget {
+     }
+     resume() {
+         this.#state = 'playing'
+-        this.#audio?.play().catch(e => this.#error(e))
++        if (this.#audio) {
++            this.#audio.play().catch(e => this.#error(e))
++        } else if (this.#audioIndex >= 0 && this.#itemIndex >= 0) {
++            this.#play(this.#audioIndex, this.#itemIndex).catch(e => this.#error(e))
++        } else if (this.#sectionIndex >= 0) {
++            this.start(this.#sectionIndex)
++        }
+     }
+     #stop() {
+         if (this.#audio) {
+@@ -575,6 +618,16 @@ class MediaOverlay extends EventTarget {
+     next() {
+         this.#play(this.#audioIndex, this.#itemIndex + 1)
+     }
++    prevSection() {
++        const atStart = this.#audioIndex === 0 && this.#itemIndex === 0
++        if (atStart && this.#sectionIndex > 0)
++            this.start(this.#sectionIndex - 1)
++        else
++            this.start(this.#sectionIndex)
++    }
++    nextSection() {
++        this.start(this.#sectionIndex + 1)
++    }
+     setVolume(volume) {
+         this.#volume = volume
+         if (this.#audio) this.#audio.volume = volume
+@@ -583,6 +636,54 @@ class MediaOverlay extends EventTarget {
+         this.#rate = rate
+         if (this.#audio) this.#audio.playbackRate = rate
+     }
++    get activeItem() {
++        return this.#activeItem ?? null
++    }
++    get activeSectionIndex() {
++        return this.#sectionIndex ?? -1
++    }
++    // Live audio file timestamp (updated every ~100ms via timeupdate). Falls back to
++    // the current SMIL item's begin time when audio is not yet loaded.
++    get audioTime() {
++        return this.#audio?.currentTime ?? this.#activeItem?.begin ?? 0
++    }
++    // Total elapsed seconds across all completed sections plus current position.
++    // Sections whose durations are not yet cached (never played through) contribute 0.
++    get bookPosition() {
++        let elapsed = 0
++        for (let i = 0; i < this.#sectionIndex; i++)
++            elapsed += this.#sectionDurations.get(i) ?? 0
++        return elapsed + (this.#activeItem?.begin ?? 0)
++    }
++    seekRelative(seconds) {
++        const base = this.#audio?.currentTime ?? this.#activeItem?.begin ?? 0
++        const target = base + seconds
++        if (target < 0) {
++            if (this.#sectionIndex > 0)
++                this.start(this.#sectionIndex - 1, (_, i, items) => i === items.length - 1)
++            return
++        }
++        if (this.#entries) {
++            for (let i = 0; i < this.#entries.length; i++) {
++                for (let j = 0; j < this.#entries[i].items.length; j++) {
++                    if (this.#entries[i].items[j].end >= target) {
++                        // Same audio file — seek the existing element directly instead of
++                        // recreating it, which avoids a currentTime=0 window in new Audio().
++                        if (i === this.#audioIndex && this.#audio) {
++                            this.#audioIndex = i
++                            this.#itemIndex = j
++                            this.#audio.currentTime = target
++                            this.#highlight()
++                        } else {
++                            this.#play(i, j).catch(e => this.#error(e))
++                        }
++                        return
++                    }
++                }
++            }
++        }
++        this.start(this.#sectionIndex + 1)
++    }
+ }
+ 
+ const isUUID = /([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})/i
+diff --git a/view.js b/view.js
+index 5fd2b7c..034ca1a 100644
+--- a/view.js
++++ b/view.js
+@@ -277,9 +277,11 @@ export class View extends HTMLElement {
+                 const resolved = this.resolveNavigation(e.detail.text)
+                 this.renderer.goTo(resolved)
+                     .then(() => {
+-                        const { doc } = this.renderer.getContents()
+-                            .find(x => x.index = resolved.index)
+-                        const el = resolved.anchor(doc)
++                        const content = this.renderer.getContents()
++                            .find(x => x.index === resolved.index)
++                        if (!content) return
++                        const el = resolved.anchor(content.doc)
++                        if (!el) return
+                         el.classList.add(activeClass)
+                         if (playbackActiveClass) el.ownerDocument
+                             .documentElement.classList.add(playbackActiveClass)
