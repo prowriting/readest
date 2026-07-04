@@ -24,7 +24,7 @@ import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/bo
 import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
 import type { SleepTimerMode } from '@/services/audiobook/sleepTimer';
 import { audioRoutePickerAvailable, showAudioRoutePicker } from '@/services/audiobook/audioRoute';
-import type { AudiobookBookmark, AudiobookChapter } from '../../hooks/useAudiobookControl';
+import type { AudiobookBookmark } from '../../hooks/useAudiobookControl';
 
 const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
   red: 'Red',
@@ -39,7 +39,7 @@ const SKIP_INTERVAL_OPTIONS = [10, 15, 30, 60];
 const SLEEP_MINUTE_OPTIONS = [5, 15, 30, 60];
 const SLEEP_EXTEND_MINUTES = 15;
 
-type PlayerPanel = 'none' | 'chapters' | 'sleep' | 'settings';
+type PlayerPanel = 'none' | 'sleep' | 'settings';
 
 interface AudiobookPlayerProps {
   state: AudiobookPlaybackState;
@@ -49,8 +49,6 @@ interface AudiobookPlayerProps {
   total: number | null;
   chapterElapsed: number;
   chapterDuration: number;
-  sectionIndex: number;
-  chapters: AudiobookChapter[];
   rate: number;
   skipForwardSec: number;
   skipBackSec: number;
@@ -65,7 +63,8 @@ interface AudiobookPlayerProps {
   onSkipBack: () => void;
   onPrevChapter: () => void;
   onNextChapter: () => void;
-  onGoToChapter: (sectionIndex: number) => void;
+  /** Opens the ebook TOC sidebar (PRD §5.5) — the one chapter navigation. */
+  onShowChapters: () => void;
   onSeekToChapterTime: (seconds: number) => void;
   onCycleRate: () => void;
   onSetRate: (rate: number) => void;
@@ -93,8 +92,6 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   total,
   chapterElapsed,
   chapterDuration,
-  sectionIndex,
-  chapters,
   rate,
   skipForwardSec,
   skipBackSec,
@@ -109,7 +106,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   onSkipBack,
   onPrevChapter,
   onNextChapter,
-  onGoToChapter,
+  onShowChapters,
   onSeekToChapterTime,
   onCycleRate,
   onSetRate,
@@ -152,7 +149,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
           className='btn btn-ghost btn-circle btn-sm eink-bordered'
           aria-label={_('Chapters')}
           title={_('Chapters')}
-          onClick={() => togglePanel('chapters')}
+          onClick={onShowChapters}
         >
           <RiListUnordered size={iconSize} />
         </button>
@@ -212,22 +209,6 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
 
       {state === 'ended' && (
         <div className='text-base-content/70 text-center text-sm'>{_('Finished')}</div>
-      )}
-
-      {panel === 'chapters' && (
-        <ul className='menu bg-base-200 eink-bordered max-h-48 flex-nowrap overflow-y-auto rounded-box'>
-          {chapters.map((chapter) => (
-            <li key={chapter.sectionIndex}>
-              <button
-                type='button'
-                className={clsx(chapter.sectionIndex === sectionIndex && 'active')}
-                onClick={() => onGoToChapter(chapter.sectionIndex)}
-              >
-                {chapter.label}
-              </button>
-            </li>
-          ))}
-        </ul>
       )}
 
       {panel === 'sleep' && (

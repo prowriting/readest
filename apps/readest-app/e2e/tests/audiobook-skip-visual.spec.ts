@@ -1,7 +1,16 @@
+import type { Page } from '@playwright/test';
 import { expect, test } from '../fixtures/base';
 import { installAudioInstrumentation, lastAudioTime } from '../fixtures/audio-instrumentation';
 import { AUDIOBOOK_LONG_EPUB } from '../fixtures/books';
 import { AudiobookPlayerPage } from '../pages/AudiobookPlayerPage';
+
+const activeSectionIndex = (page: Page): Promise<number> =>
+  page.evaluate(() => {
+    const view = document.querySelector('foliate-view') as unknown as {
+      mediaOverlay?: { activeSectionIndex: number };
+    } | null;
+    return view?.mediaOverlay?.activeSectionIndex ?? -1;
+  });
 
 /**
  * Visual contract for the 30-second skip: everything here is asserted on
@@ -104,8 +113,10 @@ test.describe('skip forward 30s — what the user sees', () => {
     await player.playButton.click();
     await player.expandButton.click();
     // The scrubber is chapter-scoped, so reach the end via the last chapter.
-    await player.openChapters();
-    await player.chapterItem('Chapter 3').click();
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(1);
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(2);
     await player.scrubber.fill('12'); // book position 72 of 80
     await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(11);
 

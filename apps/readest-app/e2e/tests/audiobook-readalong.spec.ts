@@ -156,8 +156,9 @@ test.describe('audiobook read-along', () => {
     const player = new AudiobookPlayerPage(page);
     await startPlayback(page, player);
     await player.expandButton.click();
-    await player.openChapters();
-    await player.chapterItem('Chapter 3').click();
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(1);
+    await player.nextChapterButton.click();
     await expect.poll(() => activeSectionIndex(page)).toBe(2);
 
     // A single word (no spaces) is highlighted at word granularity.
@@ -181,9 +182,9 @@ test.describe('audiobook read-along', () => {
       .poll(() => reader.mediaOverlayHighlightText(), { timeout: 5_000 })
       .toContain('chapter 1');
 
-    // Reader navigates away (user intent) while chapter 1 keeps playing.
-    await reader.openSidebar();
-    await reader.openTocChapter(2);
+    // Reader PAGES away (user intent) while chapter 1 keeps playing. (A TOC
+    // chapter jump would move the audio along instead — PRD §5.5.)
+    await reader.nextPage();
 
     await expect(player.returnToPlayingButton).toBeVisible({ timeout: 5_000 });
     expect(await readerSectionIndex(page)).not.toBe(await activeSectionIndex(page));

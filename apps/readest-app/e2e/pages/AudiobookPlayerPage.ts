@@ -158,14 +158,4 @@ export class AudiobookPlayerPage extends BasePage {
   async openSettings(): Promise<void> {
     await this.page.getByRole('button', { name: 'Player Settings', exact: true }).click();
   }
-
-  /** Open the chapter list of the full player. */
-  async openChapters(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Chapters', exact: true }).click();
-  }
-
-  /** A chapter entry in the full player's chapter list. */
-  chapterItem(label: string): Locator {
-    return this.fullPlayer.getByRole('button', { name: label, exact: true });
-  }
 }

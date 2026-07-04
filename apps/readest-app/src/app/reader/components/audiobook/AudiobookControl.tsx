@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useEnv } from '@/context/EnvContext';
 import { useBookDataStore } from '@/store/bookDataStore';
 import { useAudiobookStore } from '@/store/audiobookStore';
+import { useSidebarStore } from '@/store/sidebarStore';
 import { Insets } from '@/types/misc';
 import { useAudiobookControl } from '../../hooks/useAudiobookControl';
 import AudiobookFullScreen from './AudiobookFullScreen';
@@ -27,7 +28,8 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
   onGoToLibrary,
 }) => {
   const { appService } = useEnv();
-  const { getBookData } = useBookDataStore();
+  const { getBookData, getConfig, setConfig } = useBookDataStore();
+  const { setSideBarVisible } = useSidebarStore();
   const audiobook = useAudiobookControl(bookKey);
   const book = getBookData(bookKey)?.book;
   const isAudioOnly = !!book?.isAudioOnly;
@@ -56,6 +58,17 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
     audiobook.setRate(next);
   };
 
+  // PRD §5.5: one chapter navigation — drop to the tray and open the
+  // ebook TOC sidebar (TOC jumps move the audio while a session is active).
+  const showChapters = () => {
+    setPlayerExpanded(bookKey, false);
+    const config = getConfig(bookKey);
+    if (config?.viewSettings) {
+      setConfig(bookKey, { viewSettings: { ...config.viewSettings, sideBarTab: 'toc' } });
+    }
+    setSideBarVisible(true);
+  };
+
   if (expanded) {
     return (
       <AudiobookFullScreen
@@ -70,8 +83,6 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
           total={audiobook.total}
           chapterElapsed={audiobook.chapterElapsed}
           chapterDuration={audiobook.chapterDuration}
-          sectionIndex={audiobook.sectionIndex}
-          chapters={audiobook.chapters}
           rate={audiobook.rate}
           skipForwardSec={audiobook.skipForwardSec}
           skipBackSec={audiobook.skipBackSec}
@@ -86,7 +97,7 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
           onSkipBack={audiobook.skipBack}
           onPrevChapter={audiobook.prevChapter}
           onNextChapter={audiobook.nextChapter}
-          onGoToChapter={audiobook.goToChapter}
+          onShowChapters={showChapters}
           onSeekToChapterTime={audiobook.seekToChapterTime}
           onCycleRate={cycleRate}
           onSetRate={audiobook.setRate}

@@ -112,16 +112,36 @@ test.describe('audiobook transport', () => {
     await expect.poll(() => activeSectionIndex(page)).toBe(0);
   });
 
-  test('chapter list jumps straight to a chapter', async ({ page, openBook }) => {
+  test('the ebook TOC drives the audio chapter while listening', async ({ page, openBook }) => {
     await installAudioInstrumentation(page);
-    await openBook(AUDIOBOOK_MO_EPUB);
+    const reader = await openBook(AUDIOBOOK_MO_EPUB);
     const player = new AudiobookPlayerPage(page);
 
     await startPlayback(page, player);
+    // PRD §5.5: chapter navigation reuses the existing ebook TOC — a chapter
+    // jump moves the audio with it.
+    await reader.openTocChapter(2);
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(2);
+
+    // Playback carries on in the new chapter without pausing.
+    await expect(player.pauseButton).toBeVisible();
+    const t = await lastAudioTime(page);
+    await expect.poll(() => lastAudioTime(page), { timeout: 5_000 }).toBeGreaterThan(t);
+  });
+
+  test('the player chapters control opens the ebook TOC', async ({ page, openBook }) => {
+    const reader = await openBook(AUDIOBOOK_MO_EPUB);
+    const player = new AudiobookPlayerPage(page);
+
     await player.expandButton.click();
-    await player.openChapters();
-    await player.chapterItem('Chapter 3').click();
-    await expect.poll(() => activeSectionIndex(page)).toBe(2);
+    await expect(player.fullPlayer).toBeVisible();
+    await page.getByRole('button', { name: 'Chapters', exact: true }).click();
+
+    // One chapter navigation, not two: the fullscreen player drops to the
+    // tray and the existing TOC sidebar takes over.
+    await expect(player.playerScreen).toHaveCount(0);
+    await expect(player.miniBar).toBeVisible();
+    await expect(reader.tocItems.first()).toBeVisible();
   });
 
   test('chapter scrubber commits within the chapter and time labels stay truthful', async ({
@@ -172,8 +192,9 @@ test.describe('audiobook transport', () => {
     await startPlayback(page, player);
     await player.expandButton.click();
     // Jump to the last chapter, then scrub near its end (chapter 3 is 6s).
-    await player.openChapters();
-    await player.chapterItem('Chapter 3').click();
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(1);
+    await player.nextChapterButton.click();
     await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(2);
     await player.scrubber.fill('5');
 

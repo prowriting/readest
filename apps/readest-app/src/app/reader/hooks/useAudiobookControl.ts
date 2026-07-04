@@ -252,6 +252,25 @@ export const useAudiobookControl = (bookKey: string) => {
     };
   }, [saveLocation]);
 
+  // PRD §5.5: chapter navigation reuses the ebook TOC. While a listening
+  // session is active, a TOC chapter jump (a 'navigate' event carrying an
+  // href — annotations navigate by CFI) moves the audio to that chapter.
+  useEffect(() => {
+    if (!engine || !view) return;
+    const onNavigate = (event: CustomEvent) => {
+      const detail = event.detail as { bookKey?: string; href?: string } | undefined;
+      if (detail?.bookKey !== bookKey || !detail.href) return;
+      if (!isActive(stateRef.current)) return;
+      const index = view.resolveNavigation(detail.href)?.index ?? -1;
+      if (index < 0 || !view.book?.sections?.[index]?.mediaOverlay) return;
+      manualNavAtRef.current = Date.now();
+      setFollowSuspended(false);
+      void engine.start(index);
+    };
+    eventDispatcher.on('navigate', onNavigate);
+    return () => eventDispatcher.off('navigate', onNavigate);
+  }, [engine, view, bookKey]);
+
   // Before any playback, surface the saved (or first) audio chapter so the
   // chapter-scoped scrubber and clocks have a timeline to show (PRD §5.1).
   useEffect(() => {
@@ -285,6 +304,9 @@ export const useAudiobookControl = (bookKey: string) => {
       const current = detail?.section?.current;
       if (typeof current !== 'number') return;
       if (!isActive(stateRef.current) || engine.activeSectionIndex < 0) return;
+      // A deliberate jump (TOC, transport) is in flight: the audio is moving
+      // to this section, so landing here is not the reader wandering off.
+      if (Date.now() - manualNavAtRef.current < 1200) return;
       if (current !== engine.activeSectionIndex) {
         // Flip the view flag synchronously: waiting for the React effect
         // loses the race against the next highlight's navigation.
@@ -464,14 +486,6 @@ export const useAudiobookControl = (bookKey: string) => {
       }
     });
   }, [withActiveEngine, adjacentOverlaySection]);
-
-  const goToChapter = useCallback(
-    (index: number) => {
-      setFollowSuspended(false);
-      withActiveEngine((e) => void e.start(index));
-    },
-    [withActiveEngine],
-  );
 
   // PRD §5.1: the scrubber is chapter-scoped — seeks land within the
   // playing chapter.
@@ -867,7 +881,6 @@ export const useAudiobookControl = (bookKey: string) => {
     skipBack,
     prevChapter,
     nextChapter,
-    goToChapter,
     seekToChapterTime,
     setRate,
     setSkipForwardSec: (sec: number) => persistViewSettings({ moSkipForwardSec: sec }),

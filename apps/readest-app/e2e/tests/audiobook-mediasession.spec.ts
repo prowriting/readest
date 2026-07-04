@@ -171,8 +171,10 @@ test.describe('audiobook media session', () => {
     // lock-screen buttons cannot poke a finished player. The scrubber is
     // chapter-scoped, so reach the end via the last chapter (6s long).
     await player.expandButton.click();
-    await player.openChapters();
-    await player.chapterItem('Chapter 3').click();
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(1);
+    await player.nextChapterButton.click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(2);
     await player.scrubber.fill('5');
     await expect(player.fullPlayer).toContainText('Finished', { timeout: 15_000 });
     await expect.poll(() => invokeMediaSessionAction(page, 'play'), { timeout: 5_000 }).toBe(false);
