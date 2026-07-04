@@ -159,6 +159,39 @@ describe('MediaOverlay engine — seeking (Phase 2)', () => {
     await poll(() => engine.sectionOffset >= 10.4 && engine.sectionOffset < 12);
   });
 
+  it('seekRelative within one audio file unhighlights the previous item first', async () => {
+    const engine = createEngine();
+    const first = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    await withGesture(() => engine.startAtOffset(0, 0.2)); // c1.wav, sentence 1
+    await first;
+
+    // Same-file seek (section 0 is one 12s file): consumers keep exactly one
+    // element highlighted by pairing each highlight with the unhighlight of
+    // the previous item. Regression: the same-file fast path highlighted the
+    // new item without unhighlighting the old one, so stale highlights piled
+    // up on every in-file skip.
+    const events: string[] = [];
+    const onUnhighlight = (e: Event) =>
+      events.push(
+        `unhighlight:${((e as CustomEvent).detail as MediaOverlayItem | undefined)?.text ?? ''}`,
+      );
+    const onHighlight = (e: Event) =>
+      events.push(`highlight:${((e as CustomEvent).detail as MediaOverlayItem).text}`);
+    engine.addEventListener('unhighlight', onUnhighlight);
+    engine.addEventListener('highlight', onHighlight);
+    await engine.seekRelative(6); // ~0.2+6 → sentence 5, same audio file
+    await poll(() => events.some((entry) => entry.startsWith('highlight:')));
+    engine.removeEventListener('unhighlight', onUnhighlight);
+    engine.removeEventListener('highlight', onHighlight);
+
+    const firstHighlight = events.findIndex((entry) => entry.startsWith('highlight:'));
+    expect(events[firstHighlight]).toContain('#s5');
+    const unhighlightedOldFirst = events
+      .slice(0, firstHighlight)
+      .some((entry) => entry.startsWith('unhighlight:') && entry.includes('#s1'));
+    expect(unhighlightedOldFirst).toBe(true);
+  });
+
   it('seekRelative while paused reports the target position and stays paused', async () => {
     const engine = createEngine();
     const first = nextEvent<MediaOverlayItem>(engine, 'highlight');

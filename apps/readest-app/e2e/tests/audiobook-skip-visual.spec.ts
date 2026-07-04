@@ -6,8 +6,10 @@ import { AudiobookPlayerPage } from '../pages/AudiobookPlayerPage';
 /**
  * Visual contract for the 30-second skip: everything here is asserted on
  * what the screen shows — the elapsed clock, the scrubber, the chapter
- * title, the tray's remaining time — not on engine internals. Fixture:
- * mo-long.epub, 3×20s chapters (60s), so a default +30s lands mid-book.
+ * title, the read-along highlight, the tray's remaining time — not on
+ * engine internals. Fixture: mo-long.epub (80s): chapter 1 is a single
+ * 40s audio file so a default +30 stays within one file (the long-chapter
+ * shape of real audiobooks); chapters 2/3 are 20s each.
  */
 
 /** Parse the leading clock out of a label like '0:32', '-0:28' or '1:00 left'. */
@@ -81,13 +83,13 @@ test.describe('skip forward 30s — what the user sees', () => {
     await player.expandButton.click();
     await expect(player.fullPlayer).toContainText('Chapter 1');
 
-    // Late in chapter 1: 18s + 30s = 48s, which is 8s into Chapter 3.
+    // Late in chapter 1 (0–40s): 18s + 30s = 48s, which is 8s into Chapter 2.
     await player.scrubber.fill('18');
     await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(17);
     await player.skipForwardButton.click();
 
     await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(47);
-    await expect(player.fullPlayer).toContainText('Chapter 3');
+    await expect(player.fullPlayer).toContainText('Chapter 2');
   });
 
   test('skipping past the end lands in the finished state', async ({ page, openBook }) => {
@@ -96,12 +98,42 @@ test.describe('skip forward 30s — what the user sees', () => {
 
     await player.playButton.click();
     await player.expandButton.click();
-    await player.scrubber.fill('50');
-    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(49);
+    await player.scrubber.fill('70');
+    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(69);
 
-    await player.skipForwardButton.click(); // 50 + 30 = 80 > 60 → book finished
+    await player.skipForwardButton.click(); // 70 + 30 = 100 > 80 → book finished
     await expect(player.fullPlayer).toContainText('Finished');
     await expect(player.playButton).toBeVisible();
+  });
+
+  test('skipping highlights the new sentence and clears the old one', async ({
+    page,
+    openBook,
+  }) => {
+    const reader = await openBook(AUDIOBOOK_LONG_EPUB);
+    const player = new AudiobookPlayerPage(page);
+
+    await player.playButton.click();
+    await expect
+      .poll(() => reader.mediaOverlayHighlightText(), { timeout: 10_000 })
+      .toContain('Sentence one of chapter 1');
+
+    // +30 within chapter 1's single 40s audio file: the highlight must MOVE,
+    // not accumulate — regression: each in-file skip left the previous
+    // sentence painted, littering the page with stale highlights.
+    await player.miniBar.getByRole('button', { name: 'Skip Forward' }).click();
+    await expect
+      .poll(() => reader.mediaOverlayHighlightText(), { timeout: 5_000 })
+      .toMatch(/Sentence (thirteen|fourteen) of chapter 1/);
+    expect(await reader.mediaOverlayHighlightCount()).toBe(1);
+
+    // A second skip crosses chapters (~62s lands in chapter 3, 60–80s) —
+    // still exactly one highlight.
+    await player.miniBar.getByRole('button', { name: 'Skip Forward' }).click();
+    await expect
+      .poll(() => reader.mediaOverlayHighlightText(), { timeout: 5_000 })
+      .toContain('chapter 3');
+    expect(await reader.mediaOverlayHighlightCount()).toBe(1);
   });
 
   test('the tray remaining time drops by 30 seconds', async ({ page, openBook }) => {
@@ -111,7 +143,7 @@ test.describe('skip forward 30s — what the user sees', () => {
       clockToSeconds(await player.miniBar.getByText(/left/).innerText());
 
     await player.playButton.click();
-    await expect.poll(remaining, { timeout: 10_000 }).toBeLessThanOrEqual(59); // ticking
+    await expect.poll(remaining, { timeout: 10_000 }).toBeLessThanOrEqual(79); // ticking
 
     const before = await remaining();
     await player.miniBar.getByRole('button', { name: 'Skip Forward' }).click();

@@ -63,6 +63,22 @@ export class ReaderPage extends BasePage {
     return '';
   }
 
+  /**
+   * Total media-overlay-active elements across all frames. Read-along must
+   * keep this at exactly one — stale highlights left behind by seeks show
+   * up as a count above one.
+   */
+  async mediaOverlayHighlightCount(): Promise<number> {
+    let total = 0;
+    for (const frame of this.page.frames()) {
+      total += await frame
+        .locator('.-epub-media-overlay-active')
+        .count()
+        .catch(() => 0);
+    }
+    return total;
+  }
+
   /** Whether the media-overlay highlight is on-screen (not in an off-screen prerendered frame). */
   async mediaOverlayHighlightVisible(): Promise<boolean> {
     const viewport = this.page.viewportSize() ?? { width: 1280, height: 720 };

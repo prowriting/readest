@@ -237,7 +237,24 @@ const packEpub = (files: Array<[string, string | Uint8Array]>): Uint8Array => {
 
 // ─── Fixture content ─────────────────────────────────────────────────────────
 
-const ORDINALS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'];
+const ORDINALS = [
+  'one',
+  'two',
+  'three',
+  'four',
+  'five',
+  'six',
+  'seven',
+  'eight',
+  'nine',
+  'ten',
+  'eleven',
+  'twelve',
+  'thirteen',
+  'fourteen',
+  'fifteen',
+  'sixteen',
+];
 
 const sentenceText = (chapter: number, index: number): string =>
   `Sentence ${ORDINALS[index]} of chapter ${chapter} narrated aloud for the Bookarc audiobook fixture.`;
@@ -329,9 +346,11 @@ export const buildMoSentencesEpub = (): FixtureEpub => {
 };
 
 /**
- * A book long enough that a default 30-second skip lands inside it: three
- * 20s chapters (8 sentences × 2.5s), 60s total. Audio is silent so the
- * committed fixture stays small; only the timeline matters to its specs.
+ * A book long enough that a default 30-second skip lands inside it — and,
+ * for chapter 1, inside the SAME audio file (the long-chapter shape of real
+ * audiobooks): c1 is 40s (16 sentences × 2.5s), c2/c3 are 20s (8 × 2.5s),
+ * 80s total. Audio is silent so the committed fixture stays small; only
+ * the timeline matters to its specs.
  */
 export const buildMoLongEpub = (): FixtureEpub => {
   const chapters: ChapterRef[] = [
@@ -339,6 +358,7 @@ export const buildMoLongEpub = (): FixtureEpub => {
     { slug: 'c2', label: 'Chapter 2' },
     { slug: 'c3', label: 'Chapter 3' },
   ];
+  const sentenceCount = (slug: string): number => (slug === 'c1' ? 16 : 8);
   const title = 'MO Long (Bookarc e2e)';
   const files: Array<[string, string | Uint8Array]> = [
     ['META-INF/container.xml', CONTAINER_XML],
@@ -349,24 +369,28 @@ export const buildMoLongEpub = (): FixtureEpub => {
         title,
         chapters,
         audioFiles: ['c1.wav', 'c2.wav', 'c3.wav'],
-        overlayDurations: { c1: 20, c2: 20, c3: 20 },
-        totalDuration: 60,
+        overlayDurations: { c1: 40, c2: 20, c3: 20 },
+        totalDuration: 80,
       }),
     ],
     ['OEBPS/nav.xhtml', navXhtml(title, chapters)],
   ];
   chapters.forEach((chapter, i) => {
     const n = i + 1;
+    const count = sentenceCount(chapter.slug);
     files.push(
-      [`OEBPS/text/${chapter.slug}.xhtml`, chapterXhtml(chapter.label, sentenceParagraph(n, 8))],
+      [
+        `OEBPS/text/${chapter.slug}.xhtml`,
+        chapterXhtml(chapter.label, sentenceParagraph(n, count)),
+      ],
       [
         `OEBPS/smil/${chapter.slug}.smil`,
-        smilDoc(chapter.slug, contiguousClips(8, 2.5, `${chapter.slug}.wav`, 's')),
+        smilDoc(chapter.slug, contiguousClips(count, 2.5, `${chapter.slug}.wav`, 's')),
       ],
       [
         `OEBPS/audio/${chapter.slug}.wav`,
         toneWav(
-          Array.from({ length: 8 }, () => 2.5),
+          Array.from({ length: count }, () => 2.5),
           0,
         ),
       ],
