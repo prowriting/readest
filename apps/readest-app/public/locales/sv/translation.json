@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Förfluten tid",
   "Time Remaining": "Återstående tid",
-  "Book Position": "Position i boken",
   "Skip Back": "Hoppa bakåt",
   "Skip Forward": "Hoppa framåt",
   "Skip Back {{sec}} s": "Hoppa bakåt {{sec}} s",
   "Skip Forward {{sec}} s": "Hoppa framåt {{sec}} s",
   "Speed": "Hastighet",
   "Playback Speed": "Uppspelningshastighet",
-  "Speed {{rate}}×": "Hastighet {{rate}}×",
   "Could not play this chapter’s audio.": "Kunde inte spela upp kapitlets ljud.",
   "Read Along": "Läs med",
   "Highlight Style": "Markeringsstil",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Hämtning otillgänglig offline.",
   "Audio Output": "Ljudutgång",
   "Minimize Player": "Minimera spelaren",
-  "Audiobook Cover": "Ljudboksomslag"
+  "Audiobook Cover": "Ljudboksomslag",
+  "Chapter Position": "Kapitelposition",
+  "Time Left in Book": "Återstående tid i boken"
 }

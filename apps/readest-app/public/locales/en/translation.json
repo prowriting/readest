@@ -73,14 +73,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Elapsed Time",
   "Time Remaining": "Time Remaining",
-  "Book Position": "Book Position",
   "Skip Back": "Skip Back",
   "Skip Forward": "Skip Forward",
   "Skip Back {{sec}} s": "Skip Back {{sec}} s",
   "Skip Forward {{sec}} s": "Skip Forward {{sec}} s",
   "Speed": "Speed",
   "Playback Speed": "Playback Speed",
-  "Speed {{rate}}×": "Speed {{rate}}×",
   "Could not play this chapter’s audio.": "Could not play this chapter’s audio.",
   "Read Along": "Read Along",
   "Highlight Style": "Highlight Style",
@@ -112,5 +110,7 @@
   "Download unavailable while offline.": "Download unavailable while offline.",
   "Audio Output": "Audio Output",
   "Minimize Player": "Minimize Player",
-  "Audiobook Cover": "Audiobook Cover"
+  "Audiobook Cover": "Audiobook Cover",
+  "Chapter Position": "Chapter Position",
+  "Time Left in Book": "Time Left in Book"
 }

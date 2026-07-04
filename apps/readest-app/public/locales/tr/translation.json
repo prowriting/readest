@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} sn",
   "Elapsed Time": "Geçen süre",
   "Time Remaining": "Kalan süre",
-  "Book Position": "Kitap konumu",
   "Skip Back": "Geri atla",
   "Skip Forward": "İleri atla",
   "Skip Back {{sec}} s": "{{sec}} sn geri atla",
   "Skip Forward {{sec}} s": "{{sec}} sn ileri atla",
   "Speed": "Hız",
   "Playback Speed": "Oynatma hızı",
-  "Speed {{rate}}×": "Hız {{rate}}×",
   "Could not play this chapter’s audio.": "Bu bölümün sesi oynatılamadı.",
   "Read Along": "Takip ederek oku",
   "Highlight Style": "Vurgu stili",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Çevrimdışıyken indirme yapılamaz.",
   "Audio Output": "Ses çıkışı",
   "Minimize Player": "Oynatıcıyı küçült",
-  "Audiobook Cover": "Sesli kitap kapağı"
+  "Audiobook Cover": "Sesli kitap kapağı",
+  "Chapter Position": "Bölüm konumu",
+  "Time Left in Book": "Kitapta kalan süre"
 }

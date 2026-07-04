@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildBookTimeline, formatPlaybackTime } from '@/services/audiobook/bookTimeline';
+import {
+  buildBookTimeline,
+  formatPlaybackTime,
+  formatTimeLeft,
+} from '@/services/audiobook/bookTimeline';
 
 describe('buildBookTimeline', () => {
   // The e2e fixture shape: three overlay chapters of 12s, 12s, 6s.
@@ -67,5 +71,34 @@ describe('formatPlaybackTime', () => {
   it('never renders negative or NaN input', () => {
     expect(formatPlaybackTime(-3)).toBe('0:00');
     expect(formatPlaybackTime(Number.NaN)).toBe('0:00');
+  });
+});
+
+describe('sectionDuration', () => {
+  it('returns the known duration of a section and 0 for unknown/absent ones', () => {
+    const timeline = buildBookTimeline([12, null, 6, 0]);
+    expect(timeline.sectionDuration(0)).toBe(12);
+    expect(timeline.sectionDuration(1)).toBe(0);
+    expect(timeline.sectionDuration(2)).toBe(6);
+    expect(timeline.sectionDuration(3)).toBe(0);
+    expect(timeline.sectionDuration(99)).toBe(0);
+  });
+});
+
+// PRD §5.1 mock: the line above the scrubber reads like "23m left" — hours
+// and minutes for long books, bare minutes in the mid-range, seconds only
+// below a minute.
+describe('formatTimeLeft', () => {
+  it('formats hours, minutes, and seconds ranges', () => {
+    expect(formatTimeLeft(4920)).toBe('1h 22m');
+    expect(formatTimeLeft(1380)).toBe('23m');
+    expect(formatTimeLeft(65)).toBe('1m');
+    expect(formatTimeLeft(49)).toBe('49s');
+  });
+
+  it('handles zero and garbage', () => {
+    expect(formatTimeLeft(0)).toBe('0s');
+    expect(formatTimeLeft(-3)).toBe('0s');
+    expect(formatTimeLeft(Number.NaN)).toBe('0s');
   });
 });

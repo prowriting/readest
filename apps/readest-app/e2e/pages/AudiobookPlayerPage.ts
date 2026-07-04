@@ -33,12 +33,16 @@ export class AudiobookPlayerPage extends BasePage {
   readonly skipForwardButton: Locator;
   readonly prevChapterButton: Locator;
   readonly nextChapterButton: Locator;
-  /** Playback speed range input, 0.5–3.0. */
+  /** Playback speed range input, 0.5–3.0 (inside the overflow panel). */
   readonly speedSlider: Locator;
-  /** Whole-book position range input, in seconds. */
+  /** CHAPTER-scoped position range input, in seconds (PRD §5.1). */
   readonly scrubber: Locator;
+  /** Elapsed time in the current chapter. */
   readonly elapsedLabel: Locator;
+  /** Remaining time in the current chapter, rendered with a leading '-'. */
   readonly remainingLabel: Locator;
+  /** Whole-book "Nh Nm left" line above the scrubber. */
+  readonly timeLeftLabel: Locator;
   readonly skipForwardSelect: Locator;
   readonly skipBackSelect: Locator;
 
@@ -91,9 +95,10 @@ export class AudiobookPlayerPage extends BasePage {
     this.prevChapterButton = page.getByRole('button', { name: 'Previous Chapter', exact: true });
     this.nextChapterButton = page.getByRole('button', { name: 'Next Chapter', exact: true });
     this.speedSlider = page.getByRole('slider', { name: 'Playback Speed' });
-    this.scrubber = page.getByRole('slider', { name: 'Book Position' });
+    this.scrubber = page.getByRole('slider', { name: 'Chapter Position' });
     this.elapsedLabel = page.locator('[aria-label="Elapsed Time"]');
     this.remainingLabel = page.locator('[aria-label="Time Remaining"]');
+    this.timeLeftLabel = page.locator('[aria-label="Time Left in Book"]');
     this.skipForwardSelect = page.getByRole('combobox', { name: 'Skip Forward Interval' });
     this.skipBackSelect = page.getByRole('combobox', { name: 'Skip Back Interval' });
 
@@ -129,9 +134,14 @@ export class AudiobookPlayerPage extends BasePage {
     this.bookmarkItems = this.fullPlayer.locator('[data-bookmark-item]');
   }
 
-  /** Open the bookmark list of the full player. */
+  /** Open the bookmark list (lives in the overflow panel, PRD §5.1 top bar). */
   async openBookmarks(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Bookmarks', exact: true }).click();
+    await this.openSettings();
+  }
+
+  /** Open the sleep-timer panel from the top bar. */
+  async openSleepTimer(): Promise<void> {
+    await this.fullPlayer.getByRole('button', { name: 'Sleep Timer', exact: true }).click();
   }
 
   /** The delete control of the nth bookmark list entry. */

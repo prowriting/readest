@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}} dtk",
   "Elapsed Time": "Waktu berlalu",
   "Time Remaining": "Sisa waktu",
-  "Book Position": "Posisi buku",
   "Skip Back": "Lompat mundur",
   "Skip Forward": "Lompat maju",
   "Skip Back {{sec}} s": "Lompat mundur {{sec}} dtk",
   "Skip Forward {{sec}} s": "Lompat maju {{sec}} dtk",
   "Speed": "Kecepatan",
   "Playback Speed": "Kecepatan pemutaran",
-  "Speed {{rate}}×": "Kecepatan {{rate}}×",
   "Could not play this chapter’s audio.": "Tidak dapat memutar audio bab ini.",
   "Read Along": "Baca mengikuti",
   "Highlight Style": "Gaya sorotan",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "Unduhan tidak tersedia saat offline.",
   "Audio Output": "Keluaran audio",
   "Minimize Player": "Perkecil pemutar",
-  "Audiobook Cover": "Sampul buku audio"
+  "Audiobook Cover": "Sampul buku audio",
+  "Chapter Position": "Posisi bab",
+  "Time Left in Book": "Sisa waktu buku"
 }

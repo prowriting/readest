@@ -1702,14 +1702,12 @@
   "{{sec}} s": "{{sec}} שנ׳",
   "Elapsed Time": "זמן שחלף",
   "Time Remaining": "זמן שנותר",
-  "Book Position": "מיקום בספר",
   "Skip Back": "דילוג אחורה",
   "Skip Forward": "דילוג קדימה",
   "Skip Back {{sec}} s": "דילוג אחורה {{sec}} שנ׳",
   "Skip Forward {{sec}} s": "דילוג קדימה {{sec}} שנ׳",
   "Speed": "מהירות",
   "Playback Speed": "מהירות ניגון",
-  "Speed {{rate}}×": "מהירות {{rate}}×",
   "Could not play this chapter’s audio.": "לא ניתן היה לנגן את השמע של פרק זה.",
   "Read Along": "קריאה בעקבות",
   "Highlight Style": "סגנון הדגשה",
@@ -1740,5 +1738,7 @@
   "Download unavailable while offline.": "הורדה אינה זמינה במצב לא מקוון.",
   "Audio Output": "יציאת שמע",
   "Minimize Player": "מזעור הנגן",
-  "Audiobook Cover": "עטיפת ספר השמע"
+  "Audiobook Cover": "עטיפת ספר השמע",
+  "Chapter Position": "מיקום בפרק",
+  "Time Left in Book": "זמן שנותר בספר"
 }

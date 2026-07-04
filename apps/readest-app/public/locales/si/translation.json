@@ -1671,14 +1671,12 @@
   "{{sec}} s": "ත. {{sec}}",
   "Elapsed Time": "ගතවූ කාලය",
   "Time Remaining": "ඉතිරි කාලය",
-  "Book Position": "පොතේ පිහිටීම",
   "Skip Back": "පසුපසට පනින්න",
   "Skip Forward": "ඉදිරියට පනින්න",
   "Skip Back {{sec}} s": "ත. {{sec}} පසුපසට පනින්න",
   "Skip Forward {{sec}} s": "ත. {{sec}} ඉදිරියට පනින්න",
   "Speed": "වේගය",
   "Playback Speed": "ධාවන වේගය",
-  "Speed {{rate}}×": "වේගය {{rate}}×",
   "Could not play this chapter’s audio.": "මෙම පරිච්ඡේදයේ ශ්‍රව්‍යය ධාවනය කළ නොහැකි විය.",
   "Read Along": "සමඟ කියවන්න",
   "Highlight Style": "ඉස්මතු විලාසය",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "නොබැඳිව බාගැනීම නොහැක.",
   "Audio Output": "ශ්‍රව්‍ය ප්‍රතිදානය",
   "Minimize Player": "ධාවකය කුඩා කරන්න",
-  "Audiobook Cover": "ශ්‍රව්‍ය පොතේ කවරය"
+  "Audiobook Cover": "ශ්‍රව්‍ය පොතේ කවරය",
+  "Chapter Position": "පරිච්ඡේද පිහිටීම",
+  "Time Left in Book": "පොතේ ඉතිරි කාලය"
 }

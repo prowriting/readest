@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}} giây",
   "Elapsed Time": "Thời gian đã phát",
   "Time Remaining": "Thời gian còn lại",
-  "Book Position": "Vị trí trong sách",
   "Skip Back": "Tua lui",
   "Skip Forward": "Tua tới",
   "Skip Back {{sec}} s": "Tua lui {{sec}} giây",
   "Skip Forward {{sec}} s": "Tua tới {{sec}} giây",
   "Speed": "Tốc độ",
   "Playback Speed": "Tốc độ phát",
-  "Speed {{rate}}×": "Tốc độ {{rate}}×",
   "Could not play this chapter’s audio.": "Không thể phát âm thanh của chương này.",
   "Read Along": "Đọc theo",
   "Highlight Style": "Kiểu tô sáng",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "Không thể tải khi ngoại tuyến.",
   "Audio Output": "Đầu ra âm thanh",
   "Minimize Player": "Thu nhỏ trình phát",
-  "Audiobook Cover": "Bìa sách nói"
+  "Audiobook Cover": "Bìa sách nói",
+  "Chapter Position": "Vị trí chương",
+  "Time Left in Book": "Thời gian còn lại của sách"
 }

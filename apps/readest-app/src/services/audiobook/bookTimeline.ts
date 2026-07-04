@@ -15,6 +15,8 @@ export interface BookTimeline {
   elapsed(sectionIndex: number, offset: number): number;
   /** Section + offset for a global time, clamped into the book. */
   locate(seconds: number): { sectionIndex: number; offset: number };
+  /** Known duration of one section; 0 when absent or undeclared. */
+  sectionDuration(sectionIndex: number): number;
 }
 
 const END_EPSILON = 0.05;
@@ -48,7 +50,23 @@ export const buildBookTimeline = (durations: Array<number | null | undefined>): 
       }
       return { sectionIndex: 0, offset: 0 };
     },
+    sectionDuration(sectionIndex) {
+      return known[sectionIndex] ?? 0;
+    },
   };
+};
+
+/**
+ * Compact remaining-time phrasing for the "N left" lines (PRD §5.1 mock:
+ * "23m left"): hours+minutes, bare minutes, or seconds under a minute.
+ */
+export const formatTimeLeft = (seconds: number): string => {
+  const safe = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${safe}s`;
 };
 
 /** m:ss under an hour, h:mm:ss from there; garbage in → 0:00. */

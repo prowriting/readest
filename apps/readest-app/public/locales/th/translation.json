@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}} วิ",
   "Elapsed Time": "เวลาที่ผ่านไป",
   "Time Remaining": "เวลาที่เหลือ",
-  "Book Position": "ตำแหน่งในหนังสือ",
   "Skip Back": "ข้ามย้อนกลับ",
   "Skip Forward": "ข้ามไปข้างหน้า",
   "Skip Back {{sec}} s": "ข้ามย้อนกลับ {{sec}} วิ",
   "Skip Forward {{sec}} s": "ข้ามไปข้างหน้า {{sec}} วิ",
   "Speed": "ความเร็ว",
   "Playback Speed": "ความเร็วการเล่น",
-  "Speed {{rate}}×": "ความเร็ว {{rate}}×",
   "Could not play this chapter’s audio.": "ไม่สามารถเล่นเสียงของบทนี้ได้",
   "Read Along": "อ่านตาม",
   "Highlight Style": "รูปแบบไฮไลต์",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "ดาวน์โหลดไม่ได้ขณะออฟไลน์",
   "Audio Output": "เอาต์พุตเสียง",
   "Minimize Player": "ย่อเครื่องเล่น",
-  "Audiobook Cover": "ปกหนังสือเสียง"
+  "Audiobook Cover": "ปกหนังสือเสียง",
+  "Chapter Position": "ตำแหน่งบท",
+  "Time Left in Book": "เวลาที่เหลือในหนังสือ"
 }

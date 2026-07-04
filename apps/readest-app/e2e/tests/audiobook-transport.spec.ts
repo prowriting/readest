@@ -38,12 +38,14 @@ test.describe('audiobook transport', () => {
 
     await startPlayback(page, player);
     await player.expandButton.click();
+    await player.openSettings();
     await player.speedSlider.fill('1.5');
     await expect.poll(() => recordedRates(page)).toContain(1.5);
 
     await page.reload();
     await reader.waitForReady();
     await player.expandButton.click();
+    await player.openSettings();
     await expect(player.speedSlider).toHaveValue('1.5');
     // The persisted rate is applied when playback starts again.
     await player.playButton.click();
@@ -122,7 +124,7 @@ test.describe('audiobook transport', () => {
     await expect.poll(() => activeSectionIndex(page)).toBe(2);
   });
 
-  test('book scrubber commits to the right section and time labels stay truthful', async ({
+  test('chapter scrubber commits within the chapter and time labels stay truthful', async ({
     page,
     openBook,
   }) => {
@@ -133,26 +135,30 @@ test.describe('audiobook transport', () => {
     await startPlayback(page, player);
     await player.expandButton.click();
 
-    // 13s into a 12+12+6 book = 1s into chapter 2 (which is file c2a).
-    await player.scrubber.fill('13');
-    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(1);
+    // PRD §5.1: the scrubber is chapter-scoped — 6 lands 6s into chapter 1
+    // (a 12s single-file chapter), not 6s into the book timeline.
+    await player.scrubber.fill('6');
     await expect
       .poll(async () => {
         const seeks = await recordedSeeks(page);
-        return seeks.some((s) => Math.abs(s - 1) < 1.2);
+        return seeks.some((s) => Math.abs(s - 6) < 1.2);
       })
       .toBe(true);
-    await expect(player.elapsedLabel).toContainText(/0:1[2-6]/);
+    expect(await activeSectionIndex(page)).toBe(0);
+    await expect(player.elapsedLabel).toContainText(/0:0[6-9]/);
+    // The line above the scrubber shows whole-book time left, humanized.
+    await expect(player.timeLeftLabel).toContainText(/\d+s left/);
 
-    // Remaining time is live and decreasing while playback continues.
+    // Chapter remaining is live, negative-styled, and decreasing.
     const remaining = async () => {
       const text = (await player.remainingLabel.textContent()) ?? '';
-      const match = text.match(/(\d+):(\d{2})/);
+      const match = text.match(/-(\d+):(\d{2})/);
       return match ? Number(match[1]) * 60 + Number(match[2]) : Number.NaN;
     };
     const first = await remaining();
     expect(Number.isNaN(first)).toBe(false);
-    await expect.poll(remaining, { timeout: 10_000 }).toBeLessThan(first);
+    expect(first).toBeLessThanOrEqual(6);
+    await expect.poll(remaining, { timeout: 4_000 }).toBeLessThan(first);
   });
 
   test('running past the last chapter lands in a calm ended state and can restart', async ({
@@ -165,7 +171,11 @@ test.describe('audiobook transport', () => {
 
     await startPlayback(page, player);
     await player.expandButton.click();
-    await player.scrubber.fill('29');
+    // Jump to the last chapter, then scrub near its end (chapter 3 is 6s).
+    await player.openChapters();
+    await player.chapterItem('Chapter 3').click();
+    await expect.poll(() => activeSectionIndex(page), { timeout: 10_000 }).toBe(2);
+    await player.scrubber.fill('5');
 
     // ~1s later the book ends: the player returns to a Play affordance.
     await expect(player.playButton).toBeVisible({ timeout: 15_000 });

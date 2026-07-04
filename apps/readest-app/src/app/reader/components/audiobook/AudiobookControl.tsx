@@ -51,10 +51,12 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
 
   if (!audiobook.isAvailable || !book) return null;
 
+  const cycleRate = () => {
+    const next = SPEED_PRESETS.find((preset) => preset > audiobook.rate + 0.001) ?? 0.75;
+    audiobook.setRate(next);
+  };
+
   if (expanded) {
-    const chapterLabel = audiobook.chapters.find(
-      (chapter) => chapter.sectionIndex === audiobook.sectionIndex,
-    )?.label;
     return (
       <AudiobookFullScreen
         book={book}
@@ -63,9 +65,11 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
       >
         <AudiobookPlayer
           state={audiobook.state}
-          title={chapterLabel ?? audiobook.title}
+          title={audiobook.chapterLabel || audiobook.title}
           elapsed={audiobook.elapsed}
           total={audiobook.total}
+          chapterElapsed={audiobook.chapterElapsed}
+          chapterDuration={audiobook.chapterDuration}
           sectionIndex={audiobook.sectionIndex}
           chapters={audiobook.chapters}
           rate={audiobook.rate}
@@ -83,7 +87,8 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
           onPrevChapter={audiobook.prevChapter}
           onNextChapter={audiobook.nextChapter}
           onGoToChapter={audiobook.goToChapter}
-          onSeekToBookTime={audiobook.seekToBookTime}
+          onSeekToChapterTime={audiobook.seekToChapterTime}
+          onCycleRate={cycleRate}
           onSetRate={audiobook.setRate}
           onSetSkipForwardSec={audiobook.setSkipForwardSec}
           onSetSkipBackSec={audiobook.setSkipBackSec}
@@ -103,10 +108,6 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
   if (trayCollapsed) return null;
 
   const bottomInset = appService?.hasSafeAreaInset ? Math.round(gridInsets.bottom * 0.33) : 0;
-  const cycleRate = () => {
-    const next = SPEED_PRESETS.find((preset) => preset > audiobook.rate + 0.001) ?? 0.75;
-    audiobook.setRate(next);
-  };
 
   return (
     <AudiobookMiniBar

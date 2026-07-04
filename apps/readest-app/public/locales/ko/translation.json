@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}}초",
   "Elapsed Time": "경과 시간",
   "Time Remaining": "남은 시간",
-  "Book Position": "책 위치",
   "Skip Back": "뒤로 건너뛰기",
   "Skip Forward": "앞으로 건너뛰기",
   "Skip Back {{sec}} s": "{{sec}}초 뒤로",
   "Skip Forward {{sec}} s": "{{sec}}초 앞으로",
   "Speed": "속도",
   "Playback Speed": "재생 속도",
-  "Speed {{rate}}×": "속도 {{rate}}×",
   "Could not play this chapter’s audio.": "이 챕터의 오디오를 재생할 수 없습니다.",
   "Read Along": "따라 읽기",
   "Highlight Style": "하이라이트 스타일",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "오프라인에서는 다운로드할 수 없습니다.",
   "Audio Output": "오디오 출력",
   "Minimize Player": "플레이어 최소화",
-  "Audiobook Cover": "오디오북 표지"
+  "Audiobook Cover": "오디오북 표지",
+  "Chapter Position": "챕터 위치",
+  "Time Left in Book": "책의 남은 시간"
 }

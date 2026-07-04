@@ -1702,14 +1702,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Timp scurs",
   "Time Remaining": "Timp rămas",
-  "Book Position": "Poziția în carte",
   "Skip Back": "Salt înapoi",
   "Skip Forward": "Salt înainte",
   "Skip Back {{sec}} s": "Salt înapoi {{sec}} s",
   "Skip Forward {{sec}} s": "Salt înainte {{sec}} s",
   "Speed": "Viteză",
   "Playback Speed": "Viteza de redare",
-  "Speed {{rate}}×": "Viteză {{rate}}×",
   "Could not play this chapter’s audio.": "Nu s-a putut reda sunetul acestui capitol.",
   "Read Along": "Citire ghidată",
   "Highlight Style": "Stil de evidențiere",
@@ -1740,5 +1738,7 @@
   "Download unavailable while offline.": "Descărcare indisponibilă offline.",
   "Audio Output": "Ieșire audio",
   "Minimize Player": "Minimizează playerul",
-  "Audiobook Cover": "Coperta cărții audio"
+  "Audiobook Cover": "Coperta cărții audio",
+  "Chapter Position": "Poziția capitolului",
+  "Time Left in Book": "Timp rămas din carte"
 }

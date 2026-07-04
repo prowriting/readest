@@ -12,13 +12,14 @@ import { AudiobookPlayerPage } from '../pages/AudiobookPlayerPage';
  * shape of real audiobooks); chapters 2/3 are 20s each.
  */
 
-/** Parse the leading clock out of a label like '0:32', '-0:28' or '1:00 left'. */
+/** Parse the leading clock out of a label like '0:32' or '-0:28'. */
 const clockToSeconds = (text: string): number => {
   const clock = text.match(/\d+(?::\d{2})+/)?.[0];
   if (!clock) return Number.NaN;
   return clock.split(':').reduce((total, part) => total * 60 + Number(part), 0);
 };
 
+/** Elapsed seconds in the CURRENT CHAPTER, as displayed (PRD §5.1). */
 const visibleElapsed = async (player: AudiobookPlayerPage): Promise<number> =>
   clockToSeconds(await player.elapsedLabel.innerText());
 
@@ -83,13 +84,17 @@ test.describe('skip forward 30s — what the user sees', () => {
     await player.expandButton.click();
     await expect(player.fullPlayer).toContainText('Chapter 1');
 
-    // Late in chapter 1 (0–40s): 18s + 30s = 48s, which is 8s into Chapter 2.
+    // Late in chapter 1 (40s): 18s + 30s = 48s of the book, 8s into Chapter 2.
     await player.scrubber.fill('18');
     await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(17);
     await player.skipForwardButton.click();
 
-    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(47);
     await expect(player.fullPlayer).toContainText('Chapter 2');
+    // The chapter-scoped clock restarts inside the new chapter (~8s in)…
+    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(7);
+    expect(await visibleElapsed(player)).toBeLessThanOrEqual(12);
+    // …while the whole-book line above keeps counting down (~32s of 80s left).
+    await expect(player.timeLeftLabel).toContainText(/(2\d|3\d)s left/);
   });
 
   test('skipping past the end lands in the finished state', async ({ page, openBook }) => {
@@ -98,10 +103,13 @@ test.describe('skip forward 30s — what the user sees', () => {
 
     await player.playButton.click();
     await player.expandButton.click();
-    await player.scrubber.fill('70');
-    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(69);
+    // The scrubber is chapter-scoped, so reach the end via the last chapter.
+    await player.openChapters();
+    await player.chapterItem('Chapter 3').click();
+    await player.scrubber.fill('12'); // book position 72 of 80
+    await expect.poll(() => visibleElapsed(player), { timeout: 5_000 }).toBeGreaterThanOrEqual(11);
 
-    await player.skipForwardButton.click(); // 70 + 30 = 100 > 80 → book finished
+    await player.skipForwardButton.click(); // 72 + 30 = 102 > 80 → book finished
     await expect(player.fullPlayer).toContainText('Finished');
     await expect(player.playButton).toBeVisible();
   });
@@ -136,19 +144,18 @@ test.describe('skip forward 30s — what the user sees', () => {
     expect(await reader.mediaOverlayHighlightCount()).toBe(1);
   });
 
-  test('the tray remaining time drops by 30 seconds', async ({ page, openBook }) => {
+  test('the tray remaining time reflects the skip', async ({ page, openBook }) => {
     await openBook(AUDIOBOOK_LONG_EPUB);
     const player = new AudiobookPlayerPage(page);
-    const remaining = async () =>
-      clockToSeconds(await player.miniBar.getByText(/left/).innerText());
+    const remainingText = () => player.miniBar.getByText(/left/);
 
+    // Humanized book-remaining: the 80s fixture starts with "1m left"…
     await player.playButton.click();
-    await expect.poll(remaining, { timeout: 10_000 }).toBeLessThanOrEqual(79); // ticking
+    await expect(remainingText()).toHaveText('1m left');
 
-    const before = await remaining();
+    // …and a +30s skip (~30.5–33s in) drops it across the minute boundary
+    // to a seconds display (~47–50s left).
     await player.miniBar.getByRole('button', { name: 'Skip Forward' }).click();
-
-    await expect.poll(remaining, { timeout: 5_000 }).toBeLessThanOrEqual(before - 28);
-    expect(await remaining()).toBeGreaterThanOrEqual(before - 35);
+    await expect(remainingText()).toHaveText(/(4\d|50)s left/, { timeout: 5_000 });
   });
 });

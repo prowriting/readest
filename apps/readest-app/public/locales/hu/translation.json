@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} mp",
   "Elapsed Time": "Eltelt idő",
   "Time Remaining": "Hátralévő idő",
-  "Book Position": "Pozíció a könyvben",
   "Skip Back": "Visszaugrás",
   "Skip Forward": "Előreugrás",
   "Skip Back {{sec}} s": "Visszaugrás {{sec}} mp",
   "Skip Forward {{sec}} s": "Előreugrás {{sec}} mp",
   "Speed": "Sebesség",
   "Playback Speed": "Lejátszási sebesség",
-  "Speed {{rate}}×": "Sebesség {{rate}}×",
   "Could not play this chapter’s audio.": "Nem sikerült lejátszani a fejezet hangját.",
   "Read Along": "Együttolvasás",
   "Highlight Style": "Kiemelés stílusa",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Letöltés offline nem érhető el.",
   "Audio Output": "Hangkimenet",
   "Minimize Player": "Lejátszó kicsinyítése",
-  "Audiobook Cover": "Hangoskönyv-borító"
+  "Audiobook Cover": "Hangoskönyv-borító",
+  "Chapter Position": "Fejezet pozíciója",
+  "Time Left in Book": "Hátralévő idő a könyvben"
 }

@@ -27,12 +27,12 @@ test.describe('continue listening', () => {
     await expect(strip).toBeVisible();
     await expect(strip).toContainText('MO Sentences');
     // ~27s of the 30s book remain.
-    await expect(strip).toContainText(/0:2[0-9] left/);
+    await expect(strip).toContainText(/2\ds left/);
 
     // The denormalized position survives a full app reload.
     await page.reload();
     await expect(strip).toBeVisible();
-    await expect(strip).toContainText(/0:2[0-9] left/);
+    await expect(strip).toContainText(/2\ds left/);
 
     await strip.click();
     await page.waitForURL(/\/reader/);

@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} ثانیه",
   "Elapsed Time": "زمان سپری‌شده",
   "Time Remaining": "زمان باقی‌مانده",
-  "Book Position": "موقعیت کتاب",
   "Skip Back": "پرش به عقب",
   "Skip Forward": "پرش به جلو",
   "Skip Back {{sec}} s": "{{sec}} ثانیه پرش به عقب",
   "Skip Forward {{sec}} s": "{{sec}} ثانیه پرش به جلو",
   "Speed": "سرعت",
   "Playback Speed": "سرعت پخش",
-  "Speed {{rate}}×": "سرعت {{rate}}×",
   "Could not play this chapter’s audio.": "پخش صدای این فصل ممکن نبود.",
   "Read Along": "همخوانی",
   "Highlight Style": "سبک برجسته‌سازی",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "دانلود در حالت آفلاین ممکن نیست.",
   "Audio Output": "خروجی صدا",
   "Minimize Player": "کوچک‌کردن پخش‌کننده",
-  "Audiobook Cover": "جلد کتاب صوتی"
+  "Audiobook Cover": "جلد کتاب صوتی",
+  "Chapter Position": "موقعیت فصل",
+  "Time Left in Book": "زمان باقی‌مانده کتاب"
 }

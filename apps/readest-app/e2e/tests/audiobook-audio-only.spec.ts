@@ -82,8 +82,8 @@ test.describe('audio-only audiobooks', () => {
     await player.nextChapterButton.click();
     await expect.poll(() => activeSectionIndex(page)).toBe(1);
 
-    // 15s of a 10+10+10 book = 5s into chapter 2's single clip.
-    await player.scrubber.fill('15');
+    // Chapter-scoped scrubber (PRD §5.1): 5s into chapter 2's single clip.
+    await player.scrubber.fill('5');
     await expect
       .poll(
         async () => {

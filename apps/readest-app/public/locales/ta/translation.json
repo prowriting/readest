@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} வி.",
   "Elapsed Time": "கழிந்த நேரம்",
   "Time Remaining": "மீதமுள்ள நேரம்",
-  "Book Position": "புத்தக நிலை",
   "Skip Back": "பின்னே தாவு",
   "Skip Forward": "முன்னே தாவு",
   "Skip Back {{sec}} s": "{{sec}} வி. பின்னே தாவு",
   "Skip Forward {{sec}} s": "{{sec}} வி. முன்னே தாவு",
   "Speed": "வேகம்",
   "Playback Speed": "இயக்க வேகம்",
-  "Speed {{rate}}×": "வேகம் {{rate}}×",
   "Could not play this chapter’s audio.": "இந்த அத்தியாயத்தின் ஒலியை இயக்க முடியவில்லை.",
   "Read Along": "உடன் படித்தல்",
   "Highlight Style": "சிறப்பு பாணி",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "ஆஃப்லைனில் பதிவிறக்கம் இயலாது.",
   "Audio Output": "ஒலி வெளியீடு",
   "Minimize Player": "பிளேயரைச் சிறிதாக்கு",
-  "Audiobook Cover": "ஒலிப்புத்தக அட்டை"
+  "Audiobook Cover": "ஒலிப்புத்தக அட்டை",
+  "Chapter Position": "அத்தியாயத்தின் இடம்",
+  "Time Left in Book": "புத்தகத்தில் மீதமுள்ள நேரம்"
 }

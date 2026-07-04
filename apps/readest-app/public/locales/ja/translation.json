@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}}秒",
   "Elapsed Time": "経過時間",
   "Time Remaining": "残り時間",
-  "Book Position": "本の位置",
   "Skip Back": "早戻し",
   "Skip Forward": "早送り",
   "Skip Back {{sec}} s": "{{sec}}秒早戻し",
   "Skip Forward {{sec}} s": "{{sec}}秒早送り",
   "Speed": "速度",
   "Playback Speed": "再生速度",
-  "Speed {{rate}}×": "速度 {{rate}}×",
   "Could not play this chapter’s audio.": "このチャプターの音声を再生できませんでした。",
   "Read Along": "読み上げフォロー",
   "Highlight Style": "ハイライトのスタイル",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "オフラインではダウンロードできません。",
   "Audio Output": "オーディオ出力",
   "Minimize Player": "プレーヤーを最小化",
-  "Audiobook Cover": "オーディオブックの表紙"
+  "Audiobook Cover": "オーディオブックの表紙",
+  "Chapter Position": "チャプター内の位置",
+  "Time Left in Book": "本の残り時間"
 }

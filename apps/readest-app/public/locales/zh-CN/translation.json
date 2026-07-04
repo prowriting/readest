@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}} 秒",
   "Elapsed Time": "已播放时间",
   "Time Remaining": "剩余时间",
-  "Book Position": "书籍进度",
   "Skip Back": "快退",
   "Skip Forward": "快进",
   "Skip Back {{sec}} s": "快退 {{sec}} 秒",
   "Skip Forward {{sec}} s": "快进 {{sec}} 秒",
   "Speed": "速度",
   "Playback Speed": "播放速度",
-  "Speed {{rate}}×": "速度 {{rate}}×",
   "Could not play this chapter’s audio.": "无法播放本章的音频。",
   "Read Along": "跟读",
   "Highlight Style": "高亮样式",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "离线时无法下载。",
   "Audio Output": "音频输出",
   "Minimize Player": "最小化播放器",
-  "Audiobook Cover": "有声书封面"
+  "Audiobook Cover": "有声书封面",
+  "Chapter Position": "章节位置",
+  "Time Left in Book": "书籍剩余时间"
 }

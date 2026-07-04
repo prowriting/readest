@@ -1795,14 +1795,12 @@
   "{{sec}} s": "{{sec}} ث",
   "Elapsed Time": "الوقت المنقضي",
   "Time Remaining": "الوقت المتبقي",
-  "Book Position": "الموضع في الكتاب",
   "Skip Back": "تخطٍّ للخلف",
   "Skip Forward": "تخطٍّ للأمام",
   "Skip Back {{sec}} s": "تخطٍّ للخلف {{sec}} ث",
   "Skip Forward {{sec}} s": "تخطٍّ للأمام {{sec}} ث",
   "Speed": "السرعة",
   "Playback Speed": "سرعة التشغيل",
-  "Speed {{rate}}×": "السرعة {{rate}}×",
   "Could not play this chapter’s audio.": "تعذّر تشغيل صوت هذا الفصل.",
   "Read Along": "القراءة المتزامنة",
   "Highlight Style": "نمط التمييز",
@@ -1833,5 +1831,7 @@
   "Download unavailable while offline.": "التنزيل غير متاح دون اتصال.",
   "Audio Output": "مخرج الصوت",
   "Minimize Player": "تصغير المشغّل",
-  "Audiobook Cover": "غلاف الكتاب الصوتي"
+  "Audiobook Cover": "غلاف الكتاب الصوتي",
+  "Chapter Position": "موضع الفصل",
+  "Time Left in Book": "الوقت المتبقي في الكتاب"
 }

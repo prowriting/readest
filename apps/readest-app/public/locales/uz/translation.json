@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} soniya",
   "Elapsed Time": "O‘tgan vaqt",
   "Time Remaining": "Qolgan vaqt",
-  "Book Position": "Kitobdagi joy",
   "Skip Back": "Orqaga o‘tish",
   "Skip Forward": "Oldinga o‘tish",
   "Skip Back {{sec}} s": "Orqaga {{sec}} soniya o‘tish",
   "Skip Forward {{sec}} s": "Oldinga {{sec}} soniya o‘tish",
   "Speed": "Tezlik",
   "Playback Speed": "Ijro tezligi",
-  "Speed {{rate}}×": "Tezlik {{rate}}×",
   "Could not play this chapter’s audio.": "Bu bob audiosini ijro etib bo‘lmadi.",
   "Read Along": "Birga o‘qish",
   "Highlight Style": "Ajratish uslubi",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Oflaynda yuklab olish mumkin emas.",
   "Audio Output": "Audio chiqishi",
   "Minimize Player": "Pleyerni kichraytirish",
-  "Audiobook Cover": "Audiokitob muqovasi"
+  "Audiobook Cover": "Audiokitob muqovasi",
+  "Chapter Position": "Bob holati",
+  "Time Left in Book": "Kitobdagi qolgan vaqt"
 }

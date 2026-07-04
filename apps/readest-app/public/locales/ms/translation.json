@@ -1640,14 +1640,12 @@
   "{{sec}} s": "{{sec}} saat",
   "Elapsed Time": "Masa berlalu",
   "Time Remaining": "Masa berbaki",
-  "Book Position": "Kedudukan buku",
   "Skip Back": "Langkau ke belakang",
   "Skip Forward": "Langkau ke hadapan",
   "Skip Back {{sec}} s": "Langkau ke belakang {{sec}} saat",
   "Skip Forward {{sec}} s": "Langkau ke hadapan {{sec}} saat",
   "Speed": "Kelajuan",
   "Playback Speed": "Kelajuan main balik",
-  "Speed {{rate}}×": "Kelajuan {{rate}}×",
   "Could not play this chapter’s audio.": "Audio bab ini tidak dapat dimainkan.",
   "Read Along": "Baca ikut",
   "Highlight Style": "Gaya sorotan",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "Muat turun tidak tersedia luar talian.",
   "Audio Output": "Output audio",
   "Minimize Player": "Kecilkan pemain",
-  "Audiobook Cover": "Kulit buku audio"
+  "Audiobook Cover": "Kulit buku audio",
+  "Chapter Position": "Kedudukan bab",
+  "Time Left in Book": "Masa berbaki buku"
 }

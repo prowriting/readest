@@ -55,19 +55,21 @@ test.describe('audiobook media session', () => {
     await expect.poll(() => mediaSessionPlaybackState(page), { timeout: 5_000 }).toBe('paused');
   });
 
-  test('position state advertises the whole-book timeline', async ({ page, openBook }) => {
+  test('position state advertises the current chapter timeline', async ({ page, openBook }) => {
     await installMediaSessionInstrumentation(page);
     await installAudioInstrumentation(page);
     await openBook(AUDIOBOOK_MO_EPUB);
     const player = new AudiobookPlayerPage(page);
     await startPlayback(page, player);
 
+    // Chapter-scoped, matching the in-app player (PRD §5.1): chapter 1 of the
+    // fixture is 12s.
     await expect
       .poll(
         async () => {
           const positions = await mediaSessionPositions(page);
           const last = positions.at(-1);
-          return last && last.duration === 30 && (last.position ?? 0) > 0.2
+          return last && last.duration === 12 && (last.position ?? 0) > 0.2
             ? last.playbackRate
             : null;
         },
@@ -124,7 +126,7 @@ test.describe('audiobook media session', () => {
       .toBe(true);
   });
 
-  test('seekto and track controls map to the book timeline and chapters', async ({
+  test('seekto and track controls map to the chapter timeline and chapters', async ({
     page,
     openBook,
   }) => {
@@ -134,15 +136,25 @@ test.describe('audiobook media session', () => {
     const player = new AudiobookPlayerPage(page);
     await startPlayback(page, player);
 
-    // 13s of the 30s book = 1s into chapter 2.
-    expect(await invokeMediaSessionAction(page, 'seekto', { seekTime: 13 })).toBe(true);
-    await expect.poll(() => activeSectionIndex(page), { timeout: 5_000 }).toBe(1);
+    // seekto is chapter-scoped: 8 lands 8s into chapter 1's single file.
+    expect(await invokeMediaSessionAction(page, 'seekto', { seekTime: 8 })).toBe(true);
+    await expect
+      .poll(
+        async () => {
+          const seeks = await recordedSeeks(page);
+          return seeks.some((s) => Math.abs(s - 8) < 1.2);
+        },
+        { timeout: 5_000 },
+      )
+      .toBe(true);
+    expect(await activeSectionIndex(page)).toBe(0);
 
     expect(await invokeMediaSessionAction(page, 'nexttrack')).toBe(true);
-    await expect.poll(() => activeSectionIndex(page), { timeout: 5_000 }).toBe(2);
-
-    expect(await invokeMediaSessionAction(page, 'previoustrack')).toBe(true);
     await expect.poll(() => activeSectionIndex(page), { timeout: 5_000 }).toBe(1);
+
+    // At a fresh chapter start, previous jumps to the prior chapter.
+    expect(await invokeMediaSessionAction(page, 'previoustrack')).toBe(true);
+    await expect.poll(() => activeSectionIndex(page), { timeout: 5_000 }).toBe(0);
   });
 
   test('finishing the book releases the session', async ({ page, openBook }) => {
@@ -156,9 +168,12 @@ test.describe('audiobook media session', () => {
     expect(await invokeMediaSessionAction(page, 'play')).toBe(true);
 
     // Run off the end of the book: the session must fully let go so stale
-    // lock-screen buttons cannot poke a finished player.
+    // lock-screen buttons cannot poke a finished player. The scrubber is
+    // chapter-scoped, so reach the end via the last chapter (6s long).
     await player.expandButton.click();
-    await player.scrubber.fill('29');
+    await player.openChapters();
+    await player.chapterItem('Chapter 3').click();
+    await player.scrubber.fill('5');
     await expect(player.fullPlayer).toContainText('Finished', { timeout: 15_000 });
     await expect.poll(() => invokeMediaSessionAction(page, 'play'), { timeout: 5_000 }).toBe(false);
     await expect.poll(() => mediaSessionPlaybackState(page), { timeout: 5_000 }).toBe('none');

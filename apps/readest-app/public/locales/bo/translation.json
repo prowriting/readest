@@ -1640,14 +1640,12 @@
   "{{sec}} s": "སྐར་ཆ་{{sec}}",
   "Elapsed Time": "འདས་པའི་དུས་ཚོད།",
   "Time Remaining": "ལྷག་པའི་དུས་ཚོད།",
-  "Book Position": "དེབ་ཀྱི་གནས་ས།",
   "Skip Back": "རྒྱབ་ཏུ་མཆོང་།",
   "Skip Forward": "མདུན་དུ་མཆོང་།",
   "Skip Back {{sec}} s": "རྒྱབ་ཏུ་སྐར་ཆ་{{sec}}མཆོང་།",
   "Skip Forward {{sec}} s": "མདུན་དུ་སྐར་ཆ་{{sec}}མཆོང་།",
   "Speed": "མྱུར་ཚད།",
   "Playback Speed": "གཏོང་མྱུར་ཚད།",
-  "Speed {{rate}}×": "མྱུར་ཚད་{{rate}}×",
   "Could not play this chapter’s audio.": "ལེའུ་འདིའི་སྒྲ་གཏོང་མ་ཐུབ།",
   "Read Along": "མཉམ་དུ་ཀློག",
   "Highlight Style": "མདངས་གསལ་རྣམ་པ།",
@@ -1678,5 +1676,7 @@
   "Download unavailable while offline.": "དྲ་མེད་སྐབས་ཕབ་ལེན་མི་ཐུབ།",
   "Audio Output": "སྒྲའི་ཕྱིར་གཏོང་།",
   "Minimize Player": "གཏོང་ཆས་ཆུང་དུ་གཏོང་།",
-  "Audiobook Cover": "སྒྲ་དེབ་ཀྱི་མདུན་ཤོག"
+  "Audiobook Cover": "སྒྲ་དེབ་ཀྱི་མདུན་ཤོག",
+  "Chapter Position": "ལེའུའི་གནས་ས།",
+  "Time Left in Book": "དེབ་ཀྱི་ལྷག་མའི་དུས་ཚོད།"
 }

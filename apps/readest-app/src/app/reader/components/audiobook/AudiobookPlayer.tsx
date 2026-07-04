@@ -2,22 +2,22 @@ import clsx from 'clsx';
 import React, { useState } from 'react';
 import {
   MdAirplay,
+  MdBedtime,
   MdBookmark,
   MdDeleteOutline,
   MdKeyboardArrowDown,
+  MdMoreHoriz,
   MdOutlineBookmarkAdd,
   MdOutlinePause,
-  MdOutlineSettings,
   MdPlayArrow,
   MdReplay,
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
-import { RiBookmark3Line } from 'react-icons/ri';
 import { RiForward30Line, RiListUnordered, RiReplay15Line } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
-import { formatPlaybackTime } from '@/services/audiobook/bookTimeline';
+import { formatPlaybackTime, formatTimeLeft } from '@/services/audiobook/bookTimeline';
 import type { AudiobookPlaybackState } from '@/services/audiobook/playbackMachine';
 import type { TTSHighlightOptions } from '@/services/tts';
 import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
@@ -39,11 +39,16 @@ const SKIP_INTERVAL_OPTIONS = [10, 15, 30, 60];
 const SLEEP_MINUTE_OPTIONS = [5, 15, 30, 60];
 const SLEEP_EXTEND_MINUTES = 15;
 
+type PlayerPanel = 'none' | 'chapters' | 'sleep' | 'settings';
+
 interface AudiobookPlayerProps {
   state: AudiobookPlaybackState;
+  /** Current chapter label (falls back to the book title). */
   title: string;
   elapsed: number;
   total: number | null;
+  chapterElapsed: number;
+  chapterDuration: number;
   sectionIndex: number;
   chapters: AudiobookChapter[];
   rate: number;
@@ -61,7 +66,8 @@ interface AudiobookPlayerProps {
   onPrevChapter: () => void;
   onNextChapter: () => void;
   onGoToChapter: (sectionIndex: number) => void;
-  onSeekToBookTime: (seconds: number) => void;
+  onSeekToChapterTime: (seconds: number) => void;
+  onCycleRate: () => void;
   onSetRate: (rate: number) => void;
   onSetSkipForwardSec: (sec: number) => void;
   onSetSkipBackSec: (sec: number) => void;
@@ -75,11 +81,18 @@ interface AudiobookPlayerProps {
   onClose: () => void;
 }
 
+/**
+ * Fullscreen player controls (PRD §5.1): top bar with chapter list, speed,
+ * sleep timer, bookmark, overflow and minimize; chapter title; whole-book
+ * time-left; a CHAPTER-scoped scrubber (elapsed / -remaining); transport.
+ */
 const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   state,
   title,
   elapsed,
   total,
+  chapterElapsed,
+  chapterDuration,
   sectionIndex,
   chapters,
   rate,
@@ -97,7 +110,8 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   onPrevChapter,
   onNextChapter,
   onGoToChapter,
-  onSeekToBookTime,
+  onSeekToChapterTime,
+  onCycleRate,
   onSetRate,
   onSetSkipForwardSec,
   onSetSkipBackSec,
@@ -113,9 +127,9 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   const _ = useTranslation();
   const iconSize = useResponsiveSize(22);
   const playIconSize = useResponsiveSize(32);
-  const [showChapters, setShowChapters] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [panel, setPanel] = useState<PlayerPanel>('none');
+  const togglePanel = (next: Exclude<PlayerPanel, 'none'>) =>
+    setPanel((current) => (current === next ? 'none' : next));
   const sleepValue =
     sleepTimerMode == null
       ? 'off'
@@ -123,7 +137,8 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         ? 'end-of-chapter'
         : String(sleepTimerMode.minutes);
   const isPlaying = state === 'playing' || state === 'loading';
-  const remaining = total != null ? Math.max(0, total - elapsed) : null;
+  const bookRemaining = total != null ? Math.max(0, total - elapsed) : null;
+  const chapterRemaining = Math.max(0, chapterDuration - chapterElapsed);
 
   return (
     <div
@@ -131,89 +146,75 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
       aria-label={_('Audiobook Player')}
       className='bg-base-100 relative mx-auto flex w-full max-w-lg flex-col gap-3 p-4'
     >
-      <div className='flex items-center justify-between gap-2'>
-        <span className='truncate text-base font-semibold'>{title}</span>
-        <div className='flex items-center gap-1'>
-          {audioRoutePickerAvailable() && (
-            <button
-              type='button'
-              className='btn btn-ghost btn-circle btn-sm eink-bordered'
-              aria-label={_('Audio Output')}
-              title={_('Audio Output')}
-              onClick={() => void showAudioRoutePicker()}
-            >
-              <MdAirplay size={iconSize} />
-            </button>
+      <div className='flex items-center justify-end gap-1'>
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          aria-label={_('Chapters')}
+          title={_('Chapters')}
+          onClick={() => togglePanel('chapters')}
+        >
+          <RiListUnordered size={iconSize} />
+        </button>
+        <button
+          type='button'
+          className='btn btn-ghost btn-sm eink-bordered rounded-full px-2 tabular-nums'
+          aria-label={_('Playback Speed')}
+          title={_('Playback Speed')}
+          onClick={onCycleRate}
+        >
+          {Number(rate.toFixed(2))}×
+        </button>
+        <button
+          type='button'
+          className={clsx(
+            'btn btn-ghost btn-circle btn-sm eink-bordered',
+            sleepTimerMode != null && 'text-primary',
           )}
-          <button
-            type='button'
-            className='btn btn-ghost btn-circle btn-sm eink-bordered'
-            aria-label={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
-            title={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
-            onClick={onToggleBookmark}
-          >
-            {isCurrentBookmarked ? (
-              <MdBookmark size={iconSize} />
-            ) : (
-              <MdOutlineBookmarkAdd size={iconSize} />
-            )}
-          </button>
-          <button
-            type='button'
-            className='btn btn-ghost btn-circle btn-sm eink-bordered'
-            aria-label={_('Bookmarks')}
-            title={_('Bookmarks')}
-            onClick={() => {
-              setShowBookmarks((v) => !v);
-              setShowChapters(false);
-              setShowSettings(false);
-            }}
-          >
-            <RiBookmark3Line size={iconSize} />
-          </button>
-          <button
-            type='button'
-            className='btn btn-ghost btn-circle btn-sm eink-bordered'
-            aria-label={_('Chapters')}
-            title={_('Chapters')}
-            onClick={() => {
-              setShowChapters((v) => !v);
-              setShowBookmarks(false);
-              setShowSettings(false);
-            }}
-          >
-            <RiListUnordered size={iconSize} />
-          </button>
-          <button
-            type='button'
-            className='btn btn-ghost btn-circle btn-sm eink-bordered'
-            aria-label={_('Player Settings')}
-            title={_('Player Settings')}
-            onClick={() => {
-              setShowSettings((v) => !v);
-              setShowChapters(false);
-              setShowBookmarks(false);
-            }}
-          >
-            <MdOutlineSettings size={iconSize} />
-          </button>
-          <button
-            type='button'
-            className='btn btn-ghost btn-circle btn-sm'
-            aria-label={_('Minimize Player')}
-            title={_('Minimize Player')}
-            onClick={onClose}
-          >
-            <MdKeyboardArrowDown size={iconSize} />
-          </button>
-        </div>
+          aria-label={_('Sleep Timer')}
+          title={_('Sleep Timer')}
+          onClick={() => togglePanel('sleep')}
+        >
+          <MdBedtime size={iconSize} />
+        </button>
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          aria-label={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
+          title={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
+          onClick={onToggleBookmark}
+        >
+          {isCurrentBookmarked ? (
+            <MdBookmark size={iconSize} />
+          ) : (
+            <MdOutlineBookmarkAdd size={iconSize} />
+          )}
+        </button>
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          aria-label={_('Player Settings')}
+          title={_('Player Settings')}
+          onClick={() => togglePanel('settings')}
+        >
+          <MdMoreHoriz size={iconSize} />
+        </button>
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm'
+          aria-label={_('Minimize Player')}
+          title={_('Minimize Player')}
+          onClick={onClose}
+        >
+          <MdKeyboardArrowDown size={iconSize} />
+        </button>
       </div>
 
       {state === 'ended' && (
         <div className='text-base-content/70 text-center text-sm'>{_('Finished')}</div>
       )}
 
-      {showChapters && (
+      {panel === 'chapters' && (
         <ul className='menu bg-base-200 eink-bordered max-h-48 flex-nowrap overflow-y-auto rounded-box'>
           {chapters.map((chapter) => (
             <li key={chapter.sectionIndex}>
@@ -229,55 +230,83 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         </ul>
       )}
 
-      {showBookmarks && (
-        <ul className='menu bg-base-200 eink-bordered rounded-box max-h-48 flex-nowrap overflow-y-auto'>
-          {bookmarks.map((bookmark) => (
-            <li key={bookmark.id} data-bookmark-item className='flex-row items-center'>
-              <button
-                type='button'
-                className='min-w-0 flex-1 justify-start gap-2 text-start'
-                onClick={() => onJumpToBookmark(bookmark)}
-              >
-                {bookmark.bookTime != null && (
-                  <span className='text-base-content/70 text-xs tabular-nums' dir='ltr'>
-                    {formatPlaybackTime(bookmark.bookTime)}
-                  </span>
-                )}
-                <span className='truncate text-sm'>{bookmark.snippet}</span>
-              </button>
-              <button
-                type='button'
-                className='btn btn-ghost btn-circle btn-xs shrink-0'
-                aria-label={_('Delete Bookmark')}
-                title={_('Delete Bookmark')}
-                onClick={() => onDeleteBookmark(bookmark.id)}
-              >
-                <MdDeleteOutline size={16} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {sleepTimerMode != null && sleepRemainingSec != null && (
-        <div className='flex items-center justify-center gap-2 text-sm'>
-          <span aria-label={_('Sleep Timer Remaining')} className='tabular-nums' dir='ltr'>
-            {formatPlaybackTime(sleepRemainingSec)}
-          </span>
-          <button
-            type='button'
-            className='btn btn-ghost btn-xs eink-bordered'
-            aria-label={_('Extend Sleep Timer')}
-            title={_('Extend Sleep Timer')}
-            onClick={() => onExtendSleepTimer(SLEEP_EXTEND_MINUTES)}
-          >
-            +{SLEEP_EXTEND_MINUTES} {_('min')}
-          </button>
+      {panel === 'sleep' && (
+        <div className='bg-base-200 eink-bordered rounded-box flex flex-col gap-2 p-3'>
+          <label className='flex items-center justify-between gap-2 text-sm'>
+            <span>{_('Sleep Timer')}</span>
+            <select
+              className='select select-sm eink-bordered'
+              aria-label={_('Sleep Timer')}
+              value={sleepValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'off') onSetSleepTimer(null);
+                else if (value === 'end-of-chapter') onSetSleepTimer({ type: 'end-of-chapter' });
+                else onSetSleepTimer({ type: 'duration', minutes: Number(value) });
+              }}
+            >
+              <option value='off'>{_('Off')}</option>
+              {SLEEP_MINUTE_OPTIONS.map((min) => (
+                <option key={min} value={min}>
+                  {_('{{min}} min', { min })}
+                </option>
+              ))}
+              <option value='end-of-chapter'>{_('End of Chapter')}</option>
+            </select>
+          </label>
         </div>
       )}
 
-      {showSettings && (
+      {panel === 'settings' && (
         <div className='bg-base-200 eink-bordered rounded-box flex flex-col gap-2 p-3'>
+          {bookmarks.length > 0 && (
+            <>
+              <span className='text-base-content/70 text-xs font-semibold uppercase'>
+                {_('Bookmarks')}
+              </span>
+              <ul className='menu bg-base-100 eink-bordered rounded-box max-h-40 flex-nowrap overflow-y-auto'>
+                {bookmarks.map((bookmark) => (
+                  <li key={bookmark.id} data-bookmark-item className='flex-row items-center'>
+                    <button
+                      type='button'
+                      className='min-w-0 flex-1 justify-start gap-2 text-start'
+                      onClick={() => onJumpToBookmark(bookmark)}
+                    >
+                      {bookmark.bookTime != null && (
+                        <span className='text-base-content/70 text-xs tabular-nums' dir='ltr'>
+                          {formatPlaybackTime(bookmark.bookTime)}
+                        </span>
+                      )}
+                      <span className='truncate text-sm'>{bookmark.snippet}</span>
+                    </button>
+                    <button
+                      type='button'
+                      className='btn btn-ghost btn-circle btn-xs shrink-0'
+                      aria-label={_('Delete Bookmark')}
+                      title={_('Delete Bookmark')}
+                      onClick={() => onDeleteBookmark(bookmark.id)}
+                    >
+                      <MdDeleteOutline size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <div className='flex items-center gap-2 text-sm' dir='ltr'>
+            <span>{_('Speed')}</span>
+            <input
+              type='range'
+              className='range range-xs flex-1'
+              aria-label={_('Playback Speed')}
+              min={0.5}
+              max={3}
+              step={0.1}
+              value={rate}
+              onChange={(e) => onSetRate(Number(e.target.value))}
+            />
+            <span className='w-10 text-end text-xs tabular-nums'>{rate.toFixed(1)}×</span>
+          </div>
           <label className='flex items-center justify-between gap-2 text-sm'>
             <span>{_('Skip Forward Interval')}</span>
             <select
@@ -332,28 +361,6 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
               <option value='underline'>{_('Underline')}</option>
             </select>
           </label>
-          <label className='flex items-center justify-between gap-2 text-sm'>
-            <span>{_('Sleep Timer')}</span>
-            <select
-              className='select select-sm eink-bordered'
-              aria-label={_('Sleep Timer')}
-              value={sleepValue}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === 'off') onSetSleepTimer(null);
-                else if (value === 'end-of-chapter') onSetSleepTimer({ type: 'end-of-chapter' });
-                else onSetSleepTimer({ type: 'duration', minutes: Number(value) });
-              }}
-            >
-              <option value='off'>{_('Off')}</option>
-              {SLEEP_MINUTE_OPTIONS.map((min) => (
-                <option key={min} value={min}>
-                  {_('{{min}} min', { min })}
-                </option>
-              ))}
-              <option value='end-of-chapter'>{_('End of Chapter')}</option>
-            </select>
-          </label>
           <div className='flex items-center justify-between gap-2 text-sm'>
             <span>{_('Highlight Color')}</span>
             <div className='flex items-center gap-1.5' dir='ltr'>
@@ -374,26 +381,66 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
               ))}
             </div>
           </div>
+          {audioRoutePickerAvailable() && (
+            <button
+              type='button'
+              className='btn btn-ghost btn-sm eink-bordered justify-start gap-2'
+              aria-label={_('Audio Output')}
+              title={_('Audio Output')}
+              onClick={() => void showAudioRoutePicker()}
+            >
+              <MdAirplay size={iconSize} />
+              {_('Audio Output')}
+            </button>
+          )}
         </div>
       )}
 
-      {total != null && (
+      {sleepTimerMode != null && sleepRemainingSec != null && (
+        <div className='flex items-center justify-center gap-2 text-sm'>
+          <span aria-label={_('Sleep Timer Remaining')} className='tabular-nums' dir='ltr'>
+            {formatPlaybackTime(sleepRemainingSec)}
+          </span>
+          <button
+            type='button'
+            className='btn btn-ghost btn-xs eink-bordered'
+            aria-label={_('Extend Sleep Timer')}
+            title={_('Extend Sleep Timer')}
+            onClick={() => onExtendSleepTimer(SLEEP_EXTEND_MINUTES)}
+          >
+            +{SLEEP_EXTEND_MINUTES} {_('min')}
+          </button>
+        </div>
+      )}
+
+      <div className='truncate text-center text-base font-semibold'>{title}</div>
+      {bookRemaining != null && (
+        <div
+          aria-label={_('Time Left in Book')}
+          className='text-base-content/70 text-center text-sm'
+          dir='ltr'
+        >
+          {_('{{time}} left', { time: formatTimeLeft(bookRemaining) })}
+        </div>
+      )}
+
+      {chapterDuration > 0 && (
         <div className='flex items-center gap-2' dir='ltr'>
           <span aria-label={_('Elapsed Time')} className='w-12 text-end text-xs tabular-nums'>
-            {formatPlaybackTime(elapsed)}
+            {formatPlaybackTime(chapterElapsed)}
           </span>
           <input
             type='range'
             className='range range-primary range-xs flex-1'
-            aria-label={_('Book Position')}
+            aria-label={_('Chapter Position')}
             min={0}
-            max={Math.ceil(total)}
+            max={Math.ceil(chapterDuration)}
             step={1}
-            value={Math.min(Math.floor(elapsed), Math.ceil(total))}
-            onChange={(e) => onSeekToBookTime(Number(e.target.value))}
+            value={Math.min(Math.floor(chapterElapsed), Math.ceil(chapterDuration))}
+            onChange={(e) => onSeekToChapterTime(Number(e.target.value))}
           />
           <span aria-label={_('Time Remaining')} className='w-12 text-xs tabular-nums'>
-            -{formatPlaybackTime(remaining ?? 0)}
+            -{formatPlaybackTime(chapterRemaining)}
           </span>
         </div>
       )}
@@ -450,37 +497,6 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         >
           <MdSkipNext size={iconSize} />
         </button>
-      </div>
-
-      <div className='flex items-center gap-2' dir='ltr'>
-        <span className='text-xs'>{_('Speed')}</span>
-        <input
-          type='range'
-          className='range range-xs flex-1'
-          aria-label={_('Playback Speed')}
-          min={0.5}
-          max={3}
-          step={0.1}
-          value={rate}
-          onChange={(e) => onSetRate(Number(e.target.value))}
-        />
-        <span className='w-10 text-end text-xs tabular-nums'>{rate.toFixed(1)}×</span>
-      </div>
-      <div className='flex items-center justify-center gap-1'>
-        {SPEED_PRESETS.map((preset) => (
-          <button
-            key={preset}
-            type='button'
-            className={clsx(
-              'btn btn-xs eink-bordered',
-              Math.abs(rate - preset) < 0.05 ? 'btn-primary' : 'btn-ghost',
-            )}
-            aria-label={_('Speed {{rate}}×', { rate: preset })}
-            onClick={() => onSetRate(preset)}
-          >
-            {preset}×
-          </button>
-        ))}
       </div>
     </div>
   );

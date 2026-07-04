@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} δ",
   "Elapsed Time": "Χρόνος που πέρασε",
   "Time Remaining": "Χρόνος που απομένει",
-  "Book Position": "Θέση στο βιβλίο",
   "Skip Back": "Μετάβαση πίσω",
   "Skip Forward": "Μετάβαση εμπρός",
   "Skip Back {{sec}} s": "Μετάβαση πίσω {{sec}} δ",
   "Skip Forward {{sec}} s": "Μετάβαση εμπρός {{sec}} δ",
   "Speed": "Ταχύτητα",
   "Playback Speed": "Ταχύτητα αναπαραγωγής",
-  "Speed {{rate}}×": "Ταχύτητα {{rate}}×",
   "Could not play this chapter’s audio.": "Δεν ήταν δυνατή η αναπαραγωγή του ήχου αυτού του κεφαλαίου.",
   "Read Along": "Συγχρονισμένη ανάγνωση",
   "Highlight Style": "Στυλ επισήμανσης",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Η λήψη δεν είναι διαθέσιμη εκτός σύνδεσης.",
   "Audio Output": "Έξοδος ήχου",
   "Minimize Player": "Ελαχιστοποίηση προγράμματος αναπαραγωγής",
-  "Audiobook Cover": "Εξώφυλλο ηχοβιβλίου"
+  "Audiobook Cover": "Εξώφυλλο ηχοβιβλίου",
+  "Chapter Position": "Θέση κεφαλαίου",
+  "Time Left in Book": "Χρόνος που απομένει στο βιβλίο"
 }

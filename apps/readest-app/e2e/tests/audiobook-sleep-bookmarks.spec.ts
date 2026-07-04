@@ -48,7 +48,7 @@ test.describe('audiobook sleep timer', () => {
     const player = new AudiobookPlayerPage(page);
     await startPlayback(page, player);
     await player.expandButton.click();
-    await player.openSettings();
+    await player.openSleepTimer();
 
     await player.sleepTimerSelect.selectOption('15');
     await expect(player.sleepTimerRemaining).toContainText('15:00');
@@ -74,7 +74,7 @@ test.describe('audiobook sleep timer', () => {
     const player = new AudiobookPlayerPage(page);
     await startPlayback(page, player);
     await player.expandButton.click();
-    await player.openSettings();
+    await player.openSleepTimer();
 
     await player.sleepTimerSelect.selectOption('5');
     await player.extendSleepTimerButton.click();
@@ -100,7 +100,7 @@ test.describe('audiobook sleep timer', () => {
     // Park a few seconds before the end of chapter 1 (12s) — comfortably
     // outside the manual-navigation grace window — and arm end-of-chapter.
     await player.scrubber.fill('9');
-    await player.openSettings();
+    await player.openSleepTimer();
     await player.sleepTimerSelect.selectOption('end-of-chapter');
 
     // The rollover into chapter 2 pauses playback within its first moments.

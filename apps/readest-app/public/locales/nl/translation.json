@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Verstreken tijd",
   "Time Remaining": "Resterende tijd",
-  "Book Position": "Positie in boek",
   "Skip Back": "Terugspoelen",
   "Skip Forward": "Vooruitspoelen",
   "Skip Back {{sec}} s": "{{sec}} s terugspoelen",
   "Skip Forward {{sec}} s": "{{sec}} s vooruitspoelen",
   "Speed": "Snelheid",
   "Playback Speed": "Afspeelsnelheid",
-  "Speed {{rate}}×": "Snelheid {{rate}}×",
   "Could not play this chapter’s audio.": "Kon de audio van dit hoofdstuk niet afspelen.",
   "Read Along": "Meelezen",
   "Highlight Style": "Markeerstijl",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Downloaden niet beschikbaar offline.",
   "Audio Output": "Audio-uitvoer",
   "Minimize Player": "Speler minimaliseren",
-  "Audiobook Cover": "Audioboekomslag"
+  "Audiobook Cover": "Audioboekomslag",
+  "Chapter Position": "Hoofdstukpositie",
+  "Time Left in Book": "Resterende tijd in boek"
 }

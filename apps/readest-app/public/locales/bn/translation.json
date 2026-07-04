@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} সে.",
   "Elapsed Time": "অতিবাহিত সময়",
   "Time Remaining": "অবশিষ্ট সময়",
-  "Book Position": "বইয়ের অবস্থান",
   "Skip Back": "পিছনে যান",
   "Skip Forward": "সামনে যান",
   "Skip Back {{sec}} s": "{{sec}} সে. পিছনে যান",
   "Skip Forward {{sec}} s": "{{sec}} সে. সামনে যান",
   "Speed": "গতি",
   "Playback Speed": "প্লেব্যাক গতি",
-  "Speed {{rate}}×": "গতি {{rate}}×",
   "Could not play this chapter’s audio.": "এই অধ্যায়ের অডিও চালানো যায়নি।",
   "Read Along": "সাথে পড়ুন",
   "Highlight Style": "হাইলাইট শৈলী",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "অফলাইনে ডাউনলোড অনুপলব্ধ।",
   "Audio Output": "অডিও আউটপুট",
   "Minimize Player": "প্লেয়ার ছোট করুন",
-  "Audiobook Cover": "অডিওবুকের প্রচ্ছদ"
+  "Audiobook Cover": "অডিওবুকের প্রচ্ছদ",
+  "Chapter Position": "অধ্যায়ের অবস্থান",
+  "Time Left in Book": "বইয়ের অবশিষ্ট সময়"
 }

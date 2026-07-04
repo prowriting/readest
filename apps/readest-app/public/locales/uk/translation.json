@@ -1733,14 +1733,12 @@
   "{{sec}} s": "{{sec}} с",
   "Elapsed Time": "Минулий час",
   "Time Remaining": "Залишилося часу",
-  "Book Position": "Позиція в книзі",
   "Skip Back": "Перемотати назад",
   "Skip Forward": "Перемотати вперед",
   "Skip Back {{sec}} s": "Назад на {{sec}} с",
   "Skip Forward {{sec}} s": "Вперед на {{sec}} с",
   "Speed": "Швидкість",
   "Playback Speed": "Швидкість відтворення",
-  "Speed {{rate}}×": "Швидкість {{rate}}×",
   "Could not play this chapter’s audio.": "Не вдалося відтворити аудіо цього розділу.",
   "Read Along": "Читати разом",
   "Highlight Style": "Стиль виділення",
@@ -1771,5 +1769,7 @@
   "Download unavailable while offline.": "Завантаження недоступне офлайн.",
   "Audio Output": "Аудіовихід",
   "Minimize Player": "Згорнути плеєр",
-  "Audiobook Cover": "Обкладинка аудіокниги"
+  "Audiobook Cover": "Обкладинка аудіокниги",
+  "Chapter Position": "Позиція розділу",
+  "Time Left in Book": "Залишок часу книги"
 }

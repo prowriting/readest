@@ -1671,14 +1671,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Verstrichene Zeit",
   "Time Remaining": "Verbleibende Zeit",
-  "Book Position": "Buchposition",
   "Skip Back": "Zurückspringen",
   "Skip Forward": "Vorspringen",
   "Skip Back {{sec}} s": "{{sec}} s zurückspringen",
   "Skip Forward {{sec}} s": "{{sec}} s vorspringen",
   "Speed": "Tempo",
   "Playback Speed": "Wiedergabetempo",
-  "Speed {{rate}}×": "Tempo {{rate}}×",
   "Could not play this chapter’s audio.": "Das Audio dieses Kapitels konnte nicht abgespielt werden.",
   "Read Along": "Mitlesen",
   "Highlight Style": "Hervorhebungsstil",
@@ -1709,5 +1707,7 @@
   "Download unavailable while offline.": "Download offline nicht möglich.",
   "Audio Output": "Audioausgabe",
   "Minimize Player": "Player minimieren",
-  "Audiobook Cover": "Hörbuch-Cover"
+  "Audiobook Cover": "Hörbuch-Cover",
+  "Chapter Position": "Kapitelposition",
+  "Time Left in Book": "Verbleibende Zeit im Buch"
 }

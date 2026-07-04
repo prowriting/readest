@@ -1733,14 +1733,12 @@
   "{{sec}} s": "{{sec}} s",
   "Elapsed Time": "Pretečeni čas",
   "Time Remaining": "Preostali čas",
-  "Book Position": "Položaj v knjigi",
   "Skip Back": "Preskoči nazaj",
   "Skip Forward": "Preskoči naprej",
   "Skip Back {{sec}} s": "Preskoči nazaj {{sec}} s",
   "Skip Forward {{sec}} s": "Preskoči naprej {{sec}} s",
   "Speed": "Hitrost",
   "Playback Speed": "Hitrost predvajanja",
-  "Speed {{rate}}×": "Hitrost {{rate}}×",
   "Could not play this chapter’s audio.": "Zvoka tega poglavja ni bilo mogoče predvajati.",
   "Read Along": "Sledenje branju",
   "Highlight Style": "Slog poudarka",
@@ -1771,5 +1769,7 @@
   "Download unavailable while offline.": "Prenos ni na voljo brez povezave.",
   "Audio Output": "Zvočni izhod",
   "Minimize Player": "Pomanjšaj predvajalnik",
-  "Audiobook Cover": "Naslovnica zvočne knjige"
+  "Audiobook Cover": "Naslovnica zvočne knjige",
+  "Chapter Position": "Položaj poglavja",
+  "Time Left in Book": "Preostali čas knjige"
 }

@@ -83,6 +83,7 @@ export const useAudiobookControl = (bookKey: string) => {
   const [state, setState] = useState<AudiobookPlaybackState>('stopped');
   const [sectionIndex, setSectionIndex] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
+  const [chapterElapsed, setChapterElapsed] = useState(0);
   const [followSuspended, setFollowSuspended] = useState(false);
   const [sleepTimer, setSleepTimerState] = useState<SleepTimerState>(CLEARED_TIMER);
   const [sleepRemainingSec, setSleepRemainingSec] = useState<number | null>(null);
@@ -135,6 +136,7 @@ export const useAudiobookControl = (bookKey: string) => {
     if (index < 0) return;
     setSectionIndex(index);
     setElapsed(timeline.elapsed(index, engine.sectionOffset));
+    setChapterElapsed(engine.sectionOffset);
     // End-of-chapter sleep timer: a section change that the user did NOT
     // drive (no manual navigation flagged) is the chapter rolling over.
     if (prevSectionRef.current >= 0 && index !== prevSectionRef.current) {
@@ -249,6 +251,21 @@ export const useAudiobookControl = (bookKey: string) => {
       if (isActive(stateRef.current)) saveLocation();
     };
   }, [saveLocation]);
+
+  // Before any playback, surface the saved (or first) audio chapter so the
+  // chapter-scoped scrubber and clocks have a timeline to show (PRD §5.1).
+  useEffect(() => {
+    if (!engine || !view || sectionIndex >= 0) return;
+    const saved = getConfig(bookKey)?.mediaOverlayLocation;
+    const sections = view.book?.sections ?? [];
+    const firstOverlay = sections.findIndex((section) => section.mediaOverlay);
+    const index = saved?.sectionIndex ?? firstOverlay;
+    if (index == null || index < 0) return;
+    const offset = saved?.offset ?? 0;
+    setSectionIndex(index);
+    setChapterElapsed(offset);
+    setElapsed(timeline.elapsed(index, offset));
+  }, [engine, view, sectionIndex, bookKey, getConfig, timeline]);
 
   // Read-along control: the view applies the highlight class and follows the
   // audio only while read-along is on and the user hasn't wandered off.
@@ -456,13 +473,19 @@ export const useAudiobookControl = (bookKey: string) => {
     [withActiveEngine],
   );
 
-  const seekToBookTime = useCallback(
+  // PRD §5.1: the scrubber is chapter-scoped — seeks land within the
+  // playing chapter.
+  const seekToChapterTime = useCallback(
     (seconds: number) => {
       setFollowSuspended(false);
       withActiveEngine((e) => {
-        const target = timeline.locate(seconds);
-        setElapsed(timeline.elapsed(target.sectionIndex, target.offset));
-        void e.startAtOffset(target.sectionIndex, target.offset);
+        const index = e.activeSectionIndex;
+        const duration = timeline.sectionDuration(index);
+        const offset =
+          duration > 0 ? Math.max(0, Math.min(seconds, duration - 0.05)) : Math.max(0, seconds);
+        setElapsed(timeline.elapsed(index, offset));
+        setChapterElapsed(offset);
+        void e.startAtOffset(index, offset);
       });
     },
     [withActiveEngine, timeline],
@@ -623,7 +646,7 @@ export const useAudiobookControl = (bookKey: string) => {
     nextChapter: () => {},
     prevChapter: () => {},
     seekBy: (_seconds: number) => {},
-    seekToBookTime: (_seconds: number) => {},
+    seekToChapterTime: (_seconds: number) => {},
     skipForwardSec: 30,
     skipBackSec: 15,
   });
@@ -633,13 +656,14 @@ export const useAudiobookControl = (bookKey: string) => {
     nextChapter,
     prevChapter,
     seekBy: (seconds: number) => withActiveEngine((e) => void e.seekRelative(seconds)),
-    seekToBookTime,
+    seekToChapterTime,
     skipForwardSec: viewSettings?.moSkipForwardSec ?? 30,
     skipBackSec: viewSettings?.moSkipBackSec ?? 15,
   };
 
   const sessionActive = isActive(state);
   const total = timeline.isComplete ? timeline.total : null;
+  const chapterDuration = timeline.sectionDuration(sectionIndex);
   const chapterLabel = chapters.find((c) => c.sectionIndex === sectionIndex)?.label ?? '';
   const author = bookData?.book?.author ?? '';
   const coverImageUrl = bookData?.book?.coverImageUrl ?? null;
@@ -662,7 +686,7 @@ export const useAudiobookControl = (bookKey: string) => {
       session.setActionHandler('nexttrack', () => actions.current.nextChapter());
       session.setActionHandler('previoustrack', () => actions.current.prevChapter());
       session.setActionHandler('seekto', (positionMs: number) =>
-        actions.current.seekToBookTime(positionMs / 1000),
+        actions.current.seekToChapterTime(positionMs / 1000),
       );
       return () => {
         for (const action of ['play', 'pause', 'nexttrack', 'previoustrack', 'seekto']) {
@@ -684,7 +708,8 @@ export const useAudiobookControl = (bookKey: string) => {
       actions.current.seekBy(-(details?.seekOffset ?? actions.current.skipBackSec)),
     );
     ms.setActionHandler('seekto', (details) => {
-      if (typeof details?.seekTime === 'number') actions.current.seekToBookTime(details.seekTime);
+      if (typeof details?.seekTime === 'number')
+        actions.current.seekToChapterTime(details.seekTime);
     });
     return () => {
       const sessionActions: MediaSessionAction[] = [
@@ -747,7 +772,8 @@ export const useAudiobookControl = (bookKey: string) => {
     return undefined;
   }, [sessionActive, bookData, author, chapterLabel, coverImageUrl]);
 
-  // Playback + whole-book position state, refreshed with the position poll.
+  // Playback + chapter-scoped position state (matching the in-app player,
+  // PRD §5.1), refreshed with the position poll.
   useEffect(() => {
     if (!sessionActive) return;
     const session = getMediaSession();
@@ -755,25 +781,25 @@ export const useAudiobookControl = (bookKey: string) => {
     if (session instanceof TauriMediaSession) {
       void session.updatePlaybackState({
         playing: state === 'playing' || state === 'loading',
-        position: Math.round(elapsed * 1000),
-        duration: total != null ? Math.round(total * 1000) : undefined,
+        position: Math.round(chapterElapsed * 1000),
+        duration: chapterDuration > 0 ? Math.round(chapterDuration * 1000) : undefined,
       });
       return;
     }
     const ms = session as MediaSession;
     ms.playbackState = state === 'playing' || state === 'loading' ? 'playing' : 'paused';
-    if (total != null && Number.isFinite(total) && total > 0) {
+    if (Number.isFinite(chapterDuration) && chapterDuration > 0) {
       try {
         ms.setPositionState?.({
-          duration: total,
-          position: Math.min(Math.max(0, elapsed), total),
+          duration: chapterDuration,
+          position: Math.min(Math.max(0, chapterElapsed), chapterDuration),
           playbackRate: viewSettings?.moPlaybackRate ?? 1,
         });
       } catch {
         // Invalid transient values must never break playback.
       }
     }
-  }, [sessionActive, state, elapsed, total, viewSettings?.moPlaybackRate]);
+  }, [sessionActive, state, chapterElapsed, chapterDuration, viewSettings?.moPlaybackRate]);
 
   // ── Car bridge (CarPlay / Android Auto): serve the chapter list for the
   // open book and honor head-unit play requests.
@@ -829,6 +855,9 @@ export const useAudiobookControl = (bookKey: string) => {
     sectionIndex,
     elapsed,
     total,
+    chapterElapsed,
+    chapterDuration,
+    chapterLabel,
     chapters,
     rate: viewSettings?.moPlaybackRate ?? 1,
     skipForwardSec: viewSettings?.moSkipForwardSec ?? 30,
@@ -839,7 +868,7 @@ export const useAudiobookControl = (bookKey: string) => {
     prevChapter,
     nextChapter,
     goToChapter,
-    seekToBookTime,
+    seekToChapterTime,
     setRate,
     setSkipForwardSec: (sec: number) => persistViewSettings({ moSkipForwardSec: sec }),
     setSkipBackSec: (sec: number) => persistViewSettings({ moSkipBackSec: sec }),

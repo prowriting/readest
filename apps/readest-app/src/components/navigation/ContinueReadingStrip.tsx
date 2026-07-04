@@ -9,7 +9,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { navigateToReader } from '@/utils/nav';
 import { formatAuthors, formatTitle } from '@/utils/book';
-import { formatPlaybackTime } from '@/services/audiobook/bookTimeline';
+import { formatTimeLeft } from '@/services/audiobook/bookTimeline';
 import BookCover from '@/components/BookCover';
 
 /**
@@ -64,7 +64,7 @@ const ContinueReadingStrip: React.FC = () => {
           dir={audioRemaining != null ? 'auto' : undefined}
         >
           {audioRemaining != null
-            ? _('{{time}} left', { time: formatPlaybackTime(audioRemaining) })
+            ? _('{{time}} left', { time: formatTimeLeft(audioRemaining) })
             : formatAuthors(book.author || book.metadata?.author || '')}
         </div>
       </div>

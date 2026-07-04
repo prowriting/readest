@@ -4,7 +4,7 @@ import { MdMyLocation, MdOutlinePause, MdPlayArrow } from 'react-icons/md';
 import { RiArrowUpSLine, RiForward30Line } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
-import { formatPlaybackTime } from '@/services/audiobook/bookTimeline';
+import { formatPlaybackTime, formatTimeLeft } from '@/services/audiobook/bookTimeline';
 import { resolveTrayDragIntent } from '@/services/audiobook/trayGesture';
 import type { AudiobookPlaybackState } from '@/services/audiobook/playbackMachine';
 
@@ -100,7 +100,7 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
           <span className='max-w-40 truncate text-sm font-medium'>{title}</span>
           <span className='text-base-content/70 text-xs' dir='ltr'>
             {remaining != null
-              ? _('{{time}} left', { time: formatPlaybackTime(remaining) })
+              ? _('{{time}} left', { time: formatTimeLeft(remaining) })
               : formatPlaybackTime(elapsed)}
           </span>
         </div>
