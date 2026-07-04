@@ -8,6 +8,28 @@
     <array>
       <string>audio</string>
     </array>
+    <!-- CarPlay audio app: only the CarPlay template scene adopts the scene
+         lifecycle; the iPhone app keeps its AppDelegate flow. The delegate
+         class lives in the native-tts plugin package so all CarPlay code is
+         tracked (the generated Xcode project is not). Requires the CarPlay
+         audio entitlement (com.apple.developer.carplay-audio) to activate. -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+      <key>UIApplicationSupportsMultipleScenes</key>
+      <true/>
+      <key>UISceneConfigurations</key>
+      <dict>
+        <key>CPTemplateApplicationSceneSessionRoleApplication</key>
+        <array>
+          <dict>
+            <key>UISceneConfigurationName</key>
+            <string>Bookarc CarPlay</string>
+            <key>UISceneDelegateClassName</key>
+            <string>tauri_plugin_native_tts.AudiobookCarPlaySceneDelegate</string>
+          </dict>
+        </array>
+      </dict>
+    </dict>
     <key>LSSupportsOpeningDocumentsInPlace</key>
     <false/>
     <key>UIViewControllerBasedStatusBarAppearance</key>

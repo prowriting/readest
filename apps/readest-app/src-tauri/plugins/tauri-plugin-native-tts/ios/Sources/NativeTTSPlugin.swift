@@ -7,10 +7,67 @@ class PingArgs: Decodable {
   let value: String?
 }
 
+class BridgeBookArgs: Decodable {
+  let id: String
+  let title: String?
+  let author: String?
+  let durationSec: Double?
+}
+
+class UpdateAudiobookLibraryArgs: Decodable {
+  let books: [BridgeBookArgs]?
+}
+
+class BridgeChapterArgs: Decodable {
+  let index: Int
+  let label: String?
+}
+
+class UpdateAudiobookChaptersArgs: Decodable {
+  let bookId: String
+  let chapters: [BridgeChapterArgs]?
+  let currentIndex: Int?
+}
+
 class NativeTTSPlugin: Plugin {
+  public override func load(webview: WKWebView) {
+    // CarPlay play requests flow back to the webview as plugin events.
+    AudiobookCarLibrary.shared.playHandler = { [weak self] bookId, chapterIndex in
+      var data: JSObject = [:]
+      data["bookId"] = bookId
+      if let chapterIndex {
+        data["chapterIndex"] = chapterIndex
+      }
+      self?.trigger("audiobook-play", data: data)
+    }
+  }
+
   @objc public func ping(_ invoke: Invoke) throws {
     let args = try invoke.parseArgs(PingArgs.self)
     invoke.resolve(["value": args.value ?? ""])
+  }
+
+  @objc public func update_audiobook_library(_ invoke: Invoke) throws {
+    let args = try invoke.parseArgs(UpdateAudiobookLibraryArgs.self)
+    let books = (args.books ?? []).map { book in
+      AudiobookCarLibrary.Book(
+        id: book.id,
+        title: book.title ?? "",
+        author: book.author ?? "",
+        durationSec: book.durationSec ?? 0
+      )
+    }
+    AudiobookCarLibrary.shared.updateBooks(books)
+    invoke.resolve()
+  }
+
+  @objc public func update_audiobook_chapters(_ invoke: Invoke) throws {
+    let args = try invoke.parseArgs(UpdateAudiobookChaptersArgs.self)
+    let chapters = (args.chapters ?? []).map { chapter in
+      AudiobookCarLibrary.Chapter(index: chapter.index, label: chapter.label ?? "")
+    }
+    AudiobookCarLibrary.shared.updateChapters(bookId: args.bookId, chapters: chapters)
+    invoke.resolve()
   }
 }
 

@@ -60,10 +60,24 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         var currentArtist: String = "Reading your content"
         var currentArtwork: Bitmap? = null
         var currentDurationMs: Long = -1L
+
+        // Audiobook browse cache pushed from the webview (car bridge).
+        data class BridgeBook(val id: String, val title: String, val author: String, val durationSec: Double)
+        data class BridgeChapter(val index: Int, val label: String)
+        var bridgeBooks: List<BridgeBook> = emptyList()
+        var bridgeChaptersBookId: String? = null
+        var bridgeChapters: List<BridgeChapter> = emptyList()
+
+        fun notifyBridgeChanged() {
+            instance?.notifyChildrenChanged(MEDIA_ROOT_ID)
+            bridgeChaptersBookId?.let { instance?.notifyChildrenChanged("book:" + it) }
+        }
+        @Volatile var instance: MediaPlaybackService? = null
     }
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val result = audioManager.requestAudioFocus(
@@ -87,7 +101,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 PlaybackStateCompat.ACTION_STOP or
                 PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                PlaybackStateCompat.ACTION_SEEK_TO
+                PlaybackStateCompat.ACTION_SEEK_TO or
+                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
             )
             setPlaybackState(stateBuilder.build())
             setCallback(SessionCallback())
@@ -134,6 +149,23 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         override fun onSkipToPrevious() {
             player.seekTo(0)
             pluginEventTrigger?.invoke("media-session-previous", JSObject())
+        }
+
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            if (mediaId == null) return
+            val data = JSObject()
+            if (mediaId.startsWith("chapter:")) {
+                val parts = mediaId.removePrefix("chapter:").split(":")
+                if (parts.size >= 2) {
+                    data.put("bookId", parts[0])
+                    data.put("chapterIndex", parts[1].toIntOrNull() ?: 0)
+                }
+            } else if (mediaId.startsWith("book:")) {
+                data.put("bookId", mediaId.removePrefix("book:"))
+            } else {
+                data.put("bookId", mediaId)
+            }
+            pluginEventTrigger?.invoke("audiobook-play", data)
         }
 
         override fun onSeekTo(pos: Long) {
@@ -224,8 +256,40 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
+    // Android Auto browse tree: root → audiobooks (playable, browsable into
+    // chapters) → chapters (playable). Served from the cache the webview
+    // pushes, so browsing works instantly and offline.
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
-        result.sendResult(null)
+        val items = mutableListOf<MediaBrowserCompat.MediaItem>()
+        if (parentId == MEDIA_ROOT_ID) {
+            for (book in bridgeBooks) {
+                val description = android.support.v4.media.MediaDescriptionCompat.Builder()
+                    .setMediaId("book:" + book.id)
+                    .setTitle(book.title)
+                    .setSubtitle(book.author)
+                    .build()
+                items.add(
+                    MediaBrowserCompat.MediaItem(
+                        description,
+                        MediaBrowserCompat.MediaItem.FLAG_PLAYABLE or MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+                )
+            }
+        } else if (parentId.startsWith("book:")) {
+            val bookId = parentId.removePrefix("book:")
+            if (bookId == bridgeChaptersBookId) {
+                for (chapter in bridgeChapters) {
+                    val description = android.support.v4.media.MediaDescriptionCompat.Builder()
+                        .setMediaId("chapter:" + bookId + ":" + chapter.index)
+                        .setTitle(chapter.label)
+                        .build()
+                    items.add(
+                        MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+                    )
+                }
+            }
+        }
+        result.sendResult(items)
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -288,6 +352,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        instance = null
         super.onDestroy()
         player.release()
         mediaSession?.release()

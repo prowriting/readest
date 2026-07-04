@@ -79,3 +79,50 @@ mo-sentences.epub`) or any real EPUB3 media-overlay title.
   seek bar on device points there first.
 - AAC/M4B decoding on devices is native; the desktop `chrome-aac`
   Playwright project already proves the in-package codec path.
+
+## In-car (CarPlay / Android Auto)
+
+Prerequisites: the CarPlay audio entitlement
+(`com.apple.developer.carplay-audio`) must be granted by Apple and added to
+the provisioning profile + entitlements file before the CarPlay scene will
+connect; Android Auto testing uses the Desktop Head Unit (DHU) from the
+Android SDK (`sdkmanager 'extras;google;auto'`), with head-unit server
+enabled in the Android Auto app's developer settings.
+
+### CarPlay (Simulator: Xcode → I/O → External Displays → CarPlay)
+
+- [ ] The Bookarc icon appears on the CarPlay home screen.
+- [ ] Launching it shows the "Audiobooks" list, most recent first, with
+      titles + authors (no truncated-critical text, tappable row height).
+- [ ] Tapping a book with no cached chapters starts playback and lands on
+      the system Now Playing screen with correct metadata.
+- [ ] Tapping the currently open book shows Resume + the chapter list;
+      tapping a chapter plays that chapter.
+- [ ] Now Playing: play/pause, skip forward/back (configured intervals via
+      the media-session handlers), and the progress bar reflect the phone.
+- [ ] Disconnecting and reconnecting the car resumes the correct position.
+- [ ] While driving-mode restrictions are simulated (Simulator → "limit UI"),
+      the list remains usable: no deep nesting beyond book → chapters.
+
+### Android Auto (DHU)
+
+- [ ] Bookarc appears in the Auto media apps row.
+- [ ] The browse tab lists audiobooks (title + author); a book expands to
+      its chapters when it is the one currently open in the app.
+- [ ] Selecting a book/chapter starts playback on the phone and the Auto
+      playback view shows metadata, a bounded seek bar, and working
+      play/pause/skip/seek.
+- [ ] Voice: "OK Google, pause" / "resume" control playback (media session
+      transport actions).
+- [ ] App is not usable for anything except media while parked-restrictions
+      are simulated (DHU `restrict` command).
+
+### Distraction-compliance notes (documented pass)
+
+- Browse depth is two levels (books → chapters) — within both Apple's
+  CarPlay audio-app guidance and Android for Cars media guidelines.
+- All strings on car screens come from book metadata (no free text entry,
+  no web content); controls are template-native so sizing/contrast are
+  system-managed.
+- Playback state, metadata, artwork and seek all flow through the existing
+  media session — no custom drawing on the head unit.

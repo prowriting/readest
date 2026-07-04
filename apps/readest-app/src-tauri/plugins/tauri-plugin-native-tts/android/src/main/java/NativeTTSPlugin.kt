@@ -93,6 +93,32 @@ class UpdateMediaSessionStateArgs {
 }
 
 @InvokeArg
+class BridgeBookArg {
+  var id: String? = null
+  var title: String? = null
+  var author: String? = null
+  var durationSec: Double? = null
+}
+
+@InvokeArg
+class UpdateAudiobookLibraryArgs {
+  var books: List<BridgeBookArg>? = null
+}
+
+@InvokeArg
+class BridgeChapterArg {
+  var index: Int? = null
+  var label: String? = null
+}
+
+@InvokeArg
+class UpdateAudiobookChaptersArgs {
+  var bookId: String? = null
+  var chapters: List<BridgeChapterArg>? = null
+  var currentIndex: Int? = null
+}
+
+@InvokeArg
 class SetMediaSessionActiveArgs {
   var active: Boolean? = null
   var keepAppInForeground: Boolean? = null
@@ -515,6 +541,34 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
                 invoke.reject("Failed to update metadata: ${e.message}")
             }
         }
+    }
+
+    @Command
+    fun update_audiobook_library(invoke: Invoke) {
+        val args = invoke.parseArgs(UpdateAudiobookLibraryArgs::class.java)
+        MediaPlaybackService.bridgeBooks = (args.books ?: emptyList()).mapNotNull { book ->
+            val id = book.id ?: return@mapNotNull null
+            MediaPlaybackService.BridgeBook(
+                id,
+                book.title ?: "",
+                book.author ?: "",
+                book.durationSec ?: 0.0
+            )
+        }
+        MediaPlaybackService.notifyBridgeChanged()
+        invoke.resolve()
+    }
+
+    @Command
+    fun update_audiobook_chapters(invoke: Invoke) {
+        val args = invoke.parseArgs(UpdateAudiobookChaptersArgs::class.java)
+        MediaPlaybackService.bridgeChaptersBookId = args.bookId
+        MediaPlaybackService.bridgeChapters = (args.chapters ?: emptyList()).mapNotNull { chapter ->
+            val index = chapter.index ?: return@mapNotNull null
+            MediaPlaybackService.BridgeChapter(index, chapter.label ?: "")
+        }
+        MediaPlaybackService.notifyBridgeChanged()
+        invoke.resolve()
     }
 
     @Command

@@ -11,6 +11,8 @@ const COMMANDS: &[&str] = &[
     "set_media_session_active",
     "update_media_session_state",
     "update_media_session_metadata",
+    "update_audiobook_library",
+    "update_audiobook_chapters",
     "register_listener",
     "remove_listener",
     "check_permissions",

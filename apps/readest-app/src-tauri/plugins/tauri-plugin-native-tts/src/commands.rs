@@ -75,3 +75,19 @@ pub(crate) async fn update_media_session_metadata<R: Runtime>(
 ) -> Result<()> {
     app.native_tts().update_media_session_metadata(payload)
 }
+
+#[command]
+pub(crate) async fn update_audiobook_library<R: Runtime>(
+    app: AppHandle<R>,
+    payload: UpdateAudiobookLibraryRequest,
+) -> Result<()> {
+    app.native_tts().update_audiobook_library(payload)
+}
+
+#[command]
+pub(crate) async fn update_audiobook_chapters<R: Runtime>(
+    app: AppHandle<R>,
+    payload: UpdateAudiobookChaptersRequest,
+) -> Result<()> {
+    app.native_tts().update_audiobook_chapters(payload)
+}

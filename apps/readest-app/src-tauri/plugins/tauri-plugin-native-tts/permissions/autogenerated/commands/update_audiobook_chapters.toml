@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-update-audiobook-chapters"
+description = "Enables the update_audiobook_chapters command without any pre-configured scope."
+commands.allow = ["update_audiobook_chapters"]
+
+[[permission]]
+identifier = "deny-update-audiobook-chapters"
+description = "Denies the update_audiobook_chapters command without any pre-configured scope."
+commands.deny = ["update_audiobook_chapters"]

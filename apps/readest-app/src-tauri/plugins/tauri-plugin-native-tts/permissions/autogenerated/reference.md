@@ -16,6 +16,8 @@ Default permissions for the plugin
 - `allow-set-media-session-active`
 - `allow-update-media-session-state`
 - `allow-update-media-session-metadata`
+- `allow-update-audiobook-library`
+- `allow-update-audiobook-chapters`
 - `allow-register-listener`
 - `allow-remove-listener`
 - `allow-check-permissions`
@@ -444,6 +446,58 @@ Enables the stop command without any pre-configured scope.
 <td>
 
 Denies the stop command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-update-audiobook-chapters`
+
+</td>
+<td>
+
+Enables the update_audiobook_chapters command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-update-audiobook-chapters`
+
+</td>
+<td>
+
+Denies the update_audiobook_chapters command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-update-audiobook-library`
+
+</td>
+<td>
+
+Enables the update_audiobook_library command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-update-audiobook-library`
+
+</td>
+<td>
+
+Denies the update_audiobook_library command without any pre-configured scope.
 
 </td>
 </tr>

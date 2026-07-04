@@ -59,4 +59,16 @@ impl<R: Runtime> NativeTts<R> {
     ) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+    pub fn update_audiobook_library(
+        &self,
+        _payload: UpdateAudiobookLibraryRequest,
+    ) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+    pub fn update_audiobook_chapters(
+        &self,
+        _payload: UpdateAudiobookChaptersRequest,
+    ) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
 }

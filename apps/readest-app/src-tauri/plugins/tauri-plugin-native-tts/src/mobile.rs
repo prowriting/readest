@@ -120,3 +120,23 @@ impl<R: Runtime> NativeTts<R> {
             .map_err(Into::into)
     }
 }
+
+impl<R: Runtime> NativeTts<R> {
+    pub fn update_audiobook_library(
+        &self,
+        payload: UpdateAudiobookLibraryRequest,
+    ) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin("update_audiobook_library", payload)
+            .map_err(Into::into)
+    }
+
+    pub fn update_audiobook_chapters(
+        &self,
+        payload: UpdateAudiobookChaptersRequest,
+    ) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin("update_audiobook_chapters", payload)
+            .map_err(Into::into)
+    }
+}

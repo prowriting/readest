@@ -31,6 +31,7 @@ import type { SystemSettings } from '@/types/settings';
 import { DropdownProvider } from '@/context/DropdownContext';
 import { CommandPaletteProvider, CommandPalette } from '@/components/command-palette';
 import AtmosphereOverlay from '@/components/AtmosphereOverlay';
+import CarBridgeListener from '@/components/CarBridgeListener';
 import AppLockScreen from '@/components/AppLockScreen';
 import AppLockDialog from '@/components/settings/AppLockDialog';
 import PassphrasePrompt from '@/components/PassphrasePrompt';
@@ -234,6 +235,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
                   {children}
                   <CommandPalette />
                   <AtmosphereOverlay />
+                  <CarBridgeListener />
                   <PassphrasePrompt />
                 </div>
                 <AppLockDialog />

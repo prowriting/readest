@@ -20,6 +20,12 @@ import {
 import type { TTSHighlightOptions } from '@/services/tts';
 import { findTapFragment, fragmentFromCfi } from '@/utils/audiobook';
 import { getMediaSession, TauriMediaSession } from '@/libs/mediaSession';
+import {
+  buildBridgeChapters,
+  consumePendingCarPlayIntent,
+  pushChaptersToCar,
+  type CarPlayIntent,
+} from '@/services/audiobook/carBridge';
 import { fetchImageAsBase64 } from '@/utils/image';
 import { uniqueId } from '@/utils/misc';
 import { getStyles } from '@/utils/style';
@@ -768,6 +774,46 @@ export const useAudiobookControl = (bookKey: string) => {
       }
     }
   }, [sessionActive, state, elapsed, total, viewSettings?.moPlaybackRate]);
+
+  // ── Car bridge (CarPlay / Android Auto): serve the chapter list for the
+  // open book and honor head-unit play requests.
+  const playFromCarIntent = useCallback(
+    (intent: CarPlayIntent) => {
+      if (!engine) return;
+      dispatch('PLAY');
+      engine.setRate(viewSettings?.moPlaybackRate ?? 1);
+      manualNavAtRef.current = Date.now();
+      if (typeof intent.chapterIndex === 'number') {
+        void engine.start(intent.chapterIndex).catch(() => dispatch('ERROR'));
+      } else {
+        void play();
+      }
+    },
+    [engine, viewSettings, dispatch, play],
+  );
+
+  useEffect(() => {
+    if (!isAvailable) return;
+    const bookHash = bookKey.split('-')[0]!;
+    const pending = consumePendingCarPlayIntent(bookHash);
+    if (pending) playFromCarIntent(pending);
+    const onCarPlay = (event: CustomEvent<CarPlayIntent>) => {
+      if (event.detail?.bookId === bookHash) {
+        consumePendingCarPlayIntent(bookHash);
+        playFromCarIntent(event.detail);
+      }
+    };
+    eventDispatcher.on('car-audiobook-play', onCarPlay);
+    return () => {
+      eventDispatcher.off('car-audiobook-play', onCarPlay);
+    };
+  }, [isAvailable, bookKey, playFromCarIntent]);
+
+  useEffect(() => {
+    if (!isAvailable || chapters.length === 0) return;
+    const bookHash = bookKey.split('-')[0]!;
+    void pushChaptersToCar(buildBridgeChapters(bookHash, chapters, sectionIndex));
+  }, [isAvailable, bookKey, chapters, sectionIndex]);
 
   const returnToPlaying = useCallback(() => {
     if (!view || !engine || engine.activeSectionIndex < 0) return;

@@ -89,3 +89,77 @@ pub struct UpdateMediaSessionMetadataRequest {
     pub album: Option<String>,
     pub artwork: Option<String>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BridgeAudiobook {
+    pub id: String,
+    pub title: String,
+    pub author: String,
+    pub duration_sec: f64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateAudiobookLibraryRequest {
+    pub books: Vec<BridgeAudiobook>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BridgeChapter {
+    pub index: u32,
+    pub label: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateAudiobookChaptersRequest {
+    pub book_id: String,
+    pub chapters: Vec<BridgeChapter>,
+    pub current_index: Option<u32>,
+}
+
+#[cfg(test)]
+mod bridge_contract_tests {
+    use super::*;
+
+    // These JSON strings are exactly what the TS side sends
+    // (src/services/audiobook/carBridge.ts) — the wire contract.
+    #[test]
+    fn deserializes_the_library_payload_from_ts() {
+        let json = r#"{
+            "books": [
+                {"id": "abc123", "title": "New Audio", "author": "A. Author", "durationSec": 30},
+                {"id": "def456", "title": "Old Audio", "author": "", "durationSec": 0}
+            ]
+        }"#;
+        let payload: UpdateAudiobookLibraryRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.books.len(), 2);
+        assert_eq!(payload.books[0].id, "abc123");
+        assert_eq!(payload.books[0].duration_sec, 30.0);
+    }
+
+    #[test]
+    fn deserializes_the_chapters_payload_from_ts() {
+        let json = r#"{
+            "bookId": "abc123",
+            "currentIndex": 1,
+            "chapters": [
+                {"index": 0, "label": "Chapter 1"},
+                {"index": 1, "label": "Chapter 2"}
+            ]
+        }"#;
+        let payload: UpdateAudiobookChaptersRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.book_id, "abc123");
+        assert_eq!(payload.current_index, Some(1));
+        assert_eq!(payload.chapters[1].label, "Chapter 2");
+    }
+
+    #[test]
+    fn chapters_payload_tolerates_a_missing_current_index() {
+        let json = r#"{"bookId": "abc123", "chapters": []}"#;
+        let payload: UpdateAudiobookChaptersRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.current_index, None);
+    }
+}

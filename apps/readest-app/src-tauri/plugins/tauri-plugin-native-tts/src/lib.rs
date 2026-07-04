@@ -48,6 +48,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::set_media_session_active,
             commands::update_media_session_state,
             commands::update_media_session_metadata,
+            commands::update_audiobook_library,
+            commands::update_audiobook_chapters,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]
