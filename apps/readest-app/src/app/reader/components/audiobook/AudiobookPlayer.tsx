@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import React, { useState } from 'react';
 import {
+  MdAirplay,
   MdBookmark,
   MdDeleteOutline,
   MdOutlineBookmarkAdd,
@@ -22,6 +23,7 @@ import type { TTSHighlightOptions } from '@/services/tts';
 import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
 import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
 import type { SleepTimerMode } from '@/services/audiobook/sleepTimer';
+import { audioRoutePickerAvailable, showAudioRoutePicker } from '@/services/audiobook/audioRoute';
 import type { AudiobookBookmark, AudiobookChapter } from '../../hooks/useAudiobookControl';
 
 const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
@@ -145,6 +147,17 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
       <div className='flex items-center justify-between gap-2'>
         <span className='truncate text-base font-semibold'>{title}</span>
         <div className='flex items-center gap-1'>
+          {audioRoutePickerAvailable() && (
+            <button
+              type='button'
+              className='btn btn-ghost btn-circle btn-sm eink-bordered'
+              aria-label={_('Audio Output')}
+              title={_('Audio Output')}
+              onClick={() => void showAudioRoutePicker()}
+            >
+              <MdAirplay size={iconSize} />
+            </button>
+          )}
           <button
             type='button'
             className='btn btn-ghost btn-circle btn-sm eink-bordered'

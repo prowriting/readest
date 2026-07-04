@@ -71,4 +71,7 @@ impl<R: Runtime> NativeTts<R> {
     ) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+    pub fn show_audio_route_picker(&self) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
 }

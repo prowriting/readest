@@ -164,3 +164,16 @@ test.describe('audiobook media session', () => {
     await expect.poll(() => mediaSessionPlaybackState(page), { timeout: 5_000 }).toBe('none');
   });
 });
+
+test('the system audio-route picker is only offered where the platform provides one', async ({
+  page,
+  openBook,
+}) => {
+  await openBook(AUDIOBOOK_MO_EPUB);
+  const player = new AudiobookPlayerPage(page);
+  await player.expandButton.click();
+  await expect(player.fullPlayer).toBeVisible();
+  // Web builds route audio via the OS; the AVRoutePickerView button is an
+  // iOS-app affordance and must not render here.
+  await expect(page.getByRole('button', { name: 'Audio Output', exact: true })).toHaveCount(0);
+});

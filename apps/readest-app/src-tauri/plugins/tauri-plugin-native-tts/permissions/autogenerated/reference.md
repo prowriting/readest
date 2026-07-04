@@ -18,6 +18,7 @@ Default permissions for the plugin
 - `allow-update-media-session-metadata`
 - `allow-update-audiobook-library`
 - `allow-update-audiobook-chapters`
+- `allow-show-audio-route-picker`
 - `allow-register-listener`
 - `allow-remove-listener`
 - `allow-check-permissions`
@@ -394,6 +395,32 @@ Enables the set_voice command without any pre-configured scope.
 <td>
 
 Denies the set_voice command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-show-audio-route-picker`
+
+</td>
+<td>
+
+Enables the show_audio_route_picker command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-show-audio-route-picker`
+
+</td>
+<td>
+
+Denies the show_audio_route_picker command without any pre-configured scope.
 
 </td>
 </tr>

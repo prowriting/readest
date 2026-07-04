@@ -463,6 +463,18 @@
           "markdownDescription": "Denies the set_voice command without any pre-configured scope."
         },
         {
+          "description": "Enables the show_audio_route_picker command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-show-audio-route-picker",
+          "markdownDescription": "Enables the show_audio_route_picker command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the show_audio_route_picker command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-show-audio-route-picker",
+          "markdownDescription": "Denies the show_audio_route_picker command without any pre-configured scope."
+        },
+        {
           "description": "Enables the speak command without any pre-configured scope.",
           "type": "string",
           "const": "allow-speak",
@@ -535,10 +547,10 @@
           "markdownDescription": "Denies the update_media_session_state command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`"
         }
       ]
     }

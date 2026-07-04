@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-show-audio-route-picker"
+description = "Enables the show_audio_route_picker command without any pre-configured scope."
+commands.allow = ["show_audio_route_picker"]
+
+[[permission]]
+identifier = "deny-show-audio-route-picker"
+description = "Denies the show_audio_route_picker command without any pre-configured scope."
+commands.deny = ["show_audio_route_picker"]

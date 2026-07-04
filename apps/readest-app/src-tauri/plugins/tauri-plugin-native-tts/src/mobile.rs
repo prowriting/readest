@@ -140,3 +140,11 @@ impl<R: Runtime> NativeTts<R> {
             .map_err(Into::into)
     }
 }
+
+impl<R: Runtime> NativeTts<R> {
+    pub fn show_audio_route_picker(&self) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin("show_audio_route_picker", ())
+            .map_err(Into::into)
+    }
+}

@@ -91,3 +91,8 @@ pub(crate) async fn update_audiobook_chapters<R: Runtime>(
 ) -> Result<()> {
     app.native_tts().update_audiobook_chapters(payload)
 }
+
+#[command]
+pub(crate) async fn show_audio_route_picker<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+    app.native_tts().show_audio_route_picker()
+}

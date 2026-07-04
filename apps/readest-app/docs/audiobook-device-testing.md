@@ -61,10 +61,28 @@ mo-sentences.epub`) or any real EPUB3 media-overlay title.
       by chapter.
 - [ ] Volume keys work during playback with the screen off.
 
-## Wearable surfaces (system now-playing, phase 10 preview)
+## AirPlay & audio routes (iOS)
 
-- [ ] Apple Watch "Now Playing" shows the book and controls play/pause/skip.
-- [ ] Wear OS media controls show the book and control playback.
+- [ ] The Audio Output button in the full player opens the system route
+      sheet; picking an AirPlay speaker moves the audio there.
+- [ ] Position keeps advancing and the read-along highlight stays in sync
+      while routed to AirPlay; switching back to the phone never loses the
+      position.
+- [ ] Route switch mid-chapter across a section boundary keeps auto-advance
+      working.
+
+## Wearable surfaces (system now-playing)
+
+Decision (recorded in the plan): v1 wearable support is the system
+now-playing surfaces driven by the media session — the PRD asks for
+playback controls, which these satisfy. Dedicated Watch/Wear apps are
+deferred.
+
+- [ ] Apple Watch "Now Playing" shows the book title, author, chapter and
+      artwork; play/pause and skip forward/back work and mirror the phone.
+- [ ] Watch skip buttons honor the configured skip intervals.
+- [ ] Wear OS media controls show the book and control play/pause/skip.
+- [ ] Locking the phone does not drop the wearable controls.
 
 ## Known platform notes
 

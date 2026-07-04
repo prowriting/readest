@@ -1,3 +1,4 @@
+import AVKit
 import SwiftRs
 import Tauri
 import UIKit
@@ -58,6 +59,30 @@ class NativeTTSPlugin: Plugin {
       )
     }
     AudiobookCarLibrary.shared.updateBooks(books)
+    invoke.resolve()
+  }
+
+  @objc public func show_audio_route_picker(_ invoke: Invoke) throws {
+    DispatchQueue.main.async {
+      // AVRoutePickerView is a button, not an API: attach it off-screen and
+      // press it. This presents the system AirPlay/output sheet, which then
+      // routes the WKWebView's audio at the OS level.
+      guard
+        let window = UIApplication.shared.connectedScenes
+          .compactMap({ $0 as? UIWindowScene })
+          .flatMap({ $0.windows })
+          .first(where: { $0.isKeyWindow })
+      else { return }
+      let picker = AVRoutePickerView(frame: CGRect(x: -100, y: -100, width: 44, height: 44))
+      picker.alpha = 0.01
+      window.addSubview(picker)
+      if let button = picker.subviews.compactMap({ $0 as? UIButton }).first {
+        button.sendActions(for: .touchUpInside)
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        picker.removeFromSuperview()
+      }
+    }
     invoke.resolve()
   }
 

@@ -238,8 +238,8 @@ One PR per phase onto `main` (phases 0–6 are pure web/TS and independently shi
 | 3 | W3C/LPF packages + bare `.m4b` import in v1 | **Defer**; EPUB3-only v1, m4b-as-in-package-codec covered |
 | 4 | Streaming-without-full-download (PRD 5.1) | **Defer**; v1 = download-to-play (current model), streaming phase later |
 | 5 | Download quality/bitrate selection | **Defer** (needs server transcoding — BookArcReaderApi ticket) |
-| 6 | Chromecast scope | **Defer / decision gate** at Phase 10 |
-| 7 | Dedicated Watch/Wear apps | **Defer**; system Now Playing surfaces satisfy v1 controls |
+| 6 | Chromecast scope | **Decision presented at Phase 10 (2026-07-04), awaiting Chris.** Options: (a) defer entirely — recommended; (b) cloud-stored books only, casting remote URLs via the native Cast SDK (est. M-L: Cast sender on both platforms + receiver-reachable URLs + no offline casting); (c) full local casting — needs an embedded HTTP server on the phone serving book audio to the receiver (L, security surface, battery). Default remains (a). |
+| 7 | Dedicated Watch/Wear apps | **RESOLVED as planned (Phase 10, 2026-07-04): deferred.** System Now Playing surfaces (Watch/Wear) driven by the media session satisfy the PRD's "playback controls"; verified via the device checklist. |
 
 ## 6. Risks
 
