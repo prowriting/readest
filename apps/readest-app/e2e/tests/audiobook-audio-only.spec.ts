@@ -41,7 +41,9 @@ test.describe('audio-only audiobooks', () => {
     const player = new AudiobookPlayerPage(reader.page);
 
     await expect(player.playerScreen).toBeVisible();
-    await expect(player.playerScreen).toContainText('MO Audio Only');
+    // The screen leads with the chapter title (PRD §5.1 mock); the book
+    // identity is carried by the cover.
+    await expect(player.playerScreen).toContainText('Chapter 1');
     // The full transport lives on the screen — no tray while expanded.
     await expect(player.playButton).toBeVisible();
     await expect(player.scrubber).toBeVisible();

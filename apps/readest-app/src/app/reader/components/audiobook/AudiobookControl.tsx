@@ -71,12 +71,10 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
 
   if (expanded) {
     return (
-      <AudiobookFullScreen
-        book={book}
-        gridInsets={gridInsets}
-        onGoToLibrary={isAudioOnly ? onGoToLibrary : undefined}
-      >
+      <AudiobookFullScreen gridInsets={gridInsets}>
         <AudiobookPlayer
+          book={book}
+          onGoToLibrary={isAudioOnly ? onGoToLibrary : undefined}
           state={audiobook.state}
           title={audiobook.chapterLabel || audiobook.title}
           elapsed={audiobook.elapsed}

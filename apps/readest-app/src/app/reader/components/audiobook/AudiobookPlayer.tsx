@@ -2,25 +2,27 @@ import clsx from 'clsx';
 import React, { useState } from 'react';
 import {
   MdAirplay,
-  MdBedtime,
+  MdArrowBackIosNew,
   MdBookmark,
+  MdClose,
   MdDeleteOutline,
-  MdKeyboardArrowDown,
   MdMoreHoriz,
   MdOutlineBookmarkAdd,
   MdOutlinePause,
+  MdOutlineTimer,
   MdPlayArrow,
   MdReplay,
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
 import { RiForward30Line, RiListUnordered, RiReplay15Line } from 'react-icons/ri';
+import BookCover from '@/components/BookCover';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { formatPlaybackTime, formatTimeLeft } from '@/services/audiobook/bookTimeline';
 import type { AudiobookPlaybackState } from '@/services/audiobook/playbackMachine';
 import type { TTSHighlightOptions } from '@/services/tts';
-import { DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
+import { Book, DEFAULT_HIGHLIGHT_COLORS, type DefaultHighlightColor } from '@/types/book';
 import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
 import type { SleepTimerMode } from '@/services/audiobook/sleepTimer';
 import { audioRoutePickerAvailable, showAudioRoutePicker } from '@/services/audiobook/audioRoute';
@@ -42,6 +44,9 @@ const SLEEP_EXTEND_MINUTES = 15;
 type PlayerPanel = 'none' | 'sleep' | 'settings';
 
 interface AudiobookPlayerProps {
+  book: Book;
+  /** Library escape hatch for audio-only books, which hide the header bar. */
+  onGoToLibrary?: () => void;
   state: AudiobookPlaybackState;
   /** Current chapter label (falls back to the book title). */
   title: string;
@@ -81,11 +86,14 @@ interface AudiobookPlayerProps {
 }
 
 /**
- * Fullscreen player controls (PRD §5.1): top bar with chapter list, speed,
- * sleep timer, bookmark, overflow and minimize; chapter title; whole-book
- * time-left; a CHAPTER-scoped scrubber (elapsed / -remaining); transport.
+ * Fullscreen player (PRD §5.1 mock): top bar (chapters left; speed, sleep,
+ * bookmark, overflow, close right), large rounded cover, bold chapter title,
+ * whole-book time-left, a hairline CHAPTER-scoped scrubber with the time
+ * labels underneath, and a transport row around a large outlined play.
  */
 const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
+  book,
+  onGoToLibrary,
   state,
   title,
   elapsed,
@@ -141,12 +149,23 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
     <div
       role='dialog'
       aria-label={_('Audiobook Player')}
-      className='bg-base-100 relative mx-auto flex w-full max-w-lg flex-col gap-3 p-4'
+      className='mx-auto flex min-h-full w-full max-w-lg flex-col gap-3'
     >
-      <div className='flex items-center justify-end gap-1'>
+      <div className='flex items-center gap-1'>
+        {onGoToLibrary && (
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle btn-sm'
+            aria-label={_('Go to Library')}
+            title={_('Go to Library')}
+            onClick={onGoToLibrary}
+          >
+            <MdArrowBackIosNew size={iconSize} />
+          </button>
+        )}
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          className='btn btn-ghost btn-circle btn-sm'
           aria-label={_('Chapters')}
           title={_('Chapters')}
           onClick={onShowChapters}
@@ -155,7 +174,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         </button>
         <button
           type='button'
-          className='btn btn-ghost btn-sm eink-bordered rounded-full px-2 tabular-nums'
+          className='btn btn-ghost btn-sm eink-bordered ms-auto rounded-full px-2 tabular-nums'
           aria-label={_('Playback Speed')}
           title={_('Playback Speed')}
           onClick={onCycleRate}
@@ -165,18 +184,18 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         <button
           type='button'
           className={clsx(
-            'btn btn-ghost btn-circle btn-sm eink-bordered',
+            'btn btn-ghost btn-circle btn-sm',
             sleepTimerMode != null && 'text-primary',
           )}
           aria-label={_('Sleep Timer')}
           title={_('Sleep Timer')}
           onClick={() => togglePanel('sleep')}
         >
-          <MdBedtime size={iconSize} />
+          <MdOutlineTimer size={iconSize} />
         </button>
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          className='btn btn-ghost btn-circle btn-sm'
           aria-label={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
           title={isCurrentBookmarked ? _('Remove Bookmark') : _('Add Bookmark')}
           onClick={onToggleBookmark}
@@ -189,7 +208,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         </button>
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm eink-bordered'
+          className='btn btn-ghost btn-circle btn-sm'
           aria-label={_('Player Settings')}
           title={_('Player Settings')}
           onClick={() => togglePanel('settings')}
@@ -203,7 +222,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
           title={_('Minimize Player')}
           onClick={onClose}
         >
-          <MdKeyboardArrowDown size={iconSize} />
+          <MdClose size={iconSize} />
         </button>
       </div>
 
@@ -394,90 +413,108 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
         </div>
       )}
 
-      <div className='truncate text-center text-base font-semibold'>{title}</div>
-      {bookRemaining != null && (
+      <div className='my-auto flex w-full flex-col items-center'>
         <div
-          aria-label={_('Time Left in Book')}
-          className='text-base-content/70 text-center text-sm'
-          dir='ltr'
+          aria-label={_('Audiobook Cover')}
+          className='eink-bordered aspect-[28/41] w-[min(60vw,30vh,18rem)] shrink-0 overflow-hidden rounded-2xl shadow-xl'
         >
-          {_('{{time}} left', { time: formatTimeLeft(bookRemaining) })}
+          <BookCover book={book} mode='grid' />
         </div>
-      )}
-
-      {chapterDuration > 0 && (
-        <div className='flex items-center gap-2' dir='ltr'>
-          <span aria-label={_('Elapsed Time')} className='w-12 text-end text-xs tabular-nums'>
-            {formatPlaybackTime(chapterElapsed)}
-          </span>
-          <input
-            type='range'
-            className='range range-primary range-xs flex-1'
-            aria-label={_('Chapter Position')}
-            min={0}
-            max={Math.ceil(chapterDuration)}
-            step={1}
-            value={Math.min(Math.floor(chapterElapsed), Math.ceil(chapterDuration))}
-            onChange={(e) => onSeekToChapterTime(Number(e.target.value))}
-          />
-          <span aria-label={_('Time Remaining')} className='w-12 text-xs tabular-nums'>
-            -{formatPlaybackTime(chapterRemaining)}
-          </span>
+        <div className='line-clamp-2 mt-6 px-2 text-center text-2xl font-bold leading-tight'>
+          {title}
         </div>
-      )}
+        {bookRemaining != null && (
+          <div
+            aria-label={_('Time Left in Book')}
+            className='text-base-content/70 mt-1 text-center text-sm'
+            dir='ltr'
+          >
+            {_('{{time}} left', { time: formatTimeLeft(bookRemaining) })}
+          </div>
+        )}
 
-      <div className='flex items-center justify-center gap-2'>
-        <button
-          type='button'
-          className='btn btn-ghost btn-circle eink-bordered'
-          aria-label={_('Previous Chapter')}
-          title={_('Previous Chapter')}
-          onClick={onPrevChapter}
-        >
-          <MdSkipPrevious size={iconSize} />
-        </button>
-        <button
-          type='button'
-          className='btn btn-ghost btn-circle eink-bordered'
-          aria-label={_('Skip Back')}
-          title={_('Skip Back {{sec}} s', { sec: skipBackSec })}
-          onClick={onSkipBack}
-        >
-          <RiReplay15Line size={iconSize} />
-        </button>
-        <button
-          type='button'
-          className='btn btn-circle btn-primary'
-          aria-label={isPlaying ? _('Pause') : _('Play')}
-          title={isPlaying ? _('Pause') : _('Play')}
-          onClick={onTogglePlay}
-        >
-          {isPlaying ? (
-            <MdOutlinePause size={playIconSize} />
-          ) : state === 'ended' ? (
-            <MdReplay size={playIconSize} />
-          ) : (
-            <MdPlayArrow size={playIconSize} />
-          )}
-        </button>
-        <button
-          type='button'
-          className='btn btn-ghost btn-circle eink-bordered'
-          aria-label={_('Skip Forward')}
-          title={_('Skip Forward {{sec}} s', { sec: skipForwardSec })}
-          onClick={onSkipForward}
-        >
-          <RiForward30Line size={iconSize} />
-        </button>
-        <button
-          type='button'
-          className='btn btn-ghost btn-circle eink-bordered'
-          aria-label={_('Next Chapter')}
-          title={_('Next Chapter')}
-          onClick={onNextChapter}
-        >
-          <MdSkipNext size={iconSize} />
-        </button>
+        {chapterDuration > 0 && (
+          <div className='mt-8 flex w-full flex-col gap-1' dir='ltr'>
+            <input
+              type='range'
+              className='thin-scrubber w-full'
+              aria-label={_('Chapter Position')}
+              min={0}
+              max={Math.ceil(chapterDuration)}
+              step={1}
+              value={Math.min(Math.floor(chapterElapsed), Math.ceil(chapterDuration))}
+              onChange={(e) => onSeekToChapterTime(Number(e.target.value))}
+            />
+            <div className='flex items-center justify-between'>
+              <span
+                aria-label={_('Elapsed Time')}
+                className='text-base-content/70 text-xs tabular-nums'
+              >
+                {formatPlaybackTime(chapterElapsed)}
+              </span>
+              <span
+                aria-label={_('Time Remaining')}
+                className='text-base-content/70 text-xs tabular-nums'
+              >
+                -{formatPlaybackTime(chapterRemaining)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className='mt-6 flex items-center justify-center gap-3'>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle'
+            aria-label={_('Previous Chapter')}
+            title={_('Previous Chapter')}
+            onClick={onPrevChapter}
+          >
+            <MdSkipPrevious size={iconSize} />
+          </button>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle'
+            aria-label={_('Skip Back')}
+            title={_('Skip Back {{sec}} s', { sec: skipBackSec })}
+            onClick={onSkipBack}
+          >
+            <RiReplay15Line size={iconSize} />
+          </button>
+          <button
+            type='button'
+            className='btn btn-circle btn-outline btn-primary h-[4.5rem] w-[4.5rem] border-2'
+            aria-label={isPlaying ? _('Pause') : _('Play')}
+            title={isPlaying ? _('Pause') : _('Play')}
+            onClick={onTogglePlay}
+          >
+            {isPlaying ? (
+              <MdOutlinePause size={playIconSize} />
+            ) : state === 'ended' ? (
+              <MdReplay size={playIconSize} />
+            ) : (
+              <MdPlayArrow size={playIconSize} />
+            )}
+          </button>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle'
+            aria-label={_('Skip Forward')}
+            title={_('Skip Forward {{sec}} s', { sec: skipForwardSec })}
+            onClick={onSkipForward}
+          >
+            <RiForward30Line size={iconSize} />
+          </button>
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle'
+            aria-label={_('Next Chapter')}
+            title={_('Next Chapter')}
+            onClick={onNextChapter}
+          >
+            <MdSkipNext size={iconSize} />
+          </button>
+        </div>
       </div>
     </div>
   );

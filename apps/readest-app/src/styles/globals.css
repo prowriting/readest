@@ -482,6 +482,64 @@ input[type='range'].slider-input {
   appearance: none;
 }
 
+/* Hairline scrubber for the fullscreen audiobook player (PRD §5.1 mock):
+   3px rounded track, 12px dot thumb, quiet focus ring. */
+input[type='range'].thin-scrubber {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range'].thin-scrubber::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 9999px;
+  background: theme('colors.base-300');
+}
+
+input[type='range'].thin-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
+  margin-top: -4.5px;
+  border: none;
+  border-radius: 9999px;
+  background: theme('colors.base-content');
+}
+
+input[type='range'].thin-scrubber::-moz-range-track {
+  height: 3px;
+  border-radius: 9999px;
+  background: theme('colors.base-300');
+}
+
+input[type='range'].thin-scrubber::-moz-range-progress {
+  height: 3px;
+  border-radius: 9999px;
+  background: theme('colors.base-content/0.6');
+}
+
+input[type='range'].thin-scrubber::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border: none;
+  border-radius: 9999px;
+  background: theme('colors.base-content');
+}
+
+input[type='range'].thin-scrubber:focus-visible {
+  outline: none;
+}
+
+input[type='range'].thin-scrubber:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px theme('colors.base-content/0.15');
+}
+
+input[type='range'].thin-scrubber:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px theme('colors.base-content/0.15');
+}
+
 @keyframes spin-counterclockwise {
   from {
     transform: rotate(0deg);
@@ -651,6 +709,17 @@ input[type='range'].slider-input {
 
 [data-eink='true'] input[type='checkbox'] {
   --tglbg: theme('colors.base-100') !important;
+}
+
+/* Pseudo-elements escape the attribute-based eink rules above: force the
+   audiobook scrubber's track to full contrast. */
+[data-eink='true'] input[type='range'].thin-scrubber::-webkit-slider-runnable-track {
+  background: theme('colors.base-content') !important;
+}
+
+[data-eink='true'] input[type='range'].thin-scrubber::-moz-range-track,
+[data-eink='true'] input[type='range'].thin-scrubber::-moz-range-progress {
+  background: theme('colors.base-content') !important;
 }
 
 .no-transitions * {
