@@ -45,8 +45,12 @@ const PLAYBACK_ACTIVE_CLASS = '-epub-media-overlay-playing';
 
 const toneFrequency = (clipIndex: number): number => 220 * 2 ** ((clipIndex % 13) / 12);
 
-/** One WAV whose audio is a sequence of tones, one per clip duration. */
-const toneWav = (clipSeconds: number[]): Uint8Array => {
+/**
+ * One WAV whose audio is a sequence of tones, one per clip duration.
+ * `amplitude: 0` yields silence — used by the long fixture, where tones
+ * would bloat the committed bytes and only duration matters.
+ */
+const toneWav = (clipSeconds: number[], amplitude = 45): Uint8Array => {
   const totalSamples = clipSeconds.reduce((sum, sec) => sum + Math.round(sec * SAMPLE_RATE), 0);
   const samples = new Uint8Array(totalSamples);
   let offset = 0;
@@ -54,7 +58,8 @@ const toneWav = (clipSeconds: number[]): Uint8Array => {
     const count = Math.round(seconds * SAMPLE_RATE);
     const freq = toneFrequency(clip);
     for (let s = 0; s < count; s++) {
-      samples[offset + s] = 128 + Math.round(45 * Math.sin((2 * Math.PI * freq * s) / SAMPLE_RATE));
+      samples[offset + s] =
+        128 + Math.round(amplitude * Math.sin((2 * Math.PI * freq * s) / SAMPLE_RATE));
     }
     offset += count;
   });
@@ -323,6 +328,53 @@ export const buildMoSentencesEpub = (): FixtureEpub => {
   return { name: 'mo-sentences.epub', bytes };
 };
 
+/**
+ * A book long enough that a default 30-second skip lands inside it: three
+ * 20s chapters (8 sentences × 2.5s), 60s total. Audio is silent so the
+ * committed fixture stays small; only the timeline matters to its specs.
+ */
+export const buildMoLongEpub = (): FixtureEpub => {
+  const chapters: ChapterRef[] = [
+    { slug: 'c1', label: 'Chapter 1' },
+    { slug: 'c2', label: 'Chapter 2' },
+    { slug: 'c3', label: 'Chapter 3' },
+  ];
+  const title = 'MO Long (Bookarc e2e)';
+  const files: Array<[string, string | Uint8Array]> = [
+    ['META-INF/container.xml', CONTAINER_XML],
+    [
+      'OEBPS/content.opf',
+      opfDoc({
+        uuid: '3b2a5f04-0000-4000-8000-000000000005',
+        title,
+        chapters,
+        audioFiles: ['c1.wav', 'c2.wav', 'c3.wav'],
+        overlayDurations: { c1: 20, c2: 20, c3: 20 },
+        totalDuration: 60,
+      }),
+    ],
+    ['OEBPS/nav.xhtml', navXhtml(title, chapters)],
+  ];
+  chapters.forEach((chapter, i) => {
+    const n = i + 1;
+    files.push(
+      [`OEBPS/text/${chapter.slug}.xhtml`, chapterXhtml(chapter.label, sentenceParagraph(n, 8))],
+      [
+        `OEBPS/smil/${chapter.slug}.smil`,
+        smilDoc(chapter.slug, contiguousClips(8, 2.5, `${chapter.slug}.wav`, 's')),
+      ],
+      [
+        `OEBPS/audio/${chapter.slug}.wav`,
+        toneWav(
+          Array.from({ length: 8 }, () => 2.5),
+          0,
+        ),
+      ],
+    );
+  });
+  return { name: 'mo-long.epub', bytes: packEpub(files) };
+};
+
 export const buildMoAudioOnlyEpub = (): FixtureEpub => {
   const chapters: ChapterRef[] = [
     { slug: 'c1', label: 'Chapter 1' },
@@ -453,6 +505,7 @@ export const buildMoAacEpub = (m4aBySlug: Record<'c1' | 'c2', Uint8Array>): Fixt
 
 export const buildAllAudiobookFixtures = (): FixtureEpub[] => [
   buildMoSentencesEpub(),
+  buildMoLongEpub(),
   buildMoAudioOnlyEpub(),
   buildMoMalformedEpub(),
 ];

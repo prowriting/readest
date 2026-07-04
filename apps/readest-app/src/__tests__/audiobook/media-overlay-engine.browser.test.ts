@@ -159,6 +159,45 @@ describe('MediaOverlay engine — seeking (Phase 2)', () => {
     await poll(() => engine.sectionOffset >= 10.4 && engine.sectionOffset < 12);
   });
 
+  it('seekRelative while paused reports the target position and stays paused', async () => {
+    const engine = createEngine();
+    const first = nextEvent<MediaOverlayItem>(engine, 'highlight');
+    await withGesture(() => engine.startAtOffset(0, 2.0));
+    await first;
+    await poll(() => engine.sectionOffset >= 2.0);
+    engine.pause();
+    const pausedAt = engine.sectionOffset; // ≈2.0–2.4s into section 0 (12s)
+
+    // +13s crosses into section 1: a NEW audio element is created while
+    // paused. Regression: `highlight` fired before the seek was applied to
+    // the fresh element (currentTime set pre-metadata), so listeners that
+    // sync UI position on highlight — the reader's clock — captured the
+    // file start, and nothing ever corrected it while paused.
+    let offsetAtHighlight = -1;
+    const afterSeek = new Promise<void>((resolve) => {
+      engine.addEventListener(
+        'highlight',
+        () => {
+          offsetAtHighlight = engine.sectionOffset;
+          resolve();
+        },
+        { once: true },
+      );
+    });
+    await engine.seekRelative(13);
+    await afterSeek;
+    expect(engine.activeSectionIndex).toBe(1);
+    expect(offsetAtHighlight).toBeGreaterThanOrEqual(pausedAt + 0.6);
+    expect(offsetAtHighlight).toBeLessThan(pausedAt + 1.6);
+    expect(engine.sectionOffset).toBeGreaterThanOrEqual(pausedAt + 0.9);
+    expect(engine.sectionOffset).toBeLessThan(pausedAt + 1.6);
+
+    // Still paused: the timeline must not advance on its own.
+    const settled = engine.sectionOffset;
+    await new Promise((r) => setTimeout(r, 500));
+    expect(engine.sectionOffset).toBeCloseTo(settled, 1);
+  });
+
   it('seekRelative past the end of the book dispatches ended', async () => {
     const engine = createEngine();
     const first = nextEvent<MediaOverlayItem>(engine, 'highlight');

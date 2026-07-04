@@ -7,6 +7,7 @@ import {
 } from '../fixtures/audio-instrumentation';
 import {
   AUDIOBOOK_AUDIO_ONLY_EPUB,
+  AUDIOBOOK_LONG_EPUB,
   AUDIOBOOK_MALFORMED_EPUB,
   AUDIOBOOK_MO_EPUB,
 } from '../fixtures/books';
@@ -19,6 +20,7 @@ import {
 test.describe('audiobook fixture books', () => {
   const fixtures: [string, string][] = [
     ['sentence-level media overlay book', AUDIOBOOK_MO_EPUB],
+    ['long media overlay book', AUDIOBOOK_LONG_EPUB],
     ['audio-only book', AUDIOBOOK_AUDIO_ONLY_EPUB],
     ['malformed media overlay book', AUDIOBOOK_MALFORMED_EPUB],
   ];

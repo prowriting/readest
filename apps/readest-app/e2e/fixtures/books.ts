@@ -22,6 +22,8 @@ export const SAMPLE_EPUB = path.join(
  * format Playwright's bundled Chromium is guaranteed to decode.
  */
 export const AUDIOBOOK_MO_EPUB = path.join(fixturesDir, 'books/mo-sentences.epub');
+/** 60s book (3×20s chapters, silent audio) — default 30s skips land inside it. */
+export const AUDIOBOOK_LONG_EPUB = path.join(fixturesDir, 'books/mo-long.epub');
 /** Title-only chapters, one full-chapter clip each — the audio-only shape. */
 export const AUDIOBOOK_AUDIO_ONLY_EPUB = path.join(fixturesDir, 'books/mo-audio-only.epub');
 /** Chapter 2 references missing audio; chapter 3 SMIL is not well-formed. */

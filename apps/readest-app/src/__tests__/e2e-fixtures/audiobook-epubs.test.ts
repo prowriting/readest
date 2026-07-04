@@ -336,10 +336,11 @@ describe('buildMoMalformedEpub', () => {
 // ─── Cross-cutting budgets ───────────────────────────────────────────────────
 
 describe('buildAllAudiobookFixtures', () => {
-  it('returns all three books within the committed size budget', () => {
+  it('returns all four books within the committed size budget', () => {
     const fixtures = buildAllAudiobookFixtures();
     expect(fixtures.map((f) => f.name)).toEqual([
       'mo-sentences.epub',
+      'mo-long.epub',
       'mo-audio-only.epub',
       'mo-malformed.epub',
     ]);
