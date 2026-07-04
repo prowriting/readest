@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "پخش‌کننده کوچک کتاب صوتی",
   "Audiobook Player": "پخش‌کننده کتاب صوتی",
   "Open Player": "باز کردن پخش‌کننده",
-  "Close Player": "بستن پخش‌کننده",
   "Chapters": "فصل‌ها",
   "Player Settings": "تنظیمات پخش‌کننده",
   "Skip Forward Interval": "بازه پرش به جلو",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "حذف دانلود ناموفق بود: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "دانلود مسدود شد: دانلود فقط با Wi-Fi فعال است.",
   "Download unavailable while offline.": "دانلود در حالت آفلاین ممکن نیست.",
-  "Audio Output": "خروجی صدا"
+  "Audio Output": "خروجی صدا",
+  "Minimize Player": "کوچک‌کردن پخش‌کننده",
+  "Audiobook Cover": "جلد کتاب صوتی"
 }

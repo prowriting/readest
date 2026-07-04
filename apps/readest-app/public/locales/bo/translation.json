@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "སྒྲ་དེབ་གཏོང་ཆས་ཆུང་ངུ།",
   "Audiobook Player": "སྒྲ་དེབ་གཏོང་ཆས།",
   "Open Player": "གཏོང་ཆས་ཁ་ཕྱེ།",
-  "Close Player": "གཏོང་ཆས་ཁ་རྒྱག",
   "Chapters": "ལེའུ།",
   "Player Settings": "གཏོང་ཆས་སྒྲིག་འགོད།",
   "Skip Forward Interval": "མདུན་མཆོང་བར་གསེང་།",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "ཕབ་ལེན་བསུབ་མ་ཐུབ།: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ཕབ་ལེན་བཀག Wi-Fi ཁོ་ན་སྒྲིག་འགོད་ཡོད།",
   "Download unavailable while offline.": "དྲ་མེད་སྐབས་ཕབ་ལེན་མི་ཐུབ།",
-  "Audio Output": "སྒྲའི་ཕྱིར་གཏོང་།"
+  "Audio Output": "སྒྲའི་ཕྱིར་གཏོང་།",
+  "Minimize Player": "གཏོང་ཆས་ཆུང་དུ་གཏོང་།",
+  "Audiobook Cover": "སྒྲ་དེབ་ཀྱི་མདུན་ཤོག"
 }

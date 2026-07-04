@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Luisterboek-minispeler",
   "Audiobook Player": "Luisterboekspeler",
   "Open Player": "Speler openen",
-  "Close Player": "Speler sluiten",
   "Chapters": "Hoofdstukken",
   "Player Settings": "Spelerinstellingen",
   "Skip Forward Interval": "Interval vooruitspoelen",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "Kon download niet verwijderen: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download geblokkeerd: alleen-wifi staat aan.",
   "Download unavailable while offline.": "Downloaden niet beschikbaar offline.",
-  "Audio Output": "Audio-uitvoer"
+  "Audio Output": "Audio-uitvoer",
+  "Minimize Player": "Speler minimaliseren",
+  "Audiobook Cover": "Audioboekomslag"
 }

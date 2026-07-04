@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "오디오북 미니 플레이어",
   "Audiobook Player": "오디오북 플레이어",
   "Open Player": "플레이어 열기",
-  "Close Player": "플레이어 닫기",
   "Chapters": "챕터",
   "Player Settings": "플레이어 설정",
   "Skip Forward Interval": "앞으로 건너뛰기 간격",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "다운로드를 삭제하지 못했습니다: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "다운로드 차단됨: Wi-Fi 전용 다운로드가 켜져 있습니다.",
   "Download unavailable while offline.": "오프라인에서는 다운로드할 수 없습니다.",
-  "Audio Output": "오디오 출력"
+  "Audio Output": "오디오 출력",
+  "Minimize Player": "플레이어 최소화",
+  "Audiobook Cover": "오디오북 표지"
 }

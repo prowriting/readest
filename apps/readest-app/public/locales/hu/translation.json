@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Hangoskönyv minilejátszó",
   "Audiobook Player": "Hangoskönyv-lejátszó",
   "Open Player": "Lejátszó megnyitása",
-  "Close Player": "Lejátszó bezárása",
   "Chapters": "Fejezetek",
   "Player Settings": "Lejátszó beállításai",
   "Skip Forward Interval": "Előreugrás időköze",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "A letöltés eltávolítása sikertelen: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Letöltés letiltva: csak Wi-Fi engedélyezett.",
   "Download unavailable while offline.": "Letöltés offline nem érhető el.",
-  "Audio Output": "Hangkimenet"
+  "Audio Output": "Hangkimenet",
+  "Minimize Player": "Lejátszó kicsinyítése",
+  "Audiobook Cover": "Hangoskönyv-borító"
 }

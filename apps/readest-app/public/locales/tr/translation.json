@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Sesli kitap mini oynatıcı",
   "Audiobook Player": "Sesli kitap oynatıcı",
   "Open Player": "Oynatıcıyı aç",
-  "Close Player": "Oynatıcıyı kapat",
   "Chapters": "Bölümler",
   "Player Settings": "Oynatıcı ayarları",
   "Skip Forward Interval": "İleri atlama aralığı",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "İndirme kaldırılamadı: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "İndirme engellendi: yalnızca Wi-Fi etkin.",
   "Download unavailable while offline.": "Çevrimdışıyken indirme yapılamaz.",
-  "Audio Output": "Ses çıkışı"
+  "Audio Output": "Ses çıkışı",
+  "Minimize Player": "Oynatıcıyı küçült",
+  "Audiobook Cover": "Sesli kitap kapağı"
 }

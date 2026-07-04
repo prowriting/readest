@@ -1726,7 +1726,6 @@
   "Audiobook Mini Player": "Міні-плеєр аудіокниги",
   "Audiobook Player": "Плеєр аудіокниги",
   "Open Player": "Відкрити плеєр",
-  "Close Player": "Закрити плеєр",
   "Chapters": "Розділи",
   "Player Settings": "Налаштування плеєра",
   "Skip Forward Interval": "Інтервал перемотування вперед",
@@ -1770,5 +1769,7 @@
   "Failed to remove download: {{title}}": "Не вдалося видалити завантаження: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Завантаження заблоковано: увімкнено лише Wi-Fi.",
   "Download unavailable while offline.": "Завантаження недоступне офлайн.",
-  "Audio Output": "Аудіовихід"
+  "Audio Output": "Аудіовихід",
+  "Minimize Player": "Згорнути плеєр",
+  "Audiobook Cover": "Обкладинка аудіокниги"
 }

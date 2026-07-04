@@ -5,12 +5,14 @@ import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri';
 import { RiArrowGoBackLine, RiArrowGoForwardLine } from 'react-icons/ri';
 import { RiArrowLeftDoubleLine, RiArrowRightDoubleLine } from 'react-icons/ri';
 import { useReaderStore } from '@/store/readerStore';
+import { useAudiobookStore } from '@/store/audiobookStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useBookDataStore } from '@/store/bookDataStore';
 import { formatProgress } from '@/utils/progress';
 import type { FooterBarChildProps } from './types';
 import { getNavigationIcon } from './utils';
 import Button from '@/components/Button';
+import AudiobookToolbarButton from '../audiobook/AudiobookToolbarButton';
 
 const DesktopFooterBar: React.FC<FooterBarChildProps> = ({
   bookKey,
@@ -24,6 +26,7 @@ const DesktopFooterBar: React.FC<FooterBarChildProps> = ({
   const _ = useTranslation();
   const { hoveredBookKey, getView, getViewState, getProgress, getViewSettings } = useReaderStore();
   const { getBookData } = useBookDataStore();
+  const hasAudiobook = useAudiobookStore((state) => state.available[bookKey] ?? false);
   const view = getView(bookKey);
   const bookData = getBookData(bookKey);
   const progress = getProgress(bookKey);
@@ -128,11 +131,17 @@ const DesktopFooterBar: React.FC<FooterBarChildProps> = ({
         value={progressValue}
         onChange={(e) => handleProgressChange(parseInt(e.target.value, 10))}
       />
-      <Button
-        icon={<FaHeadphones className={viewState?.ttsEnabled ? 'text-blue-500' : ''} />}
-        onClick={onSpeakText!}
-        label={_('Speak')}
-      />
+      {hasAudiobook ? (
+        // v2 §5.3: books with an audio track swap the TTS button for the
+        // audio-tray toggle.
+        <AudiobookToolbarButton bookKey={bookKey} />
+      ) : (
+        <Button
+          icon={<FaHeadphones className={viewState?.ttsEnabled ? 'text-blue-500' : ''} />}
+          onClick={onSpeakText!}
+          label={_('Speak')}
+        />
+      )}
       {!viewSettings?.showPaginationButtons && (
         <Button
           icon={getNavigationIcon(viewSettings?.rtl, <RiArrowRightSLine />, <RiArrowLeftSLine />)}

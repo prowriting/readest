@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "অডিওবুক মিনি প্লেয়ার",
   "Audiobook Player": "অডিওবুক প্লেয়ার",
   "Open Player": "প্লেয়ার খুলুন",
-  "Close Player": "প্লেয়ার বন্ধ করুন",
   "Chapters": "অধ্যায়সমূহ",
   "Player Settings": "প্লেয়ার সেটিংস",
   "Skip Forward Interval": "সামনে যাওয়ার ব্যবধান",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "ডাউনলোড সরানো যায়নি: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ডাউনলোড আটকানো হয়েছে: শুধু Wi-Fi চালু আছে।",
   "Download unavailable while offline.": "অফলাইনে ডাউনলোড অনুপলব্ধ।",
-  "Audio Output": "অডিও আউটপুট"
+  "Audio Output": "অডিও আউটপুট",
+  "Minimize Player": "প্লেয়ার ছোট করুন",
+  "Audiobook Cover": "অডিওবুকের প্রচ্ছদ"
 }

@@ -1788,7 +1788,6 @@
   "Audiobook Mini Player": "مشغّل الكتاب الصوتي المصغّر",
   "Audiobook Player": "مشغّل الكتاب الصوتي",
   "Open Player": "فتح المشغّل",
-  "Close Player": "إغلاق المشغّل",
   "Chapters": "الفصول",
   "Player Settings": "إعدادات المشغّل",
   "Skip Forward Interval": "فاصل التخطي للأمام",
@@ -1832,5 +1831,7 @@
   "Failed to remove download: {{title}}": "تعذّرت إزالة التنزيل: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "تم حظر التنزيل: التنزيل عبر Wi-Fi فقط مفعّل.",
   "Download unavailable while offline.": "التنزيل غير متاح دون اتصال.",
-  "Audio Output": "مخرج الصوت"
+  "Audio Output": "مخرج الصوت",
+  "Minimize Player": "تصغير المشغّل",
+  "Audiobook Cover": "غلاف الكتاب الصوتي"
 }

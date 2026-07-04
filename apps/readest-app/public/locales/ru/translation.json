@@ -1726,7 +1726,6 @@
   "Audiobook Mini Player": "Мини-плеер аудиокниги",
   "Audiobook Player": "Плеер аудиокниги",
   "Open Player": "Открыть плеер",
-  "Close Player": "Закрыть плеер",
   "Chapters": "Главы",
   "Player Settings": "Настройки плеера",
   "Skip Forward Interval": "Интервал перемотки вперёд",
@@ -1770,5 +1769,7 @@
   "Failed to remove download: {{title}}": "Не удалось удалить загрузку: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Загрузка заблокирована: включён режим «только Wi-Fi».",
   "Download unavailable while offline.": "Загрузка недоступна офлайн.",
-  "Audio Output": "Аудиовыход"
+  "Audio Output": "Аудиовыход",
+  "Minimize Player": "Свернуть плеер",
+  "Audiobook Cover": "Обложка аудиокниги"
 }

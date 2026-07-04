@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "Pemain mini buku audio",
   "Audiobook Player": "Pemain buku audio",
   "Open Player": "Buka pemain",
-  "Close Player": "Tutup pemain",
   "Chapters": "Bab",
   "Player Settings": "Tetapan pemain",
   "Skip Forward Interval": "Selang langkau ke hadapan",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "Gagal mengalih keluar muat turun: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Muat turun disekat: hanya Wi-Fi dibenarkan.",
   "Download unavailable while offline.": "Muat turun tidak tersedia luar talian.",
-  "Audio Output": "Output audio"
+  "Audio Output": "Output audio",
+  "Minimize Player": "Kecilkan pemain",
+  "Audiobook Cover": "Kulit buku audio"
 }

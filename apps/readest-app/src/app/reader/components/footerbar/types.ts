@@ -8,6 +8,8 @@ export interface FooterBarProps {
   pageinfo?: PageInfo;
   isHoveredAnim: boolean;
   gridInsets: Insets;
+  /** Used by the audiobook fullscreen player, which covers the header bar. */
+  onGoToLibrary: () => void;
 }
 
 export interface NavigationHandlers {

@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "有声书迷你播放器",
   "Audiobook Player": "有声书播放器",
   "Open Player": "打开播放器",
-  "Close Player": "关闭播放器",
   "Chapters": "章节",
   "Player Settings": "播放器设置",
   "Skip Forward Interval": "快进间隔",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "移除下载失败：{{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "下载已阻止：已启用仅 Wi-Fi 下载。",
   "Download unavailable while offline.": "离线时无法下载。",
-  "Audio Output": "音频输出"
+  "Audio Output": "音频输出",
+  "Minimize Player": "最小化播放器",
+  "Audiobook Cover": "有声书封面"
 }

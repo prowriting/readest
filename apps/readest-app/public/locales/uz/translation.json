@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Audiokitob mini pleyeri",
   "Audiobook Player": "Audiokitob pleyeri",
   "Open Player": "Pleyerni ochish",
-  "Close Player": "Pleyerni yopish",
   "Chapters": "Boblar",
   "Player Settings": "Pleyer sozlamalari",
   "Skip Forward Interval": "Oldinga o‘tish oralig‘i",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "Yuklab olishni olib tashlab bo‘lmadi: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Yuklab olish bloklandi: faqat Wi-Fi yoqilgan.",
   "Download unavailable while offline.": "Oflaynda yuklab olish mumkin emas.",
-  "Audio Output": "Audio chiqishi"
+  "Audio Output": "Audio chiqishi",
+  "Minimize Player": "Pleyerni kichraytirish",
+  "Audiobook Cover": "Audiokitob muqovasi"
 }

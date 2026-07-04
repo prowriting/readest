@@ -84,7 +84,7 @@ test.describe('audiobook core playback', () => {
 
     await player.expandButton.click();
     await expect(player.fullPlayer).toBeVisible();
-    await player.collapseButton.click();
+    await player.minimizeButton.click();
     await expect(player.fullPlayer).not.toBeVisible();
     await expect(player.miniBar).toBeVisible();
   });

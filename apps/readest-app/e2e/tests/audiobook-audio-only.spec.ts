@@ -40,14 +40,32 @@ test.describe('audio-only audiobooks', () => {
     const reader = await openBook(AUDIOBOOK_AUDIO_ONLY_EPUB);
     const player = new AudiobookPlayerPage(reader.page);
 
-    await expect(player.audioOnlyScreen).toBeVisible();
-    await expect(player.audioOnlyScreen).toContainText('MO Audio Only');
-    // The full transport lives on the screen — no mini bar, no expand/collapse.
+    await expect(player.playerScreen).toBeVisible();
+    await expect(player.playerScreen).toContainText('MO Audio Only');
+    // The full transport lives on the screen — no tray while expanded.
     await expect(player.playButton).toBeVisible();
     await expect(player.scrubber).toBeVisible();
     await expect(player.miniBar).toHaveCount(0);
     await expect(player.expandButton).toHaveCount(0);
-    await expect(player.collapseButton).toHaveCount(0);
+    // v2 §5: audio-only states are fullscreen ↔ minimized bottom tray.
+    await expect(player.minimizeButton).toBeVisible();
+  });
+
+  test('minimize drops the fullscreen player to the tray; expanding restores it', async ({
+    page,
+    openBook,
+  }) => {
+    await openBook(AUDIOBOOK_AUDIO_ONLY_EPUB);
+    const player = new AudiobookPlayerPage(page);
+
+    await expect(player.playerScreen).toBeVisible();
+    await player.minimizeButton.click();
+    await expect(player.playerScreen).toHaveCount(0);
+    await expect(player.miniBar).toBeVisible();
+
+    await player.expandButton.click();
+    await expect(player.playerScreen).toBeVisible();
+    await expect(player.miniBar).toHaveCount(0);
   });
 
   test('plays, navigates chapters, scrubs, and restores the position', async ({
@@ -81,7 +99,7 @@ test.describe('audio-only audiobooks', () => {
 
     await page.reload();
     await reader.waitForReady();
-    await expect(player.audioOnlyScreen).toBeVisible();
+    await expect(player.playerScreen).toBeVisible();
     await player.playButton.click();
     await expect
       .poll(

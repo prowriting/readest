@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "ஒலிப்புத்தக சிறு பிளேயர்",
   "Audiobook Player": "ஒலிப்புத்தக பிளேயர்",
   "Open Player": "பிளேயரைத் திற",
-  "Close Player": "பிளேயரை மூடு",
   "Chapters": "அத்தியாயங்கள்",
   "Player Settings": "பிளேயர் அமைப்புகள்",
   "Skip Forward Interval": "முன்னோக்கி தாவும் இடைவெளி",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "பதிவிறக்கத்தை நீக்க முடியவில்லை: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "பதிவிறக்கம் தடுக்கப்பட்டது: Wi-Fi மட்டும் இயக்கத்தில் உள்ளது.",
   "Download unavailable while offline.": "ஆஃப்லைனில் பதிவிறக்கம் இயலாது.",
-  "Audio Output": "ஒலி வெளியீடு"
+  "Audio Output": "ஒலி வெளியீடு",
+  "Minimize Player": "பிளேயரைச் சிறிதாக்கு",
+  "Audiobook Cover": "ஒலிப்புத்தக அட்டை"
 }

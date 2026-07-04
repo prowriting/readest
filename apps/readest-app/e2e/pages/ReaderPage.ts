@@ -142,11 +142,14 @@ export class ReaderPage extends BasePage {
     }
   }
 
-  /** Reveal the footer bar by clicking its bottom hover strip. */
+  /** Reveal the footer bar by hovering its bottom strip. */
   async revealFooter(): Promise<void> {
     const box = await this.viewer.boundingBox();
     if (box) {
-      await this.page.mouse.click(box.x + box.width / 2, box.y + box.height - 4);
+      // Hover, not click — a click would land on live footer buttons when
+      // the bar is already open. Off-center: the audiobook tray floats
+      // centered over the strip.
+      await this.page.mouse.move(box.x + box.width * 0.15, box.y + box.height - 4);
     }
   }
 

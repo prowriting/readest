@@ -14,7 +14,7 @@ test('an AAC (m4a) audiobook plays', async ({ page, openBook }) => {
   const player = new AudiobookPlayerPage(page);
 
   // Audio-only shape → player screen; playing proves the AAC decode.
-  await expect(player.audioOnlyScreen).toBeVisible();
+  await expect(player.playerScreen).toBeVisible();
   await player.playButton.click();
   await expect.poll(() => lastAudioTime(page), { timeout: 10_000 }).toBeGreaterThan(0.5);
 });

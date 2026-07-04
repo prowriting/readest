@@ -4,8 +4,8 @@ import {
   MdAirplay,
   MdBookmark,
   MdDeleteOutline,
+  MdKeyboardArrowDown,
   MdOutlineBookmarkAdd,
-  MdOutlineClose,
   MdOutlinePause,
   MdOutlineSettings,
   MdPlayArrow,
@@ -34,7 +34,7 @@ const COLOR_NAMES: Record<DefaultHighlightColor, string> = {
   violet: 'Violet',
 };
 
-const SPEED_PRESETS = [0.75, 1, 1.25, 1.5, 2];
+export const SPEED_PRESETS = [0.75, 1, 1.25, 1.5, 2];
 const SKIP_INTERVAL_OPTIONS = [10, 15, 30, 60];
 const SLEEP_MINUTE_OPTIONS = [5, 15, 30, 60];
 const SLEEP_EXTEND_MINUTES = 15;
@@ -55,9 +55,6 @@ interface AudiobookPlayerProps {
   sleepRemainingSec: number | null;
   bookmarks: AudiobookBookmark[];
   isCurrentBookmarked: boolean;
-  /** Embedded in the audio-only screen: static layout, no close control. */
-  fullscreen?: boolean;
-  bottomInset: number;
   onTogglePlay: () => void;
   onSkipForward: () => void;
   onSkipBack: () => void;
@@ -94,8 +91,6 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
   sleepRemainingSec,
   bookmarks,
   isCurrentBookmarked,
-  fullscreen = false,
-  bottomInset,
   onTogglePlay,
   onSkipForward,
   onSkipBack,
@@ -134,15 +129,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
     <div
       role='dialog'
       aria-label={_('Audiobook Player')}
-      className={clsx(
-        'bg-base-100 mx-auto flex w-full max-w-lg flex-col gap-3 p-4',
-        fullscreen
-          ? 'relative'
-          : 'eink-bordered absolute inset-x-0 bottom-0 z-50 rounded-t-2xl shadow-2xl',
-      )}
-      style={{
-        paddingBottom: !fullscreen && bottomInset ? `${bottomInset + 16}px` : undefined,
-      }}
+      className='bg-base-100 relative mx-auto flex w-full max-w-lg flex-col gap-3 p-4'
     >
       <div className='flex items-center justify-between gap-2'>
         <span className='truncate text-base font-semibold'>{title}</span>
@@ -210,17 +197,15 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
           >
             <MdOutlineSettings size={iconSize} />
           </button>
-          {!fullscreen && (
-            <button
-              type='button'
-              className='btn btn-ghost btn-circle btn-sm'
-              aria-label={_('Close Player')}
-              title={_('Close Player')}
-              onClick={onClose}
-            >
-              <MdOutlineClose size={iconSize} />
-            </button>
-          )}
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle btn-sm'
+            aria-label={_('Minimize Player')}
+            title={_('Minimize Player')}
+            onClick={onClose}
+          >
+            <MdKeyboardArrowDown size={iconSize} />
+          </button>
         </div>
       </div>
 

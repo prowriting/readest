@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "ශ්‍රව්‍ය පොත් කුඩා ධාවකය",
   "Audiobook Player": "ශ්‍රව්‍ය පොත් ධාවකය",
   "Open Player": "ධාවකය විවෘත කරන්න",
-  "Close Player": "ධාවකය වසන්න",
   "Chapters": "පරිච්ඡේද",
   "Player Settings": "ධාවක සැකසුම්",
   "Skip Forward Interval": "ඉදිරියට පැනීමේ පරතරය",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "බාගැනීම ඉවත් කළ නොහැකි විය: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "බාගැනීම අවහිරයි: Wi-Fi පමණක් සක්‍රීයයි.",
   "Download unavailable while offline.": "නොබැඳිව බාගැනීම නොහැක.",
-  "Audio Output": "ශ්‍රව්‍ය ප්‍රතිදානය"
+  "Audio Output": "ශ්‍රව්‍ය ප්‍රතිදානය",
+  "Minimize Player": "ධාවකය කුඩා කරන්න",
+  "Audiobook Cover": "ශ්‍රව්‍ය පොතේ කවරය"
 }

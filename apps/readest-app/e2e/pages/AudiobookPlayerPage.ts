@@ -9,16 +9,24 @@ import { BasePage } from './BasePage';
  * these accessible names. Actions/locators only — assertions stay in specs.
  */
 export class AudiobookPlayerPage extends BasePage {
-  /** Compact transport bar shown while an audiobook is open. */
+  /** Docked audio tray (compact transport bar) shown while an audiobook is open. */
   readonly miniBar: Locator;
-  /** Expanded full player (a dialog layered over the reader). */
+  /** Full player controls (a dialog inside the fullscreen player screen). */
   readonly fullPlayer: Locator;
   readonly playButton: Locator;
   readonly pauseButton: Locator;
-  /** Expands the mini bar into the full player. */
+  /** Expands the tray into the fullscreen player. */
   readonly expandButton: Locator;
-  /** Collapses the full player back to the mini bar. */
-  readonly collapseButton: Locator;
+  /** Drops the fullscreen player back to the tray. */
+  readonly minimizeButton: Locator;
+  /** Drag handle on the tray: drag up expands, drag down dismisses. */
+  readonly trayHandle: Locator;
+  /** Speed chip on the tray; tapping cycles through the presets. */
+  readonly traySpeedButton: Locator;
+  /** Footer-bar audio toggle that replaces the TTS button for audio books. */
+  readonly toolbarAudiobookButton: Locator;
+  /** Footer-bar TTS button (present only for books without audio). */
+  readonly toolbarSpeakButton: Locator;
 
   // — transport (full player) —
   readonly skipBackButton: Locator;
@@ -40,9 +48,13 @@ export class AudiobookPlayerPage extends BasePage {
   /** Shown when the reader navigated away from the playing position. */
   readonly returnToPlayingButton: Locator;
 
-  // — audio-only player screen —
-  /** Full-screen player shown for books with no meaningful text. */
-  readonly audioOnlyScreen: Locator;
+  // — fullscreen player screen —
+  /**
+   * Fullscreen player surface: the default view for audio-only books and
+   * the expanded state for text+audio books (v2 PRD §5.1).
+   */
+  readonly playerScreen: Locator;
+  readonly coverArt: Locator;
   readonly screenBackButton: Locator;
 
   // — sleep timer & bookmarks (full player) —
@@ -60,7 +72,19 @@ export class AudiobookPlayerPage extends BasePage {
     this.playButton = page.getByRole('button', { name: 'Play', exact: true }).first();
     this.pauseButton = page.getByRole('button', { name: 'Pause', exact: true }).first();
     this.expandButton = page.getByRole('button', { name: 'Open Player', exact: true });
-    this.collapseButton = page.getByRole('button', { name: 'Close Player', exact: true });
+    this.minimizeButton = page.getByRole('button', { name: 'Minimize Player', exact: true });
+    this.trayHandle = this.miniBar.locator('[data-testid="audiobook-tray-handle"]');
+    this.traySpeedButton = this.miniBar.getByRole('button', { name: 'Playback Speed' });
+    // Both footer bars (mobile + desktop) render the button; at the e2e
+    // desktop viewport only the desktop bar — last in DOM order — is shown.
+    this.toolbarAudiobookButton = page
+      .locator('.footer-bar')
+      .getByRole('button', { name: 'Audiobook', exact: true })
+      .last();
+    this.toolbarSpeakButton = page
+      .locator('.footer-bar')
+      .getByRole('button', { name: 'Speak', exact: true })
+      .last();
 
     this.skipBackButton = page.getByRole('button', { name: 'Skip Back', exact: true });
     this.skipForwardButton = page.getByRole('button', { name: 'Skip Forward', exact: true });
@@ -80,8 +104,9 @@ export class AudiobookPlayerPage extends BasePage {
       exact: true,
     });
 
-    this.audioOnlyScreen = page.locator('[aria-label="Audiobook Screen"]');
-    this.screenBackButton = this.audioOnlyScreen.getByRole('button', {
+    this.playerScreen = page.locator('[aria-label="Audiobook Screen"]');
+    this.coverArt = this.playerScreen.locator('[aria-label="Audiobook Cover"]');
+    this.screenBackButton = this.playerScreen.getByRole('button', {
       name: 'Go to Library',
       exact: true,
     });

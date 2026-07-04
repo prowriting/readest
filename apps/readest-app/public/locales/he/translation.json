@@ -1695,7 +1695,6 @@
   "Audiobook Mini Player": "נגן מוקטן לספר שמע",
   "Audiobook Player": "נגן ספרי שמע",
   "Open Player": "פתיחת הנגן",
-  "Close Player": "סגירת הנגן",
   "Chapters": "פרקים",
   "Player Settings": "הגדרות נגן",
   "Skip Forward Interval": "מרווח דילוג קדימה",
@@ -1739,5 +1738,7 @@
   "Failed to remove download: {{title}}": "הסרת ההורדה נכשלה: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ההורדה נחסמה: מופעל מצב Wi-Fi בלבד.",
   "Download unavailable while offline.": "הורדה אינה זמינה במצב לא מקוון.",
-  "Audio Output": "יציאת שמע"
+  "Audio Output": "יציאת שמע",
+  "Minimize Player": "מזעור הנגן",
+  "Audiobook Cover": "עטיפת ספר השמע"
 }

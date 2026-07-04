@@ -24,6 +24,7 @@ const FooterBar: React.FC<FooterBarProps> = ({
   pageinfo,
   isHoveredAnim,
   gridInsets,
+  onGoToLibrary,
 }) => {
   const _ = useTranslation();
   const { appService } = useEnv();
@@ -271,7 +272,7 @@ const FooterBar: React.FC<FooterBarProps> = ({
       )}
 
       <TTSControl bookKey={bookKey} gridInsets={gridInsets} />
-      <AudiobookControl bookKey={bookKey} gridInsets={gridInsets} />
+      <AudiobookControl bookKey={bookKey} gridInsets={gridInsets} onGoToLibrary={onGoToLibrary} />
       <RSVPControl bookKey={bookKey} gridInsets={gridInsets} />
     </>
   );

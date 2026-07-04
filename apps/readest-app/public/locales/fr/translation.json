@@ -1695,7 +1695,6 @@
   "Audiobook Mini Player": "Mini-lecteur de livre audio",
   "Audiobook Player": "Lecteur de livre audio",
   "Open Player": "Ouvrir le lecteur",
-  "Close Player": "Fermer le lecteur",
   "Chapters": "Chapitres",
   "Player Settings": "Réglages du lecteur",
   "Skip Forward Interval": "Intervalle d’avance",
@@ -1739,5 +1738,7 @@
   "Failed to remove download: {{title}}": "Échec de la suppression du téléchargement : {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Téléchargement bloqué : le mode Wi-Fi uniquement est activé.",
   "Download unavailable while offline.": "Téléchargement indisponible hors ligne.",
-  "Audio Output": "Sortie audio"
+  "Audio Output": "Sortie audio",
+  "Minimize Player": "Réduire le lecteur",
+  "Audiobook Cover": "Couverture du livre audio"
 }

@@ -1726,7 +1726,6 @@
   "Audiobook Mini Player": "Mini predvajalnik zvočne knjige",
   "Audiobook Player": "Predvajalnik zvočne knjige",
   "Open Player": "Odpri predvajalnik",
-  "Close Player": "Zapri predvajalnik",
   "Chapters": "Poglavja",
   "Player Settings": "Nastavitve predvajalnika",
   "Skip Forward Interval": "Interval preskoka naprej",
@@ -1770,5 +1769,7 @@
   "Failed to remove download: {{title}}": "Prenosa ni bilo mogoče odstraniti: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Prenos blokiran: omogočeni so samo prenosi prek Wi-Fi.",
   "Download unavailable while offline.": "Prenos ni na voljo brez povezave.",
-  "Audio Output": "Zvočni izhod"
+  "Audio Output": "Zvočni izhod",
+  "Minimize Player": "Pomanjšaj predvajalnik",
+  "Audiobook Cover": "Naslovnica zvočne knjige"
 }

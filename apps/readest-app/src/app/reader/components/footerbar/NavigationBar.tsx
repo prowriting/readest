@@ -7,10 +7,12 @@ import { PiSun as ColorIcon } from 'react-icons/pi';
 import { MdOutlineHeadphones as TTSIcon } from 'react-icons/md';
 import { useEnv } from '@/context/EnvContext';
 import { useReaderStore } from '@/store/readerStore';
+import { useAudiobookStore } from '@/store/audiobookStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import Button from '@/components/Button';
 import { Insets } from '@/types/misc';
+import AudiobookToolbarButton from '../audiobook/AudiobookToolbarButton';
 
 interface NavigationBarProps {
   bookKey: string;
@@ -30,8 +32,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   const isMobile = forceMobileLayout || window.innerWidth < 640 || window.innerHeight < 640;
   const _ = useTranslation();
   const { appService } = useEnv();
-  const { getViewState } = useReaderStore();
+  const { getViewState, setHoveredBookKey } = useReaderStore();
   const viewState = getViewState(bookKey);
+  const hasAudiobook = useAudiobookStore((state) => state.available[bookKey] ?? false);
   const tocIconSize = useResponsiveSize(23);
   const fontIconSize = useResponsiveSize(18);
   const navPadding = isMobile ? `${gridInsets.bottom * 0.33 + 16}px` : '0px';
@@ -71,11 +74,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         }
         onClick={() => onSetActionTab('font')}
       />
-      <Button
-        label={_('Speak')}
-        icon={<TTSIcon className={viewState?.ttsEnabled ? 'text-blue-500' : ''} />}
-        onClick={() => onSetActionTab('tts')}
-      />
+      {hasAudiobook ? (
+        // v2 §5.3: books with an audio track swap the TTS button for the
+        // audio-tray toggle.
+        <AudiobookToolbarButton bookKey={bookKey} onAfterToggle={() => setHoveredBookKey('')} />
+      ) : (
+        <Button
+          label={_('Speak')}
+          icon={<TTSIcon className={viewState?.ttsEnabled ? 'text-blue-500' : ''} />}
+          onClick={() => onSetActionTab('tts')}
+        />
+      )}
     </div>
   );
 };

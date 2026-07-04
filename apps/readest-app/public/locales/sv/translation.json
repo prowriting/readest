@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Ljudboks-minispelare",
   "Audiobook Player": "Ljudboksspelare",
   "Open Player": "Öppna spelaren",
-  "Close Player": "Stäng spelaren",
   "Chapters": "Kapitel",
   "Player Settings": "Spelarinställningar",
   "Skip Forward Interval": "Intervall för framåtspolning",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "Kunde inte ta bort hämtningen: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Hämtning blockerad: endast Wi-Fi är aktiverat.",
   "Download unavailable while offline.": "Hämtning otillgänglig offline.",
-  "Audio Output": "Ljudutgång"
+  "Audio Output": "Ljudutgång",
+  "Minimize Player": "Minimera spelaren",
+  "Audiobook Cover": "Ljudboksomslag"
 }

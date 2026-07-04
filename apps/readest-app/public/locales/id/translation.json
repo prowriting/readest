@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "Pemutar mini buku audio",
   "Audiobook Player": "Pemutar buku audio",
   "Open Player": "Buka pemutar",
-  "Close Player": "Tutup pemutar",
   "Chapters": "Bab",
   "Player Settings": "Pengaturan pemutar",
   "Skip Forward Interval": "Interval lompat maju",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "Gagal menghapus unduhan: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Unduhan diblokir: hanya via Wi-Fi yang diizinkan.",
   "Download unavailable while offline.": "Unduhan tidak tersedia saat offline.",
-  "Audio Output": "Keluaran audio"
+  "Audio Output": "Keluaran audio",
+  "Minimize Player": "Perkecil pemutar",
+  "Audiobook Cover": "Sampul buku audio"
 }

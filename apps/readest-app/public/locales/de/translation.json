@@ -1664,7 +1664,6 @@
   "Audiobook Mini Player": "Hörbuch-Miniplayer",
   "Audiobook Player": "Hörbuch-Player",
   "Open Player": "Player öffnen",
-  "Close Player": "Player schließen",
   "Chapters": "Kapitel",
   "Player Settings": "Player-Einstellungen",
   "Skip Forward Interval": "Vorspul-Intervall",
@@ -1708,5 +1707,7 @@
   "Failed to remove download: {{title}}": "Download konnte nicht entfernt werden: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download blockiert: Nur-WLAN-Downloads sind aktiviert.",
   "Download unavailable while offline.": "Download offline nicht möglich.",
-  "Audio Output": "Audioausgabe"
+  "Audio Output": "Audioausgabe",
+  "Minimize Player": "Player minimieren",
+  "Audiobook Cover": "Hörbuch-Cover"
 }

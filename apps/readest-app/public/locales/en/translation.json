@@ -66,7 +66,6 @@
   "Audiobook Mini Player": "Audiobook Mini Player",
   "Audiobook Player": "Audiobook Player",
   "Open Player": "Open Player",
-  "Close Player": "Close Player",
   "Chapters": "Chapters",
   "Player Settings": "Player Settings",
   "Skip Forward Interval": "Skip Forward Interval",
@@ -111,5 +110,7 @@
   "Failed to remove download: {{title}}": "Failed to remove download: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download blocked: Wi-Fi only downloads are enabled.",
   "Download unavailable while offline.": "Download unavailable while offline.",
-  "Audio Output": "Audio Output"
+  "Audio Output": "Audio Output",
+  "Minimize Player": "Minimize Player",
+  "Audiobook Cover": "Audiobook Cover"
 }

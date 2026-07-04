@@ -1633,7 +1633,6 @@
   "Audiobook Mini Player": "เครื่องเล่นขนาดเล็กหนังสือเสียง",
   "Audiobook Player": "เครื่องเล่นหนังสือเสียง",
   "Open Player": "เปิดเครื่องเล่น",
-  "Close Player": "ปิดเครื่องเล่น",
   "Chapters": "บท",
   "Player Settings": "การตั้งค่าเครื่องเล่น",
   "Skip Forward Interval": "ช่วงข้ามไปข้างหน้า",
@@ -1677,5 +1676,7 @@
   "Failed to remove download: {{title}}": "ลบไฟล์ดาวน์โหลดไม่สำเร็จ: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "บล็อกการดาวน์โหลด: เปิดใช้ดาวน์โหลดผ่าน Wi-Fi เท่านั้น",
   "Download unavailable while offline.": "ดาวน์โหลดไม่ได้ขณะออฟไลน์",
-  "Audio Output": "เอาต์พุตเสียง"
+  "Audio Output": "เอาต์พุตเสียง",
+  "Minimize Player": "ย่อเครื่องเล่น",
+  "Audiobook Cover": "ปกหนังสือเสียง"
 }

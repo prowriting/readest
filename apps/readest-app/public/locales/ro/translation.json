@@ -1695,7 +1695,6 @@
   "Audiobook Mini Player": "Miniplayer audiobook",
   "Audiobook Player": "Player audiobook",
   "Open Player": "Deschide playerul",
-  "Close Player": "Închide playerul",
   "Chapters": "Capitole",
   "Player Settings": "Setări player",
   "Skip Forward Interval": "Interval salt înainte",
@@ -1739,5 +1738,7 @@
   "Failed to remove download: {{title}}": "Eliminarea descărcării a eșuat: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Descărcare blocată: doar Wi-Fi este activat.",
   "Download unavailable while offline.": "Descărcare indisponibilă offline.",
-  "Audio Output": "Ieșire audio"
+  "Audio Output": "Ieșire audio",
+  "Minimize Player": "Minimizează playerul",
+  "Audiobook Cover": "Coperta cărții audio"
 }

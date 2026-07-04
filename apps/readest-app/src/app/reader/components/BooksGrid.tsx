@@ -12,7 +12,6 @@ import { getViewInsets } from '@/utils/insets';
 import SearchResultsNav from './sidebar/SearchResultsNav';
 import BooknotesNav from './sidebar/BooknotesNav';
 import FoliateViewer from './FoliateViewer';
-import AudioOnlyScreen from './audiobook/AudioOnlyScreen';
 import SectionInfo from './SectionInfo';
 import HeaderBar from './HeaderBar';
 import PageNavigationButtons from './PageNavigationButtons';
@@ -137,13 +136,6 @@ const BooksGrid: React.FC<BooksGridProps> = ({ bookKeys, onCloseBook, onGoToLibr
               gridInsets={gridInsets}
               contentInsets={contentInsets}
             />
-            {book.isAudioOnly && (
-              <AudioOnlyScreen
-                bookKey={bookKey}
-                gridInsets={gridInsets}
-                onGoToLibrary={onGoToLibrary}
-              />
-            )}
             {viewSettings.vertical && viewSettings.scrolled && (
               <>
                 {(showFooter || viewSettings.doubleBorder) && (
@@ -235,6 +227,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ bookKeys, onCloseBook, onGoToLibr
               pageinfo={pageinfo}
               isHoveredAnim={false}
               gridInsets={gridInsets}
+              onGoToLibrary={onGoToLibrary}
             />
           </div>
         );

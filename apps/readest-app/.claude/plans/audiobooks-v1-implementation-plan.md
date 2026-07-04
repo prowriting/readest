@@ -1,6 +1,6 @@
 # Audiobooks v1 — Implementation Plan
 
-**Source PRD:** `Audiobook_PRD.html` / `audiobook_prd.md` (Chris Banks, 2026-07-03, Draft v1)
+**Source PRD:** `Audiobook_PRD.html` (Chris Banks, 2026-07-03, **Draft v2** — the authoritative document). ⚠️ Phases 0–10 below were planned and delivered against `audiobook_prd.md` (Draft v1, superseded); the delta to v2 is closed by the **v2 alignment phases A–F** at the end of this file.
 **Branch:** `audiobook2` (== `rebrand` HEAD at plan time)
 **Method:** TDD throughout — every phase starts by writing its acceptance tests (Playwright web e2e + vitest unit), watching them fail, then implementing to green. Repo rule `.agents/rules/test-first.md` applies to every change.
 
@@ -250,3 +250,32 @@ One PR per phase onto `main` (phases 0–6 are pure web/TS and independently shi
 - **AAC/M4B not testable in bundled Chromium**: covered via `chrome`-channel project + device checklist (known, scoped).
 - **Two sync paths (REST + replica)**: the new position field must merge correctly in both; unit tests on each are non-negotiable (Phase 6).
 - **Background audio on iOS WKWebView**: `UIBackgroundModes` audit is Phase 7 item #1; if WKWebView background audio proves unreliable for long sessions, fallback is native `AVAudioPlayer` playback for audio (bridge exists) — spike early in Phase 7.
+
+---
+
+## 7. PRD Draft v2 alignment (phases A–F)
+
+**Context (2026-07-04):** Phases 0–10 were built against `audiobook_prd.md` (Draft v1). The authoritative `Audiobook_PRD.html` is **Draft v2**, which adds §5 *View Model & Screen Designs* and strengthens Whispersync (§7). The engineering below closes the delta; everything from phases 0–10 (engine, sync, media session, car, storage, e2e infra) carries over.
+
+Already v2-compliant, no work needed: skip intervals are configurable 10/15/30/60s; speed slider already spans 0.5×–3.0× in 0.1 steps (presets are shortcuts on top); bookmarks/notes shared with reader; audio-only default fullscreen.
+
+### Phase A — Combined view, collapsible tray & bottom toolbar (v2 §5.1–5.3) (M) — DONE 2026-07-04
+- Toolbar: when the open book has audio, the footer-bar TTS "Speak" button (mobile `NavigationBar` + `DesktopFooterBar`) is **replaced** by an "Audiobook" button that toggles the tray; highlighted while the tray is open, reflects playing state (`data-playing`); books without audio keep the TTS button untouched.
+- Tray (was "mini bar"): dismissible (toolbar button or swipe-down on a new drag handle) and re-openable **without losing playback** — audio keeps playing while collapsed. Enriched per mock: title + "{{time}} left", speed chip (tap cycles presets), play/pause, skip-forward, expand chevron; keeps the follow-suspended chip.
+- Expand (drag handle up or tap chevron) → **fullscreen player** (replaces the bottom-sheet dialog): cover art, book/author/chapter title, existing scrubber+transport+top-bar controls, and a **Minimize Player** control that drops back to the tray. Audio-only books open into this same surface (default expanded) and gain minimize→tray (v2 state table).
+- Unification: `AudioOnlyScreen` is absorbed into a shared `AudiobookFullScreen`; new `audiobookStore` (zustand) holds per-book `available/playbackState/trayCollapsed/playerExpanded` so footer buttons and player surfaces share state; `useAudiobookControl` becomes single-instance.
+- Acceptance (e2e `audiobook-tray.spec.ts` + updated audio-only/core specs): combined view default for text+audio; audio button swap both footbars (non-audio book keeps Speak); collapse/re-open with uninterrupted audio + continuous position; gesture + chevron expansion; fullscreen shows cover + minimize; audio-only minimize/restore round-trip.
+
+### Phase B — Reuse passes: TTS overlay settings + ebook nav (v2 §5.4/5.5) (S/M)
+- Drive read-along highlight from the existing `ttsHighlightOptions` (migrate/remove `moHighlightOptions`); TTS vs audiobook mutual exclusion; TOC sidebar rows gain audio timestamps + jump-to-position for audio chapters.
+
+### Phase C — Whispersync v2 semantics (v2 §7) (M)
+- Furthest-progressed conflict resolution with "Jump to latest / Stay here" prompt on large jumps; chapter+estimated-offset mapping fallback for unmapped/audio-only sections; crash/kill position-resilience e2e (absorbed from old Phase 11).
+
+### Phase D — Listening statistics (v2 §8) (S/M)
+- Time-listened events feeding the existing reading-stats pipeline; streaks consistent with reading stats.
+
+### Phase E — Chromecast (v2 §10 — now launch scope) (L)
+- Blocked on decision #6 above (approach: cloud URLs vs embedded server). v2 lists casting "at launch", so decision needed before release, not deferrable by default anymore.
+
+### Phase F — a11y/perf/resilience audit against v2 NFRs (old Phase 11) (M)
