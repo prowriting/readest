@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "Unduhan dihapus: {{title}}",
   "Failed to remove download: {{title}}": "Gagal menghapus unduhan: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Unduhan diblokir: hanya via Wi-Fi yang diizinkan.",
-  "Download unavailable while offline.": "Unduhan tidak tersedia saat offline."
+  "Download unavailable while offline.": "Unduhan tidak tersedia saat offline.",
+  "Audio Output": "Keluaran audio"
 }

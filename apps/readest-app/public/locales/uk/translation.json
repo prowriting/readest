@@ -1769,5 +1769,6 @@
   "Download removed: {{title}}": "Завантаження видалено: {{title}}",
   "Failed to remove download: {{title}}": "Не вдалося видалити завантаження: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Завантаження заблоковано: увімкнено лише Wi-Fi.",
-  "Download unavailable while offline.": "Завантаження недоступне офлайн."
+  "Download unavailable while offline.": "Завантаження недоступне офлайн.",
+  "Audio Output": "Аудіовихід"
 }

@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "ลบไฟล์ดาวน์โหลดแล้ว: {{title}}",
   "Failed to remove download: {{title}}": "ลบไฟล์ดาวน์โหลดไม่สำเร็จ: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "บล็อกการดาวน์โหลด: เปิดใช้ดาวน์โหลดผ่าน Wi-Fi เท่านั้น",
-  "Download unavailable while offline.": "ดาวน์โหลดไม่ได้ขณะออฟไลน์"
+  "Download unavailable while offline.": "ดาวน์โหลดไม่ได้ขณะออฟไลน์",
+  "Audio Output": "เอาต์พุตเสียง"
 }

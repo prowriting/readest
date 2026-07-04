@@ -1769,5 +1769,6 @@
   "Download removed: {{title}}": "Prenos odstranjen: {{title}}",
   "Failed to remove download: {{title}}": "Prenosa ni bilo mogoče odstraniti: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Prenos blokiran: omogočeni so samo prenosi prek Wi-Fi.",
-  "Download unavailable while offline.": "Prenos ni na voljo brez povezave."
+  "Download unavailable while offline.": "Prenos ni na voljo brez povezave.",
+  "Audio Output": "Zvočni izhod"
 }

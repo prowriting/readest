@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "डाउनलोड हटाया गया: {{title}}",
   "Failed to remove download: {{title}}": "डाउनलोड हटाने में विफल: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "डाउनलोड अवरुद्ध: केवल Wi-Fi डाउनलोड सक्षम है।",
-  "Download unavailable while offline.": "ऑफ़लाइन में डाउनलोड उपलब्ध नहीं।"
+  "Download unavailable while offline.": "ऑफ़लाइन में डाउनलोड उपलब्ध नहीं।",
+  "Audio Output": "ऑडियो आउटपुट"
 }

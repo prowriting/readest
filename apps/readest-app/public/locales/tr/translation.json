@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "İndirme kaldırıldı: {{title}}",
   "Failed to remove download: {{title}}": "İndirme kaldırılamadı: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "İndirme engellendi: yalnızca Wi-Fi etkin.",
-  "Download unavailable while offline.": "Çevrimdışıyken indirme yapılamaz."
+  "Download unavailable while offline.": "Çevrimdışıyken indirme yapılamaz.",
+  "Audio Output": "Ses çıkışı"
 }

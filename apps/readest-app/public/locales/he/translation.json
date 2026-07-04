@@ -1738,5 +1738,6 @@
   "Download removed: {{title}}": "ההורדה הוסרה: {{title}}",
   "Failed to remove download: {{title}}": "הסרת ההורדה נכשלה: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ההורדה נחסמה: מופעל מצב Wi-Fi בלבד.",
-  "Download unavailable while offline.": "הורדה אינה זמינה במצב לא מקוון."
+  "Download unavailable while offline.": "הורדה אינה זמינה במצב לא מקוון.",
+  "Audio Output": "יציאת שמע"
 }

@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "ཕབ་ལེན་བསུབ་ཟིན།: {{title}}",
   "Failed to remove download: {{title}}": "ཕབ་ལེན་བསུབ་མ་ཐུབ།: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ཕབ་ལེན་བཀག Wi-Fi ཁོ་ན་སྒྲིག་འགོད་ཡོད།",
-  "Download unavailable while offline.": "དྲ་མེད་སྐབས་ཕབ་ལེན་མི་ཐུབ།"
+  "Download unavailable while offline.": "དྲ་མེད་སྐབས་ཕབ་ལེན་མི་ཐུབ།",
+  "Audio Output": "སྒྲའི་ཕྱིར་གཏོང་།"
 }

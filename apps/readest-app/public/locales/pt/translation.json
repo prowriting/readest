@@ -1738,5 +1738,6 @@
   "Download removed: {{title}}": "Transferência removida: {{title}}",
   "Failed to remove download: {{title}}": "Falha ao remover a transferência: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Transferência bloqueada: apenas Wi-Fi está ativado.",
-  "Download unavailable while offline.": "Transferência indisponível offline."
+  "Download unavailable while offline.": "Transferência indisponível offline.",
+  "Audio Output": "Saída de áudio"
 }

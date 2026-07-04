@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "دانلود حذف شد: {{title}}",
   "Failed to remove download: {{title}}": "حذف دانلود ناموفق بود: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "دانلود مسدود شد: دانلود فقط با Wi-Fi فعال است.",
-  "Download unavailable while offline.": "دانلود در حالت آفلاین ممکن نیست."
+  "Download unavailable while offline.": "دانلود در حالت آفلاین ممکن نیست.",
+  "Audio Output": "خروجی صدا"
 }

@@ -1831,5 +1831,6 @@
   "Download removed: {{title}}": "تمت إزالة التنزيل: {{title}}",
   "Failed to remove download: {{title}}": "تعذّرت إزالة التنزيل: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "تم حظر التنزيل: التنزيل عبر Wi-Fi فقط مفعّل.",
-  "Download unavailable while offline.": "التنزيل غير متاح دون اتصال."
+  "Download unavailable while offline.": "التنزيل غير متاح دون اتصال.",
+  "Audio Output": "مخرج الصوت"
 }

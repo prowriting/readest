@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "Muat turun dialih keluar: {{title}}",
   "Failed to remove download: {{title}}": "Gagal mengalih keluar muat turun: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Muat turun disekat: hanya Wi-Fi dibenarkan.",
-  "Download unavailable while offline.": "Muat turun tidak tersedia luar talian."
+  "Download unavailable while offline.": "Muat turun tidak tersedia luar talian.",
+  "Audio Output": "Output audio"
 }

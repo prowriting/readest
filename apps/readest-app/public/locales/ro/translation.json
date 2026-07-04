@@ -1738,5 +1738,6 @@
   "Download removed: {{title}}": "Descărcare eliminată: {{title}}",
   "Failed to remove download: {{title}}": "Eliminarea descărcării a eșuat: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Descărcare blocată: doar Wi-Fi este activat.",
-  "Download unavailable while offline.": "Descărcare indisponibilă offline."
+  "Download unavailable while offline.": "Descărcare indisponibilă offline.",
+  "Audio Output": "Ieșire audio"
 }

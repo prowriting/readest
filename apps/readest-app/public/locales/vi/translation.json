@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "Đã xóa bản tải về: {{title}}",
   "Failed to remove download: {{title}}": "Không thể xóa bản tải về: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Đã chặn tải: chỉ cho phép tải qua Wi-Fi.",
-  "Download unavailable while offline.": "Không thể tải khi ngoại tuyến."
+  "Download unavailable while offline.": "Không thể tải khi ngoại tuyến.",
+  "Audio Output": "Đầu ra âm thanh"
 }

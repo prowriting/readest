@@ -1738,5 +1738,6 @@
   "Download removed: {{title}}": "Download removido: {{title}}",
   "Failed to remove download: {{title}}": "Falha ao remover o download: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download bloqueado: apenas Wi-Fi está ativado.",
-  "Download unavailable while offline.": "Download indisponível offline."
+  "Download unavailable while offline.": "Download indisponível offline.",
+  "Audio Output": "Saída de áudio"
 }

@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "ডাউনলোড সরানো হয়েছে: {{title}}",
   "Failed to remove download: {{title}}": "ডাউনলোড সরানো যায়নি: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "ডাউনলোড আটকানো হয়েছে: শুধু Wi-Fi চালু আছে।",
-  "Download unavailable while offline.": "অফলাইনে ডাউনলোড অনুপলব্ধ।"
+  "Download unavailable while offline.": "অফলাইনে ডাউনলোড অনুপলব্ধ।",
+  "Audio Output": "অডিও আউটপুট"
 }

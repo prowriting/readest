@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "பதிவிறக்கம் நீக்கப்பட்டது: {{title}}",
   "Failed to remove download: {{title}}": "பதிவிறக்கத்தை நீக்க முடியவில்லை: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "பதிவிறக்கம் தடுக்கப்பட்டது: Wi-Fi மட்டும் இயக்கத்தில் உள்ளது.",
-  "Download unavailable while offline.": "ஆஃப்லைனில் பதிவிறக்கம் இயலாது."
+  "Download unavailable while offline.": "ஆஃப்லைனில் பதிவிறக்கம் இயலாது.",
+  "Audio Output": "ஒலி வெளியீடு"
 }

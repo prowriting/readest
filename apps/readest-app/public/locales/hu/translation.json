@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "Letöltés eltávolítva: {{title}}",
   "Failed to remove download: {{title}}": "A letöltés eltávolítása sikertelen: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Letöltés letiltva: csak Wi-Fi engedélyezett.",
-  "Download unavailable while offline.": "Letöltés offline nem érhető el."
+  "Download unavailable while offline.": "Letöltés offline nem érhető el.",
+  "Audio Output": "Hangkimenet"
 }

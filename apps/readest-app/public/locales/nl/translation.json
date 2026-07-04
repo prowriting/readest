@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "Download verwijderd: {{title}}",
   "Failed to remove download: {{title}}": "Kon download niet verwijderen: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download geblokkeerd: alleen-wifi staat aan.",
-  "Download unavailable while offline.": "Downloaden niet beschikbaar offline."
+  "Download unavailable while offline.": "Downloaden niet beschikbaar offline.",
+  "Audio Output": "Audio-uitvoer"
 }

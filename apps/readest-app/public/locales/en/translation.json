@@ -110,5 +110,6 @@
   "Download removed: {{title}}": "Download removed: {{title}}",
   "Failed to remove download: {{title}}": "Failed to remove download: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Download blocked: Wi-Fi only downloads are enabled.",
-  "Download unavailable while offline.": "Download unavailable while offline."
+  "Download unavailable while offline.": "Download unavailable while offline.",
+  "Audio Output": "Audio Output"
 }

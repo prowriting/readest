@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "Η λήψη αφαιρέθηκε: {{title}}",
   "Failed to remove download: {{title}}": "Αποτυχία αφαίρεσης της λήψης: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Η λήψη αποκλείστηκε: επιτρέπεται μόνο μέσω Wi-Fi.",
-  "Download unavailable while offline.": "Η λήψη δεν είναι διαθέσιμη εκτός σύνδεσης."
+  "Download unavailable while offline.": "Η λήψη δεν είναι διαθέσιμη εκτός σύνδεσης.",
+  "Audio Output": "Έξοδος ήχου"
 }

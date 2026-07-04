@@ -1676,5 +1676,6 @@
   "Download removed: {{title}}": "已移除下载：{{title}}",
   "Failed to remove download: {{title}}": "移除下载失败：{{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "下载已阻止：已启用仅 Wi-Fi 下载。",
-  "Download unavailable while offline.": "离线时无法下载。"
+  "Download unavailable while offline.": "离线时无法下载。",
+  "Audio Output": "音频输出"
 }

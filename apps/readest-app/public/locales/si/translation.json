@@ -1707,5 +1707,6 @@
   "Download removed: {{title}}": "බාගැනීම ඉවත් කළා: {{title}}",
   "Failed to remove download: {{title}}": "බාගැනීම ඉවත් කළ නොහැකි විය: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "බාගැනීම අවහිරයි: Wi-Fi පමණක් සක්‍රීයයි.",
-  "Download unavailable while offline.": "නොබැඳිව බාගැනීම නොහැක."
+  "Download unavailable while offline.": "නොබැඳිව බාගැනීම නොහැක.",
+  "Audio Output": "ශ්‍රව්‍ය ප්‍රතිදානය"
 }

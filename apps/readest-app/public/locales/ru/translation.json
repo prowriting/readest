@@ -1769,5 +1769,6 @@
   "Download removed: {{title}}": "Загрузка удалена: {{title}}",
   "Failed to remove download: {{title}}": "Не удалось удалить загрузку: {{title}}",
   "Download blocked: Wi-Fi only downloads are enabled.": "Загрузка заблокирована: включён режим «только Wi-Fi».",
-  "Download unavailable while offline.": "Загрузка недоступна офлайн."
+  "Download unavailable while offline.": "Загрузка недоступна офлайн.",
+  "Audio Output": "Аудиовыход"
 }
