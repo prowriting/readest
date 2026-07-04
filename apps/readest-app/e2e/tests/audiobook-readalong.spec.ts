@@ -94,6 +94,50 @@ test.describe('audiobook read-along', () => {
       .toContain('Sentence four of chapter 1');
   });
 
+  test('tapping the first sentence of the next chapter moves the audio there while paused', async ({
+    page,
+    openBook,
+  }) => {
+    await installAudioInstrumentation(page);
+    const reader = await openBook(AUDIOBOOK_MO_EPUB);
+    const player = new AudiobookPlayerPage(page);
+    await startPlayback(page, player);
+    await expect
+      .poll(() => reader.mediaOverlayHighlightText(), { timeout: 5_000 })
+      .toContain('Sentence one of chapter 1');
+    await player.pauseButton.click();
+    await expect(player.playButton).toBeVisible();
+
+    // Page into chapter 2 while paused in chapter 1, then tap its FIRST
+    // sentence — right at the section boundary, where a mis-resolved tap
+    // sends the audio to the end of the previous chapter instead.
+    for (let i = 0; i < 6; i++) {
+      await reader.nextPage();
+      try {
+        await reader.clickInBookText('span:has-text("Sentence one of chapter 2")');
+        break;
+      } catch {
+        // Target not on this page yet — keep paging.
+      }
+    }
+
+    await expect.poll(() => activeSectionIndex(page), { timeout: 5_000 }).toBe(1);
+    await expect
+      .poll(() => reader.mediaOverlayHighlightText(), { timeout: 5_000 })
+      .toContain('Sentence one of chapter 2');
+    // Still paused, parked at the start of chapter 2 — not at the end of
+    // chapter 1.
+    await expect(player.playButton).toBeVisible();
+    const offset = await page.evaluate(() => {
+      const view = document.querySelector('foliate-view') as unknown as {
+        mediaOverlay?: { sectionOffset: number };
+      } | null;
+      return view?.mediaOverlay?.sectionOffset ?? -1;
+    });
+    expect(offset).toBeGreaterThanOrEqual(0);
+    expect(offset).toBeLessThan(3);
+  });
+
   test('highlight color and style settings restyle the live highlight', async ({
     page,
     openBook,

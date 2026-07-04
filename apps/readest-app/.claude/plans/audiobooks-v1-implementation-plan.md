@@ -268,6 +268,7 @@ Already v2-compliant, no work needed: skip intervals are configurable 10/15/30/6
 
 ### Phase B — Reuse passes: TTS overlay settings + ebook nav (v2 §5.4/5.5) (S/M)
 - Drive read-along highlight from the existing `ttsHighlightOptions` (migrate/remove `moHighlightOptions`); TTS vs audiobook mutual exclusion; TOC sidebar rows gain audio timestamps + jump-to-position for audio chapters.
+- **§5.5 nav reuse LANDED early (2026-07-04, Chris request):** the in-player chapter list is gone — the player's Chapters control opens the ebook TOC sidebar, and TOC chapter jumps move the audio while a session is active ('navigate' event listener; relocate suspension gets a 1.2s manual-nav grace window). Remaining §5.5 scope: audio timestamps on TOC rows.
 
 ### Phase C — Whispersync v2 semantics (v2 §7) (M)
 - Furthest-progressed conflict resolution with "Jump to latest / Stay here" prompt on large jumps; chapter+estimated-offset mapping fallback for unmapped/audio-only sections; crash/kill position-resilience e2e (absorbed from old Phase 11).
