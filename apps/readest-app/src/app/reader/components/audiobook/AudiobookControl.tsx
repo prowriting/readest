@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useEnv } from '@/context/EnvContext';
 import { useBookDataStore } from '@/store/bookDataStore';
 import { useAudiobookStore } from '@/store/audiobookStore';
+import { useReaderStore } from '@/store/readerStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { Insets } from '@/types/misc';
 import { useAudiobookControl } from '../../hooks/useAudiobookControl';
@@ -30,6 +31,7 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
   const { appService } = useEnv();
   const { getBookData, getConfig, setConfig } = useBookDataStore();
   const { setSideBarVisible } = useSidebarStore();
+  const hoveredBookKey = useReaderStore((state) => state.hoveredBookKey);
   const audiobook = useAudiobookControl(bookKey);
   const book = getBookData(bookKey)?.book;
   const isAudioOnly = !!book?.isAudioOnly;
@@ -127,6 +129,9 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
       rate={audiobook.rate}
       bottomInset={bottomInset}
       followSuspended={audiobook.followSuspended}
+      // Lift above the footer toolbar while it's showing (they share the
+      // bottom edge) so the tray never floats over the toolbar's controls.
+      footerVisible={hoveredBookKey === bookKey}
       onTogglePlay={audiobook.togglePlay}
       onSkipForward={audiobook.skipForward}
       onCycleRate={cycleRate}

@@ -148,6 +148,30 @@ test.describe('audiobook tray & toolbar (combined view)', () => {
     await expect(player.pauseButton).toBeVisible();
   });
 
+  test('the tray lifts clear of the footer toolbar instead of overlapping it', async ({
+    page,
+    openBook,
+  }) => {
+    const reader = await openBook(AUDIOBOOK_MO_EPUB);
+    const player = new AudiobookPlayerPage(page);
+    const footer = page.locator('.footer-bar').last();
+    await expect(player.miniBar).toBeVisible();
+    const docked = await player.miniBar.boundingBox();
+
+    // Revealing the footer toolbar lifts the tray above it — it stays visible
+    // and does not cover the toolbar's controls.
+    await reader.revealFooter();
+    await expect(player.toolbarAudiobookButton).toBeVisible();
+    await expect(player.miniBar).toBeVisible();
+    const lifted = await player.miniBar.boundingBox();
+    const footerBox = await footer.boundingBox();
+    if (!docked || !lifted || !footerBox) throw new Error('missing layout boxes');
+
+    // The tray moved up, and its bottom now clears the footer's top edge.
+    expect(lifted.y).toBeLessThan(docked.y);
+    expect(lifted.y + lifted.height).toBeLessThanOrEqual(footerBox.y + 2);
+  });
+
   test('the chevron expands a fullscreen player with cover art; minimize drops back to the tray', async ({
     page,
     openBook,

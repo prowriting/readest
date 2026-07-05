@@ -24,7 +24,8 @@ const DesktopFooterBar: React.FC<FooterBarChildProps> = ({
   onSpeakText,
 }) => {
   const _ = useTranslation();
-  const { hoveredBookKey, getView, getViewState, getProgress, getViewSettings } = useReaderStore();
+  const { hoveredBookKey, setHoveredBookKey, getView, getViewState, getProgress, getViewSettings } =
+    useReaderStore();
   const { getBookData } = useBookDataStore();
   const hasAudiobook = useAudiobookStore((state) => state.available[bookKey] ?? false);
   const view = getView(bookKey);
@@ -134,7 +135,7 @@ const DesktopFooterBar: React.FC<FooterBarChildProps> = ({
       {hasAudiobook ? (
         // v2 §5.3: books with an audio track swap the TTS button for the
         // audio-tray toggle.
-        <AudiobookToolbarButton bookKey={bookKey} />
+        <AudiobookToolbarButton bookKey={bookKey} onAfterToggle={() => setHoveredBookKey('')} />
       ) : (
         <Button
           icon={<FaHeadphones className={viewState?.ttsEnabled ? 'text-blue-500' : ''} />}

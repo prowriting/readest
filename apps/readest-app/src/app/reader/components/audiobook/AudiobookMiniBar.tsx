@@ -17,6 +17,8 @@ interface AudiobookMiniBarProps {
   bottomInset: number;
   /** The reader wandered away from the playing position. */
   followSuspended: boolean;
+  /** Footer toolbar is showing: lift clear of it so they don't overlap. */
+  footerVisible: boolean;
   onTogglePlay: () => void;
   onSkipForward: () => void;
   onCycleRate: () => void;
@@ -38,6 +40,7 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   rate,
   bottomInset,
   followSuspended,
+  footerVisible,
   onTogglePlay,
   onSkipForward,
   onCycleRate,
@@ -72,7 +75,9 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
         'inset-x-0 bottom-2 mx-auto flex w-fit max-w-[92%] flex-col',
         'rounded-2xl px-2 pb-1 pt-0.5',
       )}
-      style={{ marginBottom: bottomInset ? `${bottomInset}px` : undefined }}
+      // Sit above the footer toolbar's height (~72px) when it's revealed;
+      // instant (no transition) so the bar stays clickable and stable.
+      style={{ marginBottom: `${bottomInset + (footerVisible ? 72 : 0)}px` }}
     >
       <div
         data-testid='audiobook-tray-handle'
