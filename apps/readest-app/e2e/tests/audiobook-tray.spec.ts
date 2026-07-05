@@ -122,6 +122,32 @@ test.describe('audiobook tray & toolbar (combined view)', () => {
     await expect(player.fullPlayer).toBeVisible();
   });
 
+  test('the close button dismisses the tray without stopping audio; the toolbar re-opens it', async ({
+    page,
+    openBook,
+  }) => {
+    await installAudioInstrumentation(page);
+    const reader = await openBook(AUDIOBOOK_MO_EPUB);
+    const player = new AudiobookPlayerPage(page);
+
+    await player.playButton.click();
+    await expect.poll(() => lastAudioTime(page), { timeout: 10_000 }).toBeGreaterThan(0.3);
+
+    await expect(player.closeButton).toBeVisible();
+    await player.closeButton.click();
+    await expect(player.miniBar).not.toBeVisible();
+
+    // Audio keeps playing while the tray is dismissed (v2 §5.3).
+    const t = await lastAudioTime(page);
+    await expect.poll(() => lastAudioTime(page), { timeout: 5_000 }).toBeGreaterThan(t);
+
+    // The footer toggle brings the tray back, still playing.
+    await reader.revealFooter();
+    await player.toolbarAudiobookButton.click();
+    await expect(player.miniBar).toBeVisible();
+    await expect(player.pauseButton).toBeVisible();
+  });
+
   test('the chevron expands a fullscreen player with cover art; minimize drops back to the tray', async ({
     page,
     openBook,

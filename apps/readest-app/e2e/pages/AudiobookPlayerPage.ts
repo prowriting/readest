@@ -17,6 +17,8 @@ export class AudiobookPlayerPage extends BasePage {
   readonly pauseButton: Locator;
   /** Expands the tray into the fullscreen player. */
   readonly expandButton: Locator;
+  /** Dismisses the tray for distraction-free reading (audio keeps playing). */
+  readonly closeButton: Locator;
   /** Drops the fullscreen player back to the tray. */
   readonly minimizeButton: Locator;
   /** Drag handle on the tray: drag up expands, drag down dismisses. */
@@ -76,6 +78,7 @@ export class AudiobookPlayerPage extends BasePage {
     this.playButton = page.getByRole('button', { name: 'Play', exact: true }).first();
     this.pauseButton = page.getByRole('button', { name: 'Pause', exact: true }).first();
     this.expandButton = page.getByRole('button', { name: 'Open Player', exact: true });
+    this.closeButton = page.getByRole('button', { name: 'Close Player', exact: true });
     this.minimizeButton = page.getByRole('button', { name: 'Minimize Player', exact: true });
     this.trayHandle = this.miniBar.locator('[data-testid="audiobook-tray-handle"]');
     this.traySpeedButton = this.miniBar.getByRole('button', { name: 'Playback Speed' });

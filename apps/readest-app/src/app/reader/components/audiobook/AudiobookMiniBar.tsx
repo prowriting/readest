@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import React, { useRef } from 'react';
-import { MdMyLocation, MdOutlinePause, MdPlayArrow } from 'react-icons/md';
+import { MdClose, MdMyLocation, MdOutlinePause, MdPlayArrow } from 'react-icons/md';
 import { RiArrowUpSLine, RiForward30Line } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
@@ -141,6 +141,15 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
           onClick={onExpand}
         >
           <RiArrowUpSLine size={iconSize} />
+        </button>
+        <button
+          type='button'
+          className='btn btn-ghost btn-circle btn-sm'
+          aria-label={_('Close Player')}
+          title={_('Close Player')}
+          onClick={onDismiss}
+        >
+          <MdClose size={iconSize} />
         </button>
       </div>
     </div>
