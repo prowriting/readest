@@ -13,6 +13,11 @@ const libraries = {
   zh: libraryZh,
 };
 
+// Seeding the web library with sample books (Hamlet, etc. from library.*.json)
+// is disabled for now — it also injected demo books into existing users'
+// libraries on a fresh browser. Flip back to true to restore it.
+const DEMO_BOOKS_ENABLED = false;
+
 interface DemoBooks {
   library: string[];
 }
@@ -41,7 +46,7 @@ export const useDemoBooks = () => {
     };
 
     const demoBooksFetchedFlag = localStorage.getItem('demoBooksFetched');
-    if (isWebAppPlatform() && !demoBooksFetchedFlag) {
+    if (DEMO_BOOKS_ENABLED && isWebAppPlatform() && !demoBooksFetchedFlag) {
       fetchDemoBooks();
       localStorage.setItem('demoBooksFetched', 'true');
     }
