@@ -22,6 +22,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core';
 import { handleAuthCallback } from '@/helpers/auth';
 import { getUserProfilePlan } from '@/utils/access';
+import { eventDispatcher } from '@/utils/event';
 import { getAppleIdAuth, Scope } from './utils/appleIdAuth';
 import { authWithCustomTab, authWithSafari } from './utils/nativeAuth';
 import WindowButtons from '@/components/WindowButtons';
@@ -45,6 +46,13 @@ const API_BASE = getAPIBaseUrl();
 const WEB_AUTH_CALLBACK = `${getBaseUrl()}/auth/callback`;
 const DEEPLINK_CALLBACK = 'bookarc://auth-callback';
 const USE_APPLE_SIGN_IN = process.env['NEXT_PUBLIC_USE_APPLE_SIGN_IN'] === 'true';
+
+interface MarketingPolicy {
+  requiresExplicitOptIn: boolean;
+  policyVersion: string;
+  wordingVersion: string;
+  wording: string;
+}
 
 const ProviderLogin: React.FC<ProviderLoginProp> = ({
   provider,
@@ -87,6 +95,10 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formBusy, setFormBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [marketingPolicy, setMarketingPolicy] = useState<MarketingPolicy | null>(null);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+  const [resendComplete, setResendComplete] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +128,12 @@ export default function AuthPage() {
         const resp = await fetch(`${API_BASE}/auth/apple/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: appleAuthResponse.identityToken }),
+          body: JSON.stringify({
+            idToken: appleAuthResponse.identityToken,
+            marketingOptIn: isSignUp && marketingOptIn,
+            marketingPolicyVersion: marketingPolicy?.policyVersion,
+            marketingWordingVersion: marketingPolicy?.wordingVersion,
+          }),
         });
         if (resp.ok) {
           const data = (await resp.json()) as {
@@ -137,7 +154,11 @@ export default function AuthPage() {
   // Tauri: redirect-based OAuth via BookArcReaderApi
   const tauriSignIn = async (provider: OAuthProvider) => {
     const redirectTo = getTauriRedirectTo(true);
-    const oauthStartUrl = `${API_BASE}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectTo)}`;
+    const oauthStartUrl =
+      `${API_BASE}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectTo)}` +
+      `&marketing_opt_in=${isSignUp && marketingOptIn}` +
+      `&marketing_policy_version=${encodeURIComponent(marketingPolicy?.policyVersion ?? '')}` +
+      `&marketing_wording_version=${encodeURIComponent(marketingPolicy?.wordingVersion ?? '')}`;
 
     if (appService?.isIOSApp || appService?.isMacOSApp) {
       const res = await authWithSafari({ authUrl: oauthStartUrl });
@@ -150,7 +171,47 @@ export default function AuthPage() {
     }
   };
 
+  const exchangeConfirmationCode = async (code: string) => {
+    setFormBusy(true);
+    setFormError(null);
+    try {
+      const resp = await fetch(`${API_BASE}/auth/exchange-confirmation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await resp.json()) as {
+        accessToken?: string;
+        refreshToken?: string;
+        user?: AuthUser;
+        error?: string;
+      };
+      if (!resp.ok || !data.accessToken || !data.refreshToken || !data.user) {
+        setFormError(data.error ?? _('This confirmation link is no longer valid'));
+        return;
+      }
+      localStorage.setItem('refresh_token', data.refreshToken);
+      login(data.accessToken, data.user);
+      void eventDispatcher.dispatch('toast', {
+        message: _('Subscription confirmed'),
+        type: 'success',
+        timeout: 3500,
+      });
+      router.push(nextUrl);
+    } catch {
+      setFormError(_('Network error — please try again'));
+    } finally {
+      setFormBusy(false);
+    }
+  };
+
   const handleOAuthUrl = (url: string) => {
+    const parsed = new URL(url);
+    const confirmationCode = parsed.searchParams.get('code');
+    if (confirmationCode && parsed.pathname.includes('subscription-confirmed')) {
+      void exchangeConfirmationCode(confirmationCode);
+      return;
+    }
     const hashMatch = url.match(/#(.*)/);
     if (!hashMatch) return;
     const params = new URLSearchParams(hashMatch[1]!);
@@ -168,7 +229,11 @@ export default function AuthPage() {
   const webSignIn = (provider: OAuthProvider) => {
     if (nextUrl !== '/library') sessionStorage.setItem('auth_return_url', nextUrl);
     const redirectTo = getWebRedirectTo();
-    window.location.href = `${API_BASE}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectTo)}`;
+    window.location.href =
+      `${API_BASE}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectTo)}` +
+      `&marketing_opt_in=${isSignUp && marketingOptIn}` +
+      `&marketing_policy_version=${encodeURIComponent(marketingPolicy?.policyVersion ?? '')}` +
+      `&marketing_wording_version=${encodeURIComponent(marketingPolicy?.wordingVersion ?? '')}`;
   };
 
   // Web: email/password via BookArcReaderApi
@@ -178,24 +243,76 @@ export default function AuthPage() {
     setFormBusy(true);
     try {
       const endpoint = isSignUp ? '/auth/register' : '/auth/login';
+      const returnUrl = isTauriAppPlatform()
+        ? 'bookarc://auth/subscription-confirmed'
+        : `${window.location.origin}/auth?subscription_confirmed=1`;
       const resp = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(
+          isSignUp
+            ? {
+                email,
+                password,
+                marketingOptIn,
+                marketingPolicyVersion: marketingPolicy?.policyVersion,
+                marketingWordingVersion: marketingPolicy?.wordingVersion,
+                returnUrl,
+                locale: navigator.language,
+              }
+            : { email, password },
+        ),
       });
       const data = (await resp.json()) as {
         accessToken?: string;
         refreshToken?: string;
         user?: AuthUser;
         error?: string;
+        requiresEmailConfirmation?: boolean;
+        email?: string;
+        policy?: MarketingPolicy;
       };
       if (!resp.ok) {
+        if (data.error === 'marketing_policy_changed' && data.policy) {
+          setMarketingPolicy(data.policy);
+          setFormError(_('The email preference wording changed. Please review it and try again.'));
+          return;
+        }
+        if (data.error === 'email_confirmation_required') {
+          setConfirmationEmail(email);
+          return;
+        }
         setFormError(data.error ?? 'Something went wrong');
+        return;
+      }
+      if (data.requiresEmailConfirmation) {
+        setConfirmationEmail(data.email ?? email);
         return;
       }
       localStorage.setItem('refresh_token', data.refreshToken!);
       login(data.accessToken!, data.user!);
       router.push(nextUrl);
+    } catch {
+      setFormError(_('Network error — please try again'));
+    } finally {
+      setFormBusy(false);
+    }
+  };
+
+  const resendConfirmation = async () => {
+    if (!confirmationEmail) return;
+    setFormBusy(true);
+    setFormError(null);
+    try {
+      const returnUrl = isTauriAppPlatform()
+        ? 'bookarc://auth/subscription-confirmed'
+        : `${window.location.origin}/auth?subscription_confirmed=1`;
+      await fetch(`${API_BASE}/auth/resend-confirmation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: confirmationEmail, returnUrl }),
+      });
+      setResendComplete(true);
     } catch {
       setFormError(_('Network error — please try again'));
     } finally {
@@ -259,11 +376,63 @@ export default function AuthPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    fetch(`${API_BASE}/compliance/marketing-policy`)
+      .then((response) => response.json())
+      .then((policy: MarketingPolicy) => setMarketingPolicy(policy))
+      .catch(() => {
+        setMarketingPolicy({
+          requiresExplicitOptIn: true,
+          policyVersion: '2026-07-01',
+          wordingVersion: 'reader-marketing-v1',
+          wording:
+            'Send me BookArc reading tips, product updates, and occasional offers by email. I can unsubscribe at any time.',
+        });
+      });
   }, []);
+
+  useEffect(() => {
+    const code = searchParams?.get('code');
+    if (code && searchParams?.get('subscription_confirmed') === '1') {
+      void exchangeConfirmationCode(code);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   if (!isMounted) return null;
 
-  const emailForm = (
+  const emailForm = confirmationEmail ? (
+    <div className='border-base-300 bg-base-200/40 flex w-64 flex-col gap-4 rounded border p-4 text-center'>
+      <div>
+        <h1 className='text-base font-semibold'>{_('Check your email')}</h1>
+        <p className='text-base-content/65 mt-2 text-sm'>
+          {_('We sent a confirmation link to')} <strong>{confirmationEmail}</strong>.
+        </p>
+      </div>
+      {formError && <p className='text-error text-xs'>{formError}</p>}
+      {resendComplete ? (
+        <p className='text-success text-xs'>{_('A new confirmation email has been sent')}</p>
+      ) : (
+        <button
+          type='button'
+          onClick={resendConfirmation}
+          disabled={formBusy}
+          className='btn btn-outline btn-sm min-h-11 w-full'
+        >
+          {formBusy ? <RiLoader2Line className='animate-spin' size={16} /> : _('Resend email')}
+        </button>
+      )}
+      <button
+        type='button'
+        className='text-base-content/60 text-xs underline'
+        onClick={() => {
+          setConfirmationEmail(null);
+          setResendComplete(false);
+        }}
+      >
+        {_('Use a different email address')}
+      </button>
+    </div>
+  ) : (
     <EmailPasswordForm
       email={email}
       setEmail={setEmail}
@@ -273,6 +442,9 @@ export default function AuthPage() {
       setIsSignUp={setIsSignUp}
       formBusy={formBusy}
       formError={formError}
+      marketingPolicy={marketingPolicy}
+      marketingOptIn={marketingOptIn}
+      setMarketingOptIn={setMarketingOptIn}
       onSubmit={handleEmailSubmit}
       _={_}
     />
@@ -394,6 +566,9 @@ interface EmailFormProps {
   setIsSignUp: (v: boolean) => void;
   formBusy: boolean;
   formError: string | null;
+  marketingPolicy: MarketingPolicy | null;
+  marketingOptIn: boolean;
+  setMarketingOptIn: (value: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   _: (key: string) => string;
 }
@@ -407,6 +582,9 @@ function EmailPasswordForm({
   setIsSignUp,
   formBusy,
   formError,
+  marketingPolicy,
+  marketingOptIn,
+  setMarketingOptIn,
   onSubmit,
   _,
 }: EmailFormProps) {
@@ -421,6 +599,23 @@ function EmailPasswordForm({
         onChange={(e) => setEmail(e.target.value)}
         className='input input-bordered w-full text-sm'
       />
+      {isSignUp && marketingPolicy && (
+        <div className='border-base-300 bg-base-200/40 rounded border p-3'>
+          {marketingPolicy.requiresExplicitOptIn ? (
+            <label className='flex cursor-pointer items-start gap-3 text-xs leading-5'>
+              <input
+                type='checkbox'
+                checked={marketingOptIn}
+                onChange={(event) => setMarketingOptIn(event.target.checked)}
+                className='checkbox checkbox-sm mt-0.5 shrink-0'
+              />
+              <span>{_(marketingPolicy.wording)}</span>
+            </label>
+          ) : (
+            <p className='text-base-content/65 text-xs leading-5'>{_(marketingPolicy.wording)}</p>
+          )}
+        </div>
+      )}
       <input
         type='password'
         required
