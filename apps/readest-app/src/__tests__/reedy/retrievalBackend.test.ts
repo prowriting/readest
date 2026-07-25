@@ -24,14 +24,14 @@ function settingsWith(reedyEnabled: boolean): AISettings {
 }
 
 describe('selectBackend', () => {
-  it('returns Reedy when reedy.enabled=true and isTauri=true and a reedy backend is provided', () => {
+  it('falls back to Legacy while the Reedy release feature is disabled', () => {
     const out = selectBackend({
       settings: settingsWith(true),
       isTauri: true,
       legacy: fakeLegacy,
       reedy: fakeReedy,
     });
-    expect(out.kind).toBe('reedy');
+    expect(out.kind).toBe('legacy-idb');
   });
 
   it('falls back to Legacy on web (isTauri=false) even when reedy.enabled=true', () => {

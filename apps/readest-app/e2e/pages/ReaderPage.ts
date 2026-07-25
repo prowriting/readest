@@ -21,6 +21,8 @@ export class ReaderPage extends BasePage {
   readonly tocItems: Locator;
   readonly searchResults: Locator;
   readonly annotationPopup: Locator;
+  readonly conceptChips: Locator;
+  readonly thoughtSheet: Locator;
   readonly noteEditor: Locator;
   readonly annotationItems: Locator;
 
@@ -35,6 +37,8 @@ export class ReaderPage extends BasePage {
     this.tocItems = page.locator('.toc-list [role="treeitem"]');
     this.searchResults = page.locator('.search-results li[role="button"]');
     this.annotationPopup = page.locator('.selection-popup');
+    this.conceptChips = page.locator('.concept-chips');
+    this.thoughtSheet = page.locator('#thought-sheet');
     this.noteEditor = page.locator('.note-editor-container');
     this.annotationItems = page.locator('li.booknote-item[role="button"]');
   }
@@ -308,6 +312,16 @@ export class ReaderPage extends BasePage {
    */
   async selectText(): Promise<void> {
     await this.openTocChapter(3);
+    await this.selectTextInVisibleSection();
+  }
+
+  /**
+   * Select text in whatever section is currently on screen, without
+   * navigating first. Callers must already be on a page with prose (the
+   * store-capture lane pages forward instead of using the TOC, which is not
+   * reachable from the mobile header).
+   */
+  async selectTextInVisibleSection(): Promise<void> {
     const frame = await this.visibleSectionFrame();
 
     await frame.locator('body').evaluate(() => {
@@ -356,8 +370,28 @@ export class ReaderPage extends BasePage {
     await this.popupTool('Highlight').click();
   }
 
-  async selectHighlightColor(color: string): Promise<void> {
-    await this.page.locator(`[aria-label="Select ${color} color"]`).click();
+  /** Tap a concept chip in the selection popup. */
+  async selectConcept(label: string): Promise<void> {
+    await this.conceptChips.getByRole('button', { name: label }).click();
+  }
+
+  /** Tap the "Thought" concept chip, which opens the thought-entry sheet. */
+  async selectThoughtConcept(): Promise<void> {
+    await this.selectConcept('Thought');
+    await this.thoughtSheet.waitFor({ state: 'visible' });
+  }
+
+  /** Type a thought into the open thought sheet and save it. */
+  async saveThought(text: string): Promise<void> {
+    await this.thoughtSheet.getByRole('textbox').fill(text);
+    await this.thoughtSheet.getByRole('button', { name: 'Save' }).click();
+    await this.thoughtSheet.waitFor({ state: 'hidden' });
+  }
+
+  /** Dismiss the open thought sheet without saving. */
+  async cancelThought(): Promise<void> {
+    await this.thoughtSheet.getByRole('button', { name: 'Cancel' }).click();
+    await this.thoughtSheet.waitFor({ state: 'hidden' });
   }
 
   /** Annotate the current selection with a note. */

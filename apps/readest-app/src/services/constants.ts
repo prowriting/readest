@@ -53,6 +53,15 @@ export const SETTINGS_FILENAME = 'settings.json';
 export const BOOK_SHARING_ENABLED: boolean = false;
 
 /**
+ * Master switch for Reedy's native retrieval and agent features. When disabled,
+ * the AI notebook uses its legacy retrieval backend even if an existing settings
+ * file has Reedy enabled. This also hides the Reedy settings and prevents
+ * reedy.db from being opened. The implementation and stored preference remain
+ * intact so the feature can be restored later without a data migration.
+ */
+export const REEDY_ENABLED: boolean = false;
+
+/**
  * Master switch for the content-translation feature: translating a book's text
  * while reading. Gates the reader header "Translation" toggle, the selection
  * "Translate" tool + translator popup, the Settings → Language → Translation
@@ -210,6 +219,14 @@ export const HIGHLIGHT_COLOR_HEX: Record<HighlightColor, string> = {
   green: '#4ade80', // green-400
   blue: '#60a5fa', // blue-400
   violet: '#a78bfa', // violet-400
+  // Concept slugs (see services/highlightConcepts.ts). Registered here so
+  // getHighlightColorHex resolves concept-colored notes everywhere legacy
+  // named colors already work (overlays, sidebar, exports).
+  useful: '#4ade80', // green-400
+  love: '#f472b6', // pink-400
+  thought: '#fb923c', // orange-400
+  slow: '#60a5fa', // blue-400
+  confusing: '#a78bfa', // violet-400
 };
 
 export const READING_RULER_COLORS: Record<ReadingRulerColor, string> = {
@@ -233,7 +250,7 @@ export const DEFAULT_READSETTINGS: ReadSettings = {
   customThemes: [],
   highlightStyle: 'highlight',
   highlightStyles: {
-    highlight: 'yellow',
+    highlight: 'useful',
     underline: 'green',
     squiggly: 'blue',
   },

@@ -56,6 +56,26 @@ describe('TTS navigation shortcuts', () => {
   });
 });
 
+describe('disabled content translation shortcut', () => {
+  it('cannot be restored by a stale custom keybinding', async () => {
+    localStorage.setItem('customShortcuts', JSON.stringify({ onTranslateSelection: ['ctrl+t'] }));
+
+    const shortcuts = await getDefaults();
+
+    expect(shortcuts.onTranslateSelection.keys).toEqual([]);
+    localStorage.removeItem('customShortcuts');
+  });
+
+  it('is omitted from the keyboard shortcuts help', async () => {
+    const mod = await getModule();
+    const descriptions = mod
+      .getShortcutsForDisplay(false)
+      .flatMap((section) => section.items.map((item) => item.description));
+
+    expect(descriptions).not.toContain('Translate Selection');
+  });
+});
+
 describe('No identical keybinding lists across actions (#3675)', () => {
   // Pre-existing pairs where two actions intentionally share the exact
   // same key list — both handlers guard on runtime context.

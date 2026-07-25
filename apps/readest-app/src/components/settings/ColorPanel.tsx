@@ -21,15 +21,13 @@ import { SettingsPanelPanelProp } from './SettingsDialog';
 import { useFileSelector } from '@/hooks/useFileSelector';
 import { PREDEFINED_TEXTURES } from '@/styles/textures';
 import { useAtmosphereStore } from '@/store/atmosphereStore';
-import { DefaultHighlightColor, HighlightColor, UserHighlightColor } from '@/types/book';
 import clsx from 'clsx';
-import { SettingLabel } from './primitives';
-import { HIGHLIGHT_COLOR_HEX } from '@/services/constants';
+import { BoxedList, SettingLabel } from './primitives';
+import NumberInput from './NumberInput';
 import ThemeEditor from './color/ThemeEditor';
 import ThemeModeSelector from './color/ThemeModeSelector';
 import ThemeColorSelector from './color/ThemeColorSelector';
 import BackgroundTextureSelector from './color/BackgroundTextureSelector';
-import HighlightColorsEditor from './color/HighlightColorsEditor';
 import CodeHighlightingSettings from './color/CodeHighlightingSettings';
 import ReadingRulerSettings from './color/ReadingRulerSettings';
 
@@ -38,7 +36,7 @@ const ColorPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset
   const { themeMode, themeColor, isDarkMode, setThemeMode, setThemeColor, saveCustomTheme } =
     useThemeStore();
   const { envConfig, appService } = useEnv();
-  const { settings, setSettings, saveSettings } = useSettingsStore();
+  const { settings, setSettings } = useSettingsStore();
   const { getView, getViewSettings } = useReaderStore();
   const viewSettings = getViewSettings(bookKey) || settings.globalViewSettings;
 
@@ -55,15 +53,6 @@ const ColorPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset
   const [backgroundOpacity, setBackgroundOpacity] = useState(viewSettings.backgroundOpacity);
   const [backgroundSize, setBackgroundSize] = useState(viewSettings.backgroundSize);
   const [highlightOpacity, setHighlightOpacity] = useState(viewSettings.highlightOpacity ?? 0.3);
-  const [customHighlightColors, setCustomHighlightColors] = useState(
-    settings.globalReadSettings.customHighlightColors,
-  );
-  const [userHighlightColors, setUserHighlightColors] = useState<UserHighlightColor[]>(
-    settings.globalReadSettings.userHighlightColors ?? [],
-  );
-  const [defaultHighlightLabels, setDefaultHighlightLabels] = useState<
-    Partial<Record<DefaultHighlightColor, string>>
-  >(settings.globalReadSettings.defaultHighlightLabels ?? {});
 
   const [readingRulerEnabled, setReadingRulerEnabled] = useState(viewSettings.readingRulerEnabled);
   const [readingRulerLines, setReadingRulerLines] = useState(viewSettings.readingRulerLines);
@@ -99,9 +88,6 @@ const ColorPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset
     setSelectedTextureId('none');
     setBackgroundOpacity(0.6);
     setBackgroundSize('cover');
-    setCustomHighlightColors(HIGHLIGHT_COLOR_HEX);
-    setUserHighlightColors([]);
-    setDefaultHighlightLabels({});
     deactivateAtmosphere();
   };
 
@@ -280,29 +266,6 @@ const ColorPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset
     saveCustomTextures(envConfig);
   };
 
-  const handleCustomHighlightColorsChange = (colors: Record<HighlightColor, string>) => {
-    setCustomHighlightColors(colors);
-    settings.globalReadSettings.customHighlightColors = colors;
-    setSettings(settings);
-    saveSettings(envConfig, settings);
-  };
-
-  const handleUserHighlightColorsChange = (colors: UserHighlightColor[]) => {
-    setUserHighlightColors(colors);
-    settings.globalReadSettings.userHighlightColors = colors;
-    setSettings(settings);
-    saveSettings(envConfig, settings);
-  };
-
-  const handleDefaultHighlightLabelsChange = (
-    labels: Partial<Record<DefaultHighlightColor, string>>,
-  ) => {
-    setDefaultHighlightLabels(labels);
-    settings.globalReadSettings.defaultHighlightLabels = labels;
-    setSettings(settings);
-    saveSettings(envConfig, settings);
-  };
-
   return (
     <div className='my-4 w-full space-y-6'>
       {showCustomThemeEditor ? (
@@ -375,18 +338,17 @@ const ColorPanel: React.FC<SettingsPanelPanelProp> = ({ bookKey, onRegisterReset
             data-setting-id='settings.color.backgroundTexture'
           />
 
-          <HighlightColorsEditor
-            customHighlightColors={customHighlightColors}
-            userHighlightColors={userHighlightColors}
-            defaultHighlightLabels={defaultHighlightLabels}
-            highlightOpacity={highlightOpacity}
-            isEink={viewSettings.isEink}
-            onCustomHighlightColorsChange={handleCustomHighlightColorsChange}
-            onUserHighlightColorsChange={handleUserHighlightColorsChange}
-            onDefaultHighlightLabelsChange={handleDefaultHighlightLabelsChange}
-            onOpacityChange={setHighlightOpacity}
-            data-setting-id='settings.color.highlightColors'
-          />
+          <BoxedList title={_('Highlights')} data-setting-id='settings.color.highlightColors'>
+            <NumberInput
+              label={_('Opacity')}
+              value={highlightOpacity}
+              onChange={setHighlightOpacity}
+              disabled={viewSettings.isEink}
+              min={0.1}
+              max={1}
+              step={0.1}
+            />
+          </BoxedList>
 
           <ReadingRulerSettings
             enabled={readingRulerEnabled}

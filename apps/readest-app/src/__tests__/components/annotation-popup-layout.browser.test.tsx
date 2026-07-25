@@ -1,25 +1,21 @@
 /**
  * Visual regression test for the AnnotationPopup component.
  *
- * Renders the *real* AnnotationPopup + HighlightOptions with actual
- * annotationToolButtons, DEFAULT_HIGHLIGHT_COLORS, and optional user
- * colors.  Tailwind CSS is loaded so the screenshot matches the live app.
+ * Renders the *real* AnnotationPopup + ConceptChips with actual
+ * annotationToolButtons and HIGHLIGHT_CONCEPTS. Tailwind CSS is loaded so
+ * the screenshot matches the live app.
  *
- * Guards against the layout regression from PR #3741 (missing
- * `justify-between`, unwanted `flex-1` on the color strip).
+ * Guards the chips-row layout: the concept chips float above the toolbar
+ * without overlapping it, and every concept renders as a labeled chip.
  */
 
 import React from 'react';
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { page } from 'vitest/browser';
-import type { UserHighlightColor } from '@/types/book';
 
 // ── Tailwind / DaisyUI styles ───────────────────────────────────────────
 import '@/styles/globals.css';
-
-// ── Per-test state read by mocks ────────────────────────────────────────
-let mockUserColors: UserHighlightColor[] = [];
 
 // ── Mocks (must be before component imports) ────────────────────────────
 
@@ -35,30 +31,6 @@ vi.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => (s: string) => s,
 }));
 
-vi.mock('@/store/settingsStore', () => ({
-  useSettingsStore: () => ({
-    settings: {
-      globalReadSettings: {
-        highlightStyle: 'highlight' as const,
-        highlightStyles: {
-          highlight: 'yellow',
-          underline: 'red',
-          squiggly: 'blue',
-        },
-        customHighlightColors: {} as Record<string, string>,
-        get userHighlightColors() {
-          return mockUserColors;
-        },
-        defaultHighlightLabels: {},
-      },
-      globalViewSettings: {
-        isEink: false,
-        isColorEink: false,
-      },
-    },
-  }),
-}));
-
 vi.mock('@/hooks/useResponsiveSize', () => ({
   useResponsiveSize: (n: number) => n,
   useDefaultIconSize: () => 20,
@@ -68,31 +40,25 @@ vi.mock('@/hooks/useKeyDownActions', () => ({
   useKeyDownActions: () => {},
 }));
 
-vi.mock('@/helpers/settings', () => ({
-  saveSysSettings: vi.fn(),
-}));
-
-vi.mock('@/app/reader/utils/annotatorUtil', () => ({
-  getHighlightColorLabel: () => undefined,
-}));
-
 // ── Real component imports ──────────────────────────────────────────────
 
 import AnnotationPopup from '@/app/reader/components/annotator/AnnotationPopup';
 import { annotationToolButtons } from '@/app/reader/components/annotator/AnnotationTools';
+import { CONCEPT_CHIPS_HEIGHT_PIX } from '@/app/reader/components/annotator/ConceptChips';
+import { HIGHLIGHT_CONCEPTS } from '@/services/highlightConcepts';
 
 // ── Constants ───────────────────────────────────────────────────────────
 
 const POPUP_W = 300;
 const POPUP_H = 44;
 
-// Highlight options float above the popup by (28 + 16) = 44px
-const OPTIONS_OFFSET = 28 + 16;
+// Concept chips float above the popup by (chips height + 8px padding).
+const CHIPS_OFFSET = CONCEPT_CHIPS_HEIGHT_PIX + 8;
 
-// Position the popup so both it and the floating options are visible:
-//   y=0..OPTIONS_OFFSET: highlight-options row
-//   y=OPTIONS_OFFSET..OPTIONS_OFFSET+POPUP_H: toolbar
-const POPUP_Y = OPTIONS_OFFSET;
+// Position the popup so both it and the floating chips are visible:
+//   y=0..CHIPS_OFFSET: concept chips block
+//   y=CHIPS_OFFSET..CHIPS_OFFSET+POPUP_H: toolbar
+const POPUP_Y = CHIPS_OFFSET;
 const POPUP_X = 0;
 const WRAPPER_H = POPUP_Y + POPUP_H + 14; // +14 for triangle below
 
@@ -109,8 +75,8 @@ const expectElement = (locator: unknown) =>
 
 /**
  * Fixed-size wrapper that contains both the popup and the absolutely
- * positioned highlight-options row above it, matching the real app
- * where the triangle points up and highlight options float above.
+ * positioned concept-chips block above it, matching the real app where
+ * the triangle points up and the chips float above.
  */
 const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div
@@ -126,8 +92,12 @@ const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
-const renderPopup = (userColors: UserHighlightColor[] = []) => {
-  mockUserColors = userColors;
+const renderPopup = (dir: 'up' | 'down' = 'up') => {
+  // 'up': triangle points up, popup sits below the selection, chips float
+  // above it. 'down': the reverse — chips float below the toolbar (the case
+  // that previously rendered with an oversized gap).
+  const popupY = dir === 'up' ? POPUP_Y : 0;
+  const triangleY = dir === 'up' ? popupY + POPUP_H : popupY;
   return render(
     <Wrapper>
       <AnnotationPopup
@@ -136,14 +106,12 @@ const renderPopup = (userColors: UserHighlightColor[] = []) => {
         isVertical={false}
         buttons={toolButtons}
         notes={[]}
-        position={{ dir: 'up', point: { x: POPUP_X, y: POPUP_Y } }}
-        trianglePosition={{ dir: 'up', point: { x: POPUP_X + POPUP_W / 2, y: POPUP_Y + POPUP_H } }}
+        position={{ dir, point: { x: POPUP_X, y: popupY } }}
+        trianglePosition={{ dir, point: { x: POPUP_X + POPUP_W / 2, y: triangleY } }}
         highlightOptionsVisible
-        selectedStyle='highlight'
-        selectedColor='yellow'
         popupWidth={POPUP_W}
         popupHeight={POPUP_H}
-        onHighlight={vi.fn()}
+        onSelectConcept={vi.fn()}
         onDismiss={vi.fn()}
       />
     </Wrapper>,
@@ -156,55 +124,61 @@ beforeAll(async () => {
   await page.viewport(800, 600);
 });
 
-beforeEach(() => {
-  mockUserColors = [];
-});
-
 afterEach(() => {
   cleanup();
 });
 
 // ── Tests ───────────────────────────────────────────────────────────────
 
-describe('AnnotationPopup layout screenshot', () => {
-  it('default 5 colors — compact color strip, large gap', async () => {
+describe('AnnotationPopup layout', () => {
+  it('renders every concept as a labeled chip', () => {
+    const { container } = renderPopup();
+    for (const concept of HIGHLIGHT_CONCEPTS) {
+      const chip = Array.from(container.querySelectorAll('.concept-chips button')).find(
+        (b) => b.textContent === concept.label,
+      );
+      expect(chip, `chip for ${concept.id}`).toBeTruthy();
+    }
+  });
+
+  it('chips fit their block and do not overlap the toolbar', () => {
+    const { container } = renderPopup();
+    const chipsBlock = container.querySelector('.concept-chips') as HTMLElement;
+    const toolbar = container.querySelector('.selection-buttons') as HTMLElement;
+    const chipsRect = chipsBlock.getBoundingClientRect();
+    const toolbarRect = toolbar.getBoundingClientRect();
+
+    // Chips block floats fully above the toolbar row.
+    expect(chipsRect.bottom).toBeLessThanOrEqual(toolbarRect.top);
+
+    // Every chip is fully inside the chips block (no overflow of the
+    // two-row layout at the 300px popup width).
+    for (const chip of Array.from(chipsBlock.querySelectorAll('button'))) {
+      const rect = chip.getBoundingClientRect();
+      expect(rect.top).toBeGreaterThanOrEqual(chipsRect.top);
+      expect(rect.bottom).toBeLessThanOrEqual(chipsRect.bottom);
+      expect(rect.left).toBeGreaterThanOrEqual(chipsRect.left);
+      expect(rect.right).toBeLessThanOrEqual(chipsRect.right);
+    }
+  });
+
+  it('sits directly below the toolbar (small gap) when the popup opens downward', () => {
+    const { container } = renderPopup('down');
+    const chipsBlock = container.querySelector('.concept-chips') as HTMLElement;
+    const toolbar = container.querySelector('.selection-buttons') as HTMLElement;
+    const gap = chipsBlock.getBoundingClientRect().top - toolbar.getBoundingClientRect().bottom;
+
+    // The chips clear the toolbar (no overlap) but hug it — the gap is the
+    // small padding, not the block's full height as in the earlier bug.
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThanOrEqual(20);
+  });
+
+  it('concept chips — screenshot', async () => {
     const { container } = renderPopup();
     const wrapper = container.firstElementChild as HTMLElement;
     await expectElement(page.elementLocator(wrapper)).toMatchScreenshot(
-      'annotation-popup-5-colors',
-    );
-  });
-
-  it('5+5 user colors — color strip grows, gap shrinks', async () => {
-    const { container } = renderPopup([
-      { hex: '#f97316' },
-      { hex: '#06b6d4' },
-      { hex: '#ec4899' },
-      { hex: '#14b8a6' },
-      { hex: '#f43f5e' },
-    ]);
-    const wrapper = container.firstElementChild as HTMLElement;
-    await expectElement(page.elementLocator(wrapper)).toMatchScreenshot(
-      'annotation-popup-10-colors',
-    );
-  });
-
-  it('5+10 user colors — color strip at max, overflow scrolls', async () => {
-    const { container } = renderPopup([
-      { hex: '#f97316' },
-      { hex: '#06b6d4' },
-      { hex: '#ec4899' },
-      { hex: '#14b8a6' },
-      { hex: '#f43f5e' },
-      { hex: '#a855f7' },
-      { hex: '#84cc16' },
-      { hex: '#0ea5e9' },
-      { hex: '#e11d48' },
-      { hex: '#6366f1' },
-    ]);
-    const wrapper = container.firstElementChild as HTMLElement;
-    await expectElement(page.elementLocator(wrapper)).toMatchScreenshot(
-      'annotation-popup-15-colors',
+      'annotation-popup-concept-chips',
     );
   });
 });

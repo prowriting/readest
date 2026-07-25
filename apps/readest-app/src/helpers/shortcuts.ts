@@ -1,5 +1,6 @@
 import { stubTranslation as _ } from '@/utils/misc';
 import { filterPlatformKeys } from '@/utils/shortcutKeys';
+import { TRANSLATION_ENABLED } from '@/services/constants';
 
 export type ShortcutEntry = {
   keys: string[];
@@ -290,6 +291,7 @@ export const getShortcutsForDisplay = (isMac: boolean): ShortcutDisplaySection[]
     for (const entry of Object.values(shortcuts)) {
       if (entry.section !== section) continue;
       const keys = filterPlatformKeys(entry.keys, isMac);
+      if (keys.length === 0) continue;
       const existing = itemMap.get(entry.description);
       if (existing) {
         // Merge keys for entries with the same description
@@ -308,8 +310,10 @@ export const getShortcutsForDisplay = (isMac: boolean): ShortcutDisplaySection[]
 
 // Load shortcuts from localStorage or fallback to defaults
 export const loadShortcuts = (): ShortcutConfig => {
-  if (typeof localStorage === 'undefined') return DEFAULT_SHORTCUTS;
-  const customShortcuts = JSON.parse(localStorage.getItem('customShortcuts') || '{}');
+  const customShortcuts =
+    typeof localStorage === 'undefined'
+      ? {}
+      : JSON.parse(localStorage.getItem('customShortcuts') || '{}');
   const result = { ...DEFAULT_SHORTCUTS };
   for (const [key, value] of Object.entries(customShortcuts)) {
     const shortcutKey = key as keyof ShortcutConfig;
@@ -319,6 +323,9 @@ export const loadShortcuts = (): ShortcutConfig => {
         result[shortcutKey] = { ...result[shortcutKey], keys: value };
       }
     }
+  }
+  if (!TRANSLATION_ENABLED) {
+    result.onTranslateSelection = { ...result.onTranslateSelection, keys: [] };
   }
   return result;
 };

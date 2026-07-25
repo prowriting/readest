@@ -1,0 +1,74 @@
+{
+  "brand": {
+    "name": "BookArc",
+    "tagline": "Your shelf, in full spectrum. Read and listen to your books everywhere.",
+    "bg": "#FF5E5B",
+    "text": "#ffffff",
+    "icon": "public/icon.png"
+  },
+  "capturesDir": "scripts/store-assets/captures",
+  "outRoot": "../../fastlane/metadata/android/en-US/images",
+  "canvases": {
+    "phone": { "width": 1080, "height": 1920, "outDir": "phoneScreenshots", "deviceWidth": 840 },
+    "tablet7": {
+      "width": 1080,
+      "height": 1920,
+      "outDir": "sevenInchScreenshots",
+      "deviceWidth": 960
+    },
+    "tablet10": {
+      "width": 1920,
+      "height": 1080,
+      "outDir": "tenInchScreenshots",
+      "orientation": "landscape"
+    }
+  },
+  "scenes": [
+    {
+      "capture": "01-library.png",
+      "out": "1.png",
+      "caption": "Your shelf, in full spectrum",
+      "subcaption": "Every EPUB, PDF, and audiobook in one place"
+    },
+    {
+      "capture": "02-reader.png",
+      "out": "2.png",
+      "caption": "Reading that gets out of the way",
+      "subcaption": "Clean typography with day and night themes",
+      "bg": "#f5f1e8",
+      "text": "#3d2c23"
+    },
+    {
+      "capture": "03-annotation.png",
+      "out": "3.png",
+      "caption": "Highlight, note, and remember",
+      "subcaption": "Your annotations, organized by book"
+    },
+    {
+      "capture": "04-audiobook.png",
+      "out": "4.png",
+      "caption": "Audiobooks with read-along",
+      "subcaption": "Follow along as every sentence is spoken",
+      "bg": "#f5f1e8",
+      "text": "#3d2c23"
+    },
+    {
+      "capture": "05-discover.png",
+      "out": "5.png",
+      "caption": "Discover free classics",
+      "subcaption": "Thousands of public-domain books, one tap away"
+    },
+    {
+      "capture": "06-settings.png",
+      "out": "6.png",
+      "caption": "Make it yours",
+      "subcaption": "Fonts, themes, and layout under your control",
+      "bg": "#f5f1e8",
+      "text": "#3d2c23"
+    }
+  ],
+  "feature": {
+    "capture": "phone/02-reader.png",
+    "out": "featureGraphic.jpg"
+  }
+}

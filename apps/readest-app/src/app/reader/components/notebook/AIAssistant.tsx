@@ -27,6 +27,7 @@ import type { EmbeddingProgress, AISettings, AIMessage } from '@/services/ai/typ
 import type { RetrievedChunk } from '@/services/reedy/retrieval/BookRetriever';
 import { useEnv } from '@/context/EnvContext';
 import { isTauriAppPlatform } from '@/services/environment';
+import { REEDY_ENABLED } from '@/services/constants';
 import type { AppService } from '@/types/system';
 import { ReedyAssistant } from '@/services/reedy/ui/ReedyAssistant';
 import type { ReadingContextSnapshot } from '@/services/reedy/tools/builtins/types';
@@ -294,6 +295,7 @@ const AIAssistant = ({ bookKey }: AIAssistantProps) => {
 
   const reedyRuntime = settings?.aiSettings?.reedy?.runtime ?? 'mvp';
   const useAgentRuntime =
+    REEDY_ENABLED &&
     settings?.aiSettings?.enabled === true &&
     settings?.aiSettings?.reedy?.enabled === true &&
     reedyRuntime === 'agent' &&
@@ -334,7 +336,7 @@ const LegacyAIAssistant = ({ bookKey }: AIAssistantProps) => {
     if (!aiSettings) return null;
     const legacy = new LegacyIdbBackend(aiSettings);
     const reedy: RetrievalBackend | null =
-      appService && isTauriAppPlatform()
+      REEDY_ENABLED && appService && isTauriAppPlatform()
         ? new ReedyBackend(appService as AppService, aiSettings)
         : null;
     return selectBackend({ settings: aiSettings, isTauri: isTauriAppPlatform(), legacy, reedy });

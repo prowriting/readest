@@ -49,6 +49,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         }
     }
 
+    // Audiobook browse cache row types pushed from the webview (car bridge).
+    // Declared at class scope (not inside the companion) so external callers
+    // can reference them as `MediaPlaybackService.BridgeBook`; a class nested
+    // in a companion object is only reachable via `.Companion.`.
+    data class BridgeBook(val id: String, val title: String, val author: String, val durationSec: Double)
+    data class BridgeChapter(val index: Int, val label: String)
+
     companion object {
         private const val CHANNEL_ID = "media2_playback_channel"
         private const val NOTIFICATION_ID = 1002
@@ -62,8 +69,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         var currentDurationMs: Long = -1L
 
         // Audiobook browse cache pushed from the webview (car bridge).
-        data class BridgeBook(val id: String, val title: String, val author: String, val durationSec: Double)
-        data class BridgeChapter(val index: Int, val label: String)
         var bridgeBooks: List<BridgeBook> = emptyList()
         var bridgeChaptersBookId: String? = null
         var bridgeChapters: List<BridgeChapter> = emptyList()

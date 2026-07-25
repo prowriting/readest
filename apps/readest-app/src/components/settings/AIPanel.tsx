@@ -14,6 +14,7 @@ import { DEFAULT_AI_SETTINGS, GATEWAY_MODELS, MODEL_PRICING } from '@/services/a
 import type { AISettings, AIProviderName } from '@/services/ai/types';
 import { exportReedyMetricsBundle } from '@/services/reedy/instrumentation';
 import { isTauriAppPlatform } from '@/services/environment';
+import { REEDY_ENABLED } from '@/services/constants';
 import { BoxedList, SettingLabel, SettingsRow, SettingsSwitchRow } from './primitives';
 
 type ConnectionStatus = 'idle' | 'testing' | 'success' | 'error';
@@ -742,72 +743,74 @@ const AIPanel: React.FC = () => {
         </BoxedList>
       )}
 
-      <BoxedList
-        title={_('Reedy Retrieval (Beta)')}
-        className={disabledSection}
-        description={
-          isTauriAppPlatform()
-            ? _(
-                'Uses Turso vector search + CFI-anchored citations. The model decides when to look up passages instead of getting them stuffed into the system prompt.',
-              )
-            : _('Reedy is desktop-only in this beta. Use the Readest desktop app to try it.')
-        }
-      >
-        <SettingsSwitchRow
-          label={_('Use Reedy retrieval')}
-          checked={reedyEnabled}
-          disabled={!enabled || !isTauriAppPlatform()}
-          onChange={() => {
-            const next = !reedyEnabled;
-            setReedyEnabled(next);
-            saveAiSetting('reedy', {
-              enabled: next,
-              runtime: reedyAgentRuntime ? 'agent' : 'mvp',
-            });
-          }}
-        />
-        <SettingsSwitchRow
-          label={_('Use agent runtime (experimental)')}
-          checked={reedyAgentRuntime}
-          disabled={!enabled || !reedyEnabled || !isTauriAppPlatform()}
-          onChange={() => {
-            const next = !reedyAgentRuntime;
-            setReedyAgentRuntime(next);
-            saveAiSetting('reedy', {
-              enabled: reedyEnabled,
-              runtime: next ? 'agent' : 'mvp',
-            });
-          }}
-        />
-        <div className='flex min-h-14 items-center justify-between gap-3 pe-4'>
-          <div className='flex min-w-0 flex-col gap-0.5'>
-            <SettingLabel>{_('Send Reedy feedback')}</SettingLabel>
-          </div>
-          <button
-            className='btn btn-outline btn-sm'
-            disabled={!enabled || !isTauriAppPlatform() || !appService}
-            onClick={async () => {
-              if (!appService) return;
-              try {
-                const bundle = await exportReedyMetricsBundle(appService);
-                const blob = new Blob([bundle], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `reedy-feedback-${new Date().toISOString().slice(0, 10)}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              } catch (err) {
-                console.error('[Reedy] feedback export failed', err);
-              }
+      {REEDY_ENABLED && (
+        <BoxedList
+          title={_('Reedy Retrieval (Beta)')}
+          className={disabledSection}
+          description={
+            isTauriAppPlatform()
+              ? _(
+                  'Uses Turso vector search + CFI-anchored citations. The model decides when to look up passages instead of getting them stuffed into the system prompt.',
+                )
+              : _('Reedy is desktop-only in this beta. Use the Readest desktop app to try it.')
+          }
+        >
+          <SettingsSwitchRow
+            label={_('Use Reedy retrieval')}
+            checked={reedyEnabled}
+            disabled={!enabled || !isTauriAppPlatform()}
+            onChange={() => {
+              const next = !reedyEnabled;
+              setReedyEnabled(next);
+              saveAiSetting('reedy', {
+                enabled: next,
+                runtime: reedyAgentRuntime ? 'agent' : 'mvp',
+              });
             }}
-          >
-            {_('Download')}
-          </button>
-        </div>
-      </BoxedList>
+          />
+          <SettingsSwitchRow
+            label={_('Use agent runtime (experimental)')}
+            checked={reedyAgentRuntime}
+            disabled={!enabled || !reedyEnabled || !isTauriAppPlatform()}
+            onChange={() => {
+              const next = !reedyAgentRuntime;
+              setReedyAgentRuntime(next);
+              saveAiSetting('reedy', {
+                enabled: reedyEnabled,
+                runtime: next ? 'agent' : 'mvp',
+              });
+            }}
+          />
+          <div className='flex min-h-14 items-center justify-between gap-3 pe-4'>
+            <div className='flex min-w-0 flex-col gap-0.5'>
+              <SettingLabel>{_('Send Reedy feedback')}</SettingLabel>
+            </div>
+            <button
+              className='btn btn-outline btn-sm'
+              disabled={!enabled || !isTauriAppPlatform() || !appService}
+              onClick={async () => {
+                if (!appService) return;
+                try {
+                  const bundle = await exportReedyMetricsBundle(appService);
+                  const blob = new Blob([bundle], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `reedy-feedback-${new Date().toISOString().slice(0, 10)}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('[Reedy] feedback export failed', err);
+                }
+              }}
+            >
+              {_('Download')}
+            </button>
+          </div>
+        </BoxedList>
+      )}
 
       <BoxedList title={_('Connection')} className={disabledSection}>
         <div className='flex min-h-14 items-center justify-between gap-3 pe-4'>

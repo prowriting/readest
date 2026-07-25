@@ -57,7 +57,7 @@ pub fn handle_menu_event(app: &AppHandle, event: &MenuEvent) {
     if event.id() == "open_file" {
         handle_open_file(app);
     } else if event.id() == "privacy_policy" {
-        let _ = opener.open_url("https://readest.com/privacy-policy", None::<&str>);
+        let _ = opener.open_url("https://bookarc.app/reader-privacy", None::<&str>);
     } else if event.id() == "report_issue" {
         let _ = opener.open_url("https://github.com/readest/readest/issues", None::<&str>);
     } else if event.id() == "readest_help" {

@@ -33,6 +33,12 @@ local READEST_TO_KO_COLOR = {
     ["#00bcd4"] = "cyan",
     ["#808000"] = "olive",
     ["#9e9e9e"] = "gray",
+    -- Concept slugs (see readest-app services/highlightConcepts.ts)
+    useful = "green",
+    love = "red",
+    thought = "orange",
+    slow = "blue",
+    confusing = "purple",
 }
 
 function SyncAnnotations:parseDatetimeToMs(dt)

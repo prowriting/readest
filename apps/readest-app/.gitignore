@@ -80,3 +80,6 @@ src-tauri/gen
 /blob-report/
 /playwright/.cache/
 
+
+# Store-asset pipeline raw captures (regenerate with `pnpm store:capture`)
+/scripts/store-assets/captures/

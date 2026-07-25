@@ -15,6 +15,7 @@ import {
   buildAllAudiobookFixtures,
   buildMoAacEpub,
   buildMoAudioOnlyEpub,
+  buildStoreAudiobookEpub,
 } from './audiobook-epubs.ts';
 import { unzipSync } from 'fflate';
 
@@ -29,6 +30,15 @@ const emit = (name: string, bytes: Uint8Array) => {
 };
 
 for (const { name, bytes } of buildAllAudiobookFixtures()) emit(name, bytes);
+
+// Store-screenshot audiobook lives with the other store-lane fixtures.
+{
+  const store = buildStoreAudiobookEpub();
+  const storeDir = path.join(outDir, 'store');
+  mkdirSync(storeDir, { recursive: true });
+  writeFileSync(path.join(storeDir, store.name), store.bytes);
+  console.log(`store/${store.name}: ${(store.bytes.byteLength / 1024).toFixed(1)} KiB`);
+}
 
 // AAC variant: reuse the audio-only book's WAVs and transcode with the
 // system encoder (afconvert ships with macOS). Skipped where unavailable —

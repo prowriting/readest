@@ -39,6 +39,10 @@ if grep -q 'MANAGE_EXTERNAL_STORAGE' "$MANIFEST"; then
 fi
 
 source .env.google-play.local
+
+echo "🔐 Wiring Android release signing"
+node scripts/setup-android-signing.mjs
+
 echo "🚀 Running: pnpm tauri android build (googleplay flavor)"
 ORG_GRADLE_PROJECT_storeFlavor=googleplay pnpm tauri android build --config src-tauri/tauri.playstore.conf.json
 
@@ -55,6 +59,27 @@ if ! grep -q 'MANAGE_EXTERNAL_STORAGE' "$MANIFEST"; then
   ised "/android.permission.WRITE_EXTERNAL_STORAGE/a\\
     $STORAGE_PERMISSION_LINE
   " "$MANIFEST"
+fi
+
+# --- VERIFY THE AAB IS SIGNED (fail here, not at Play upload) ---
+AAB="./src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab"
+if [[ ! -f "$AAB" ]]; then
+  echo "❌ Expected AAB not found at $AAB" >&2
+  exit 1
+fi
+JARSIGNER="$(command -v jarsigner || true)"
+if [[ -z "$JARSIGNER" && -n "$(/usr/libexec/java_home 2>/dev/null)" ]]; then
+  JARSIGNER="$(/usr/libexec/java_home)/bin/jarsigner"
+fi
+if [[ -x "$JARSIGNER" || -n "$JARSIGNER" ]]; then
+  if "$JARSIGNER" -verify "$AAB" >/dev/null 2>&1; then
+    echo "✅ AAB is signed: $AAB"
+  else
+    echo "❌ AAB is NOT signed — check keystore.properties and the release signingConfig" >&2
+    exit 1
+  fi
+else
+  echo "⚠️  jarsigner not found; skipping signature verification"
 fi
 
 if [[ -z "$GOOGLE_PLAY_JSON_KEY_FILE" ]]; then

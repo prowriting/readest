@@ -164,6 +164,8 @@ const formatClock = (totalSeconds: number): string => {
 interface OpfSpec {
   uuid: string;
   title: string;
+  /** dc:creator; the e2e fixtures default to 'Bookarc E2E'. */
+  creator?: string;
   chapters: ChapterRef[];
   audioFiles: string[];
   /** Per-chapter-slug overlay duration in seconds; omitted slugs get no meta. */
@@ -203,7 +205,7 @@ const opfDoc = (spec: OpfSpec): string => {
     <dc:identifier id="pub-id">urn:uuid:${spec.uuid}</dc:identifier>
     <dc:title>${spec.title}</dc:title>
     <dc:language>en</dc:language>
-    <dc:creator>Bookarc E2E</dc:creator>
+    <dc:creator>${spec.creator ?? 'Bookarc E2E'}</dc:creator>
     <meta property="dcterms:modified">2026-01-01T00:00:00Z</meta>
 ${durationMetas}${totalMeta}
     <meta property="media:active-class">${ACTIVE_CLASS}</meta>
@@ -525,6 +527,87 @@ export const buildMoAacEpub = (m4aBySlug: Record<'c1' | 'c2', Uint8Array>): Fixt
     );
   });
   return { name: 'mo-aac.epub', bytes: packEpub(files) };
+};
+
+/**
+ * Store-screenshot audiobook: real public-domain prose (the opening of
+ * "Alice's Adventures in Wonderland") with a proper title and author, so the
+ * Play Store read-along shot shows a believable book instead of synthetic
+ * fixture sentences. Audio is silent (only the highlight matters on camera).
+ * Not part of the e2e set — emitted to books/store/ for `pnpm store:capture`.
+ */
+export const buildStoreAudiobookEpub = (): FixtureEpub => {
+  const c1Sentences = [
+    'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do.',
+    'Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.',
+    'And what is the use of a book, thought Alice, without pictures or conversations?',
+    'So she was considering in her own mind, as well as she could, for the hot day made her feel very sleepy and stupid, whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.',
+    'There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, Oh dear! Oh dear! I shall be late!',
+    'But when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet.',
+    'It flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it.',
+    'Burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.',
+  ];
+  const c2Sentences = [
+    'Curiouser and curiouser! cried Alice; she was so much surprised, that for the moment she quite forgot how to speak good English.',
+    'Now I am opening out like the largest telescope that ever was!',
+    'Good-bye, feet! for when she looked down at her feet, they seemed to be almost out of sight, they were getting so far off.',
+    'And she went on planning to herself how she would manage it.',
+  ];
+  const sentenceSpans = (sentences: string[]): string =>
+    `    <p>${sentences.map((s, i) => `<span id="s${i + 1}">${s}</span>`).join(' ')}</p>`;
+
+  const chapters: ChapterRef[] = [
+    { slug: 'c1', label: 'Down the Rabbit-Hole' },
+    { slug: 'c2', label: 'The Pool of Tears' },
+  ];
+  const title = "Alice's Adventures in Wonderland";
+  const bytes = packEpub([
+    ['META-INF/container.xml', CONTAINER_XML],
+    [
+      'OEBPS/content.opf',
+      opfDoc({
+        uuid: '3b2a5f04-0000-4000-8000-000000000006',
+        title,
+        creator: 'Lewis Carroll',
+        chapters,
+        audioFiles: ['c1.wav', 'c2.wav'],
+        overlayDurations: { c1: c1Sentences.length * 2.5, c2: c2Sentences.length * 2.5 },
+        totalDuration: (c1Sentences.length + c2Sentences.length) * 2.5,
+      }),
+    ],
+    ['OEBPS/nav.xhtml', navXhtml(title, chapters)],
+    [
+      'OEBPS/text/c1.xhtml',
+      chapterXhtml(
+        chapters[0]!.label,
+        `    <h1>Chapter 1: Down the Rabbit-Hole</h1>\n${sentenceSpans(c1Sentences)}`,
+      ),
+    ],
+    [
+      'OEBPS/text/c2.xhtml',
+      chapterXhtml(
+        chapters[1]!.label,
+        `    <h1>Chapter 2: The Pool of Tears</h1>\n${sentenceSpans(c2Sentences)}`,
+      ),
+    ],
+    ['OEBPS/smil/c1.smil', smilDoc('c1', contiguousClips(c1Sentences.length, 2.5, 'c1.wav', 's'))],
+    ['OEBPS/smil/c2.smil', smilDoc('c2', contiguousClips(c2Sentences.length, 2.5, 'c2.wav', 's'))],
+    [
+      'OEBPS/audio/c1.wav',
+      toneWav(
+        Array.from({ length: c1Sentences.length }, () => 2.5),
+        0,
+      ),
+    ],
+    [
+      'OEBPS/audio/c2.wav',
+      toneWav(
+        Array.from({ length: c2Sentences.length }, () => 2.5),
+        0,
+      ),
+    ],
+  ]);
+  return { name: 'alice-audiobook.epub', bytes };
 };
 
 export const buildAllAudiobookFixtures = (): FixtureEpub[] => [

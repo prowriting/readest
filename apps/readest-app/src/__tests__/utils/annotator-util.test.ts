@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   getExternalDragHandle,
+  getHighlightColorHex,
   getHighlightColorLabel,
   removeBookNoteOverlays,
   toParentViewportPoint,
 } from '@/app/reader/utils/annotatorUtil';
+import { HIGHLIGHT_CONCEPTS } from '@/services/highlightConcepts';
 import { Point } from '@/utils/sel';
 import { BookNote, UserHighlightColor } from '@/types/book';
 import { SystemSettings } from '@/types/settings';
@@ -105,6 +107,30 @@ describe('toParentViewportPoint', () => {
 
     const result = toParentViewportPoint(doc, 50, 100);
     expect(result).toEqual({ x: 300, y: 100 });
+  });
+});
+
+describe('getHighlightColorHex', () => {
+  // Simulates persisted settings from an existing install: customHighlightColors
+  // only contains the legacy named colors, no concept slugs.
+  const legacySettings = {
+    globalReadSettings: {
+      customHighlightColors: { yellow: '#ffff00' },
+    },
+  } as unknown as SystemSettings;
+
+  it('resolves each concept slug to its hex even when customHighlightColors lacks the slug', () => {
+    for (const concept of HIGHLIGHT_CONCEPTS) {
+      expect(getHighlightColorHex(legacySettings, concept.id)).toBe(concept.hex);
+    }
+  });
+
+  it('still prefers user-customized hexes for legacy named colors', () => {
+    expect(getHighlightColorHex(legacySettings, 'yellow')).toBe('#ffff00');
+  });
+
+  it('passes raw hex colors through unchanged', () => {
+    expect(getHighlightColorHex(legacySettings, '#123456')).toBe('#123456');
   });
 });
 

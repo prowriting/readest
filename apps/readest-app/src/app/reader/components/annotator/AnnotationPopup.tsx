@@ -1,11 +1,11 @@
 import clsx from 'clsx';
 import React from 'react';
 import { Position } from '@/utils/sel';
-import { BookNote, HighlightColor, HighlightStyle } from '@/types/book';
+import { BookNote } from '@/types/book';
 import Popup from '@/components/Popup';
 import AnnotationToolButton from './AnnotationToolButton';
 import AnnotationNotes from './AnnotationNotes';
-import HighlightOptions from './HighlightOptions';
+import ConceptChips from './ConceptChips';
 
 interface AnnotationPopupProps {
   bookKey: string;
@@ -22,14 +22,9 @@ interface AnnotationPopupProps {
   position: Position;
   trianglePosition: Position;
   highlightOptionsVisible: boolean;
-  selectedStyle: HighlightStyle;
-  selectedColor: HighlightColor;
   popupWidth: number;
   popupHeight: number;
-  globalToggleAvailable?: boolean;
-  globalToggleActive?: boolean;
-  onToggleGlobal?: () => void;
-  onHighlight: (update?: boolean) => void;
+  onSelectConcept: (id: string) => void;
   onDismiss: () => void;
 }
 
@@ -42,14 +37,9 @@ const AnnotationPopup: React.FC<AnnotationPopupProps> = ({
   position,
   trianglePosition,
   highlightOptionsVisible,
-  selectedStyle,
-  selectedColor,
   popupWidth,
   popupHeight,
-  globalToggleAvailable,
-  globalToggleActive,
-  onToggleGlobal,
-  onHighlight,
+  onSelectConcept,
   onDismiss,
 }) => {
   return (
@@ -103,17 +93,12 @@ const AnnotationPopup: React.FC<AnnotationPopupProps> = ({
             />
           ) : (
             highlightOptionsVisible && (
-              <HighlightOptions
+              <ConceptChips
                 isVertical={isVertical}
                 triangleDir={trianglePosition.dir!}
                 popupWidth={isVertical ? popupHeight : popupWidth}
                 popupHeight={isVertical ? popupWidth : popupHeight}
-                selectedStyle={selectedStyle}
-                selectedColor={selectedColor}
-                globalToggleAvailable={globalToggleAvailable}
-                globalToggleActive={globalToggleActive}
-                onToggleGlobal={onToggleGlobal}
-                onHandleHighlight={onHighlight}
+                onSelectConcept={onSelectConcept}
               />
             )
           )}

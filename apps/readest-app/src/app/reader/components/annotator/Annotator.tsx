@@ -56,9 +56,12 @@ import {
   sourceCfiFromSyntheticValue,
 } from '../../utils/globalAnnotations';
 import { TRANSLATION_ENABLED } from '@/services/constants';
+import { getHighlightConcept, HighlightConcept } from '@/services/highlightConcepts';
+import { saveSysSettings } from '@/helpers/settings';
 import { annotationToolButtons } from './AnnotationTools';
 import AnnotationRangeEditor from './AnnotationRangeEditor';
 import AnnotationPopup from './AnnotationPopup';
+import ThoughtSheet from './ThoughtSheet';
 import DictionaryPopup from './DictionaryPopup';
 import DictionarySheet from './DictionarySheet';
 import TranslatorPopup from './TranslatorPopup';
@@ -125,6 +128,12 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   const [annotationNotes, setAnnotationNotes] = useState<BookNote[]>([]);
   const [editingAnnotation, setEditingAnnotation] = useState<BookNote | null>(null);
   const [externalDragPoint, setExternalDragPoint] = useState<Point | null>(null);
+  const [thoughtTarget, setThoughtTarget] = useState<{
+    concept: HighlightConcept;
+    annotationId: string;
+    excerpt: string;
+    initialNote: string;
+  } | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [importingMrexpt, setImportingMrexpt] = useState(false);
   // "Clear Annotations" confirm dialog. Hosted here (and not in BookMenu)
@@ -605,7 +614,9 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   };
 
   useEffect(() => {
-    setHighlightOptionsVisible(!!(selection && selection.annotated));
+    // Concept chips are the primary highlight action — show them for any
+    // fresh selection, not only after the selection is annotated.
+    setHighlightOptionsVisible(!!(selection && selection.text.trim().length > 0));
     if (selection && selection.text.trim().length > 0) {
       const gridFrame = document.querySelector(`#gridcell-${bookKey}`);
       if (!gridFrame) return;
@@ -771,14 +782,18 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
     }
   };
 
-  const handleHighlight = (update = false, highlightStyle?: HighlightStyle) => {
-    if (!selection || !selection.text) return;
+  const handleHighlight = (
+    update = false,
+    highlightStyle?: HighlightStyle,
+    highlightColor?: HighlightColor,
+  ): BookNote | undefined => {
+    if (!selection || !selection.text) return undefined;
     setHighlightOptionsVisible(true);
     const { booknotes: annotations = [] } = config;
     const cfi = view?.getCFI(selection.index, selection.range);
-    if (!cfi) return;
+    if (!cfi) return undefined;
     const style = highlightStyle || settings.globalReadSettings.highlightStyle;
-    const color = settings.globalReadSettings.highlightStyles[style];
+    const color = highlightColor || settings.globalReadSettings.highlightStyles[style];
     setSelectedStyle(style);
     setSelectedColor(color);
     const annotation: BookNote = {
@@ -812,9 +827,12 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
       }
       if (update) {
         annotation.id = existing.id;
-        // Carry the existing `global` flag forward — toggling color/style
-        // shouldn't silently demote a global highlight back to single-range.
+        // Carry the existing `global` flag and note text forward — changing
+        // the concept/color shouldn't silently demote a global highlight or
+        // discard the user's note.
         if (existing.global) annotation.global = true;
+        annotation.note = existing.note;
+        annotation.createdAt = existing.createdAt;
         annotations[existingIndex] = annotation;
         views.forEach((view) => view?.addAnnotation(annotation));
         if (annotation.global) {
@@ -836,43 +854,63 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
     if (updatedConfig) {
       saveConfig(envConfig, bookKey, updatedConfig, settings);
     }
+    // The `!update` path on an existing annotation deletes it — no note to return.
+    return update || existingIndex === -1 ? annotation : undefined;
   };
 
   /**
-   * Toggle the `global` flag on the annotation currently anchored at
-   * `selection.cfi`. When enabling, fan out overlays for every other
-   * occurrence of `selection.text` in the same section; when disabling,
-   * tear them down. The original anchor highlight at `cfi` is left
-   * untouched in either direction.
-   *
-   * Hidden for fixed-layout formats (PDF/CBZ) because they don't expose
-   * a per-section text DOM we can scan.
+   * Chip tap in the selection popup: apply (or re-apply) a standard
+   * highlight in the concept's color, remember the concept as the
+   * last-used one, and dismiss. The highlight is persisted immediately.
+   * Only the `thought` concept then opens the thought-entry sheet to
+   * capture a written note.
    */
-  const handleToggleGlobal = () => {
-    if (!selection || !selection.cfi || !selection.text) return;
-    if (bookData.isFixedLayout) return;
+  const handleSelectConcept = (conceptId: string) => {
+    if (!selection || !selection.text) return;
+    const concept = getHighlightConcept(conceptId);
+    if (!concept) return;
+    const globalReadSettings = settings.globalReadSettings;
+    saveSysSettings(envConfig, 'globalReadSettings', {
+      ...globalReadSettings,
+      highlightStyle: 'highlight',
+      highlightStyles: { ...globalReadSettings.highlightStyles, highlight: conceptId },
+    });
+    const annotation = handleHighlight(true, 'highlight', conceptId);
+    if (!annotation) return;
+    handleDismissPopupAndSelection();
+    if (!concept.promptsForNote) return;
+    setThoughtTarget({
+      concept,
+      annotationId: annotation.id,
+      excerpt: annotation.text ?? '',
+      initialNote: annotation.note ?? '',
+    });
+  };
+
+  const handleThoughtSave = (text: string) => {
+    if (!thoughtTarget) return;
     const { booknotes: annotations = [] } = config;
-    const idx = annotations.findIndex(
-      (a) => a.type === 'annotation' && a.style && !a.deletedAt && a.cfi === selection.cfi,
-    );
-    if (idx === -1) return;
+    const idx = annotations.findIndex((a) => a.id === thoughtTarget.annotationId && !a.deletedAt);
+    if (idx === -1) {
+      setThoughtTarget(null);
+      return;
+    }
     const existing = annotations[idx]!;
-    const nextGlobal = !existing.global;
-    annotations[idx] = { ...existing, global: nextGlobal, updatedAt: Date.now() };
+    const hadNote = !!existing.note && existing.note.trim().length > 0;
+    const updated = { ...existing, note: text.trim(), updatedAt: Date.now() };
+    annotations[idx] = updated;
+    const hasNote = updated.note.length > 0;
+    if (hasNote !== hadNote) {
+      const views = getViewsById(bookKey.split('-')[0]!);
+      views.forEach((v) =>
+        v?.addAnnotation({ ...updated, value: `${NOTE_PREFIX}${updated.cfi}` }, !hasNote),
+      );
+    }
     const updatedConfig = updateBooknotes(bookKey, annotations);
     if (updatedConfig) {
       saveConfig(envConfig, bookKey, updatedConfig, settings);
     }
-
-    const views = getViewsById(bookKey.split('-')[0]!);
-    if (nextGlobal) {
-      const updated = annotations[idx]!;
-      views.forEach((v) => {
-        if (v) expandAllRenderedSections(v, updated);
-      });
-    } else {
-      views.forEach((v) => removeGlobalAnnotationOverlays(v, existing));
-    }
+    setThoughtTarget(null);
   };
 
   const handleAnnotate = () => {
@@ -925,7 +963,7 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   };
 
   const handleTranslation = () => {
-    if (!selection || !selection.text) return;
+    if (!TRANSLATION_ENABLED || !selection || !selection.text) return;
     setShowAnnotPopup(false);
     setShowDeepLPopup(true);
   };
@@ -1246,22 +1284,6 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
   };
 
   const selectionAnnotated = selection?.annotated;
-  // For the ✓ (global) toggle in HighlightOptions: figure out whether
-  // the booknote anchored at the current selection is currently global,
-  // and whether the toggle should be shown at all (only meaningful for
-  // re-flowable formats with a non-empty selection text).
-  const currentAnnotation = selection?.cfi
-    ? config.booknotes?.find(
-        (a) => a.type === 'annotation' && a.style && !a.deletedAt && a.cfi === selection.cfi,
-      )
-    : undefined;
-  const globalToggleAvailable =
-    !bookData.isFixedLayout &&
-    !!selection?.annotated &&
-    !!currentAnnotation &&
-    !!selection?.text &&
-    selection.text.trim().length > 0;
-  const globalToggleActive = !!currentAnnotation?.global;
   const toolButtons = annotationToolButtons.map(({ type, label, Icon }) => {
     switch (type) {
       case 'copy':
@@ -1367,15 +1389,19 @@ const Annotator: React.FC<{ bookKey: string }> = ({ bookKey }) => {
           position={annotPopupPosition}
           trianglePosition={trianglePosition}
           highlightOptionsVisible={highlightOptionsVisible}
-          selectedStyle={selectedStyle}
-          selectedColor={selectedColor}
           popupWidth={annotPopupWidth}
           popupHeight={annotPopupHeight}
-          globalToggleAvailable={globalToggleAvailable}
-          globalToggleActive={globalToggleActive}
-          onToggleGlobal={handleToggleGlobal}
-          onHighlight={handleHighlight}
+          onSelectConcept={handleSelectConcept}
           onDismiss={handleDismissPopupAndSelection}
+        />
+      )}
+      {thoughtTarget && (
+        <ThoughtSheet
+          concept={thoughtTarget.concept}
+          excerpt={thoughtTarget.excerpt}
+          initialNote={thoughtTarget.initialNote}
+          onSave={handleThoughtSave}
+          onDismiss={() => setThoughtTarget(null)}
         />
       )}
       {showProofreadPopup && trianglePosition && proofreadPopupPosition && selection && (

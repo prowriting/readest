@@ -20,7 +20,11 @@ import { installPackage } from '@/utils/bridge';
 import { join } from '@tauri-apps/api/path';
 import { getLocale } from '@/utils/misc';
 import { setLastShownReleaseNotesVersion } from '@/helpers/updater';
-import { READEST_UPDATER_FILE, READEST_CHANGELOG_FILE } from '@/services/constants';
+import {
+  READEST_UPDATER_FILE,
+  READEST_CHANGELOG_FILE,
+  TRANSLATION_ENABLED,
+} from '@/services/constants';
 import Dialog from '@/components/Dialog';
 import Link from './Link';
 
@@ -359,7 +363,7 @@ export const UpdaterContent = ({
           },
         ];
       }
-      if (!targetLang.toLowerCase().startsWith('en')) {
+      if (TRANSLATION_ENABLED && !targetLang.toLowerCase().startsWith('en')) {
         for (const entry of changelogs) {
           try {
             entry.notes = await translate(entry.notes, { useCache: true });

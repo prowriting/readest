@@ -1,5 +1,6 @@
 import type { Tool } from 'ai';
 import type { BookDoc } from '@/libs/document';
+import { REEDY_ENABLED } from '@/services/constants';
 import type { AISettings, EmbeddingProgress, ScoredChunk } from '../types';
 import type { ReedySourceStore } from './reedySourceStore';
 
@@ -55,9 +56,9 @@ export interface RetrievalBackend {
 }
 
 /**
- * Pick the backend for a turn. Reedy is gated behind both the user setting
- * AND the Tauri platform per plan D15 — web users always get the legacy
- * path so the MVP cohort is desktop-only.
+ * Pick the backend for a turn. Reedy is gated behind the release feature,
+ * the user setting, and the Tauri platform. Keeping the release gate here
+ * makes persisted settings harmless while Reedy is disabled.
  */
 export function selectBackend(args: {
   settings: AISettings;
@@ -65,7 +66,7 @@ export function selectBackend(args: {
   legacy: RetrievalBackend;
   reedy: RetrievalBackend | null;
 }): RetrievalBackend {
-  if (args.settings.reedy?.enabled && args.isTauri && args.reedy) {
+  if (REEDY_ENABLED && args.settings.reedy?.enabled && args.isTauri && args.reedy) {
     return args.reedy;
   }
   return args.legacy;

@@ -11,6 +11,8 @@ vi.mock('@/utils/misc', () => ({
 
 import {
   DATA_SUBDIR,
+  REEDY_ENABLED,
+  TRANSLATION_ENABLED,
   LOCAL_BOOKS_SUBDIR,
   CLOUD_BOOKS_SUBDIR,
   LOCAL_FONTS_SUBDIR,
@@ -94,6 +96,13 @@ import {
 } from '@/services/constants';
 
 describe('services/constants', () => {
+  describe('release feature switches', () => {
+    it('disables Reedy and content translation', () => {
+      expect(REEDY_ENABLED).toBe(false);
+      expect(TRANSLATION_ENABLED).toBe(false);
+    });
+  });
+
   // ---------------------------------------------------------------------------
   // Directory & filename constants
   // ---------------------------------------------------------------------------

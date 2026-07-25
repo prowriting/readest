@@ -130,6 +130,7 @@ export default function AuthPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             idToken: appleAuthResponse.identityToken,
+            authorizationCode: appleAuthResponse.authorizationCode,
             marketingOptIn: isSignUp && marketingOptIn,
             marketingPolicyVersion: marketingPolicy?.policyVersion,
             marketingWordingVersion: marketingPolicy?.wordingVersion,

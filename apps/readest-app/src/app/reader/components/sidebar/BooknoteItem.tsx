@@ -5,7 +5,7 @@ import { MdEdit, MdDelete } from 'react-icons/md';
 
 import { marked } from 'marked';
 import { useEnv } from '@/context/EnvContext';
-import { BookNote, HighlightColor } from '@/types/book';
+import { BookNote } from '@/types/book';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useNotebookStore } from '@/store/notebookStore';
@@ -13,7 +13,7 @@ import { useBookDataStore } from '@/store/bookDataStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { eventDispatcher } from '@/utils/event';
-import { removeBookNoteOverlays } from '../../utils/annotatorUtil';
+import { getHighlightColorHex, removeBookNoteOverlays } from '../../utils/annotatorUtil';
 import useScrollToItem from '../../hooks/useScrollToItem';
 import TextButton from '@/components/TextButton';
 import TextEditor, { TextEditorRef } from '@/components/TextEditor';
@@ -32,9 +32,6 @@ const BooknoteItem: React.FC<BooknoteItemProps> = ({ bookKey, item, isNearest, o
   const { getConfig, saveConfig, updateBooknotes } = useBookDataStore();
   const { getProgress, getView, getViewsById } = useReaderStore();
   const { setNotebookEditAnnotation, setNotebookVisible } = useNotebookStore();
-
-  const globalReadSettings = settings.globalReadSettings;
-  const customColors = globalReadSettings.customHighlightColors;
 
   const { text, cfi, note } = item;
   const editorRef = useRef<TextEditorRef>(null);
@@ -194,12 +191,12 @@ const BooknoteItem: React.FC<BooknoteItemProps> = ({ bookKey, item, isNearest, o
                 {
                   ...(item.style === 'highlight'
                     ? {
-                        backgroundColor: `color-mix(in srgb, ${customColors[item.color as HighlightColor] || item.color} calc(var(--overlayer-highlight-opacity, 0.3) * 100%), transparent)`,
+                        backgroundColor: `color-mix(in srgb, ${getHighlightColorHex(settings, item.color) || item.color} calc(var(--overlayer-highlight-opacity, 0.3) * 100%), transparent)`,
                       }
                     : {}),
                   ...(item.style === 'underline' || item.style === 'squiggly'
                     ? {
-                        textDecorationColor: `color-mix(in srgb, ${customColors[item.color as HighlightColor] || item.color} 80%, transparent)`,
+                        textDecorationColor: `color-mix(in srgb, ${getHighlightColorHex(settings, item.color) || item.color} 80%, transparent)`,
                       }
                     : {}),
                 } as React.CSSProperties
