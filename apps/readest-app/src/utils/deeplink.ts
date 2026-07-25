@@ -6,6 +6,12 @@ export type AnnotationDeepLink = {
   cfi?: string;
 };
 
+/**
+ * Which form of annotation link markdown export embeds: the custom-scheme
+ * `bookarc://` app deeplink or the universal `https://` web link.
+ */
+export type AnnotationLinkType = 'app' | 'web';
+
 const ANNOTATION_PATH_PREFIX = '/o/book/';
 
 /**
@@ -29,8 +35,18 @@ export const buildAnnotationAppUrl = ({ bookHash, noteId, cfi }: AnnotationDeepL
 };
 
 /**
+ * Build the annotation link for the requested {@link AnnotationLinkType}.
+ * `app` yields the custom-scheme deeplink; `web` yields the universal HTTPS form.
+ */
+export const buildAnnotationUrl = (
+  link: AnnotationDeepLink,
+  linkType: AnnotationLinkType,
+): string => (linkType === 'app' ? buildAnnotationAppUrl(link) : buildAnnotationWebUrl(link));
+
+/**
  * Parse an incoming bookarc:// or https://web.bookarc.app annotation URL.
- * Also accepts the legacy readest:// scheme for backward compatibility.
+ * Also accepts the legacy readest:// scheme and web.readest.com host for
+ * backward compatibility.
  * Accepts the new hierarchical form (book/{hash}/annotation/{id}) and the
  * legacy flat form (annotation/{hash}/{id}) emitted by older Readwise syncs.
  * Returns null if the URL doesn't match.
