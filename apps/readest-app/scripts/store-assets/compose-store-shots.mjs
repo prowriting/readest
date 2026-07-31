@@ -67,44 +67,52 @@ const captionHtml = (caption, sub) =>
     ? `<div class="caption"><h1>${escapeHtml(caption)}</h1>${sub ? `<p>${escapeHtml(sub)}</p>` : ''}</div>`
     : '';
 
-/** Portrait canvas (phone 1080×1920, tablet7 1080×1920): caption top, frame bleeding off the bottom. */
-function buildPortraitHtml({ captureUri, bg, text, caption, sub, W, H, deviceWidth }) {
+/**
+ * Portrait canvas (phone 1080×1920, tablet7 1080×1920): caption top, device
+ * below. Normally the device is wide and bleeds off the bottom edge; a `fit`
+ * shot (used where the bottom of the screen matters, e.g. the audiobook player)
+ * is sized to sit fully on-canvas so nothing is cropped.
+ */
+function buildPortraitHtml({ captureUri, bg, text, accent, caption, sub, W, H, deviceWidth, top }) {
   const css = `
     .stage{background:${bg}}
-    .caption{position:absolute;top:110px;left:96px;right:96px;text-align:center;color:${text}}
-    .caption h1{font-size:64px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
-    .caption p{margin-top:20px;font-size:32px;font-weight:400;opacity:.92;line-height:1.4}
-    .device{position:absolute;top:440px;left:50%;transform:translateX(-50%);width:${deviceWidth}px;
-      padding:16px;background:#101014;border-radius:56px;box-shadow:${FRAME_SHADOW}}
+    .caption{position:absolute;top:110px;left:96px;right:96px;text-align:center}
+    .caption h1{color:${accent};font-size:64px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
+    .caption p{color:${text};margin-top:20px;font-size:32px;font-weight:400;opacity:.88;line-height:1.4}
+    .device{position:absolute;top:${top}px;left:50%;transform:translateX(-50%);width:${deviceWidth}px;
+      padding:16px;background:#161d1a;border-radius:56px;box-shadow:${FRAME_SHADOW}}
     .device img{display:block;width:100%;height:auto;border-radius:42px}`;
   return htmlShell(W, H, css, `${captionHtml(caption, sub)}<div class="device"><img src="${captureUri}"></div>`);
 }
 
 /** Landscape canvas (tablet10 1920×1080): caption left, frame bleeding off the right edge. */
-function buildLandscapeHtml({ captureUri, bg, text, caption, sub, W, H }) {
+function buildLandscapeHtml({ captureUri, bg, text, accent, caption, sub, W, H }) {
   const css = `
     .stage{background:${bg}}
-    .caption{position:absolute;left:110px;top:50%;transform:translateY(-50%);width:500px;color:${text}}
-    .caption h1{font-size:56px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
-    .caption p{margin-top:20px;font-size:28px;font-weight:400;opacity:.92;line-height:1.4}
+    .caption{position:absolute;left:110px;top:50%;transform:translateY(-50%);width:500px}
+    .caption h1{color:${accent};font-size:56px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
+    .caption p{color:${text};margin-top:20px;font-size:28px;font-weight:400;opacity:.88;line-height:1.4}
     .device{position:absolute;left:700px;top:120px;width:1400px;
-      padding:16px;background:#101014;border-radius:40px;box-shadow:${FRAME_SHADOW}}
+      padding:16px;background:#161d1a;border-radius:40px;box-shadow:${FRAME_SHADOW}}
     .device img{display:block;width:100%;height:auto;border-radius:28px}`;
   return htmlShell(W, H, css, `${captionHtml(caption, sub)}<div class="device"><img src="${captureUri}"></div>`);
 }
 
-/** Feature graphic 1024×500: brand mark + tagline left, phone frame bleeding off the right. */
+/** Feature graphic 1024×500: brand mark + tagline left, phone standing on the right. */
 function buildFeatureHtml({ captureUri, iconUri, name, tagline, W, H }) {
   const css = `
-    .stage{background:linear-gradient(120deg,#FF5E5B,#e8433f)}
-    .left{position:absolute;left:64px;top:50%;transform:translateY(-50%);width:520px;color:#fff}
+    .stage{background:linear-gradient(140deg,#2a322e,#161d1a)}
+    .left{position:absolute;left:64px;top:50%;transform:translateY(-50%);width:540px;color:#fef9f6}
     .mark{display:flex;align-items:center;gap:22px}
-    .mark img{width:92px;height:92px;border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .mark img{width:92px;height:92px;border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
     .mark span{font-size:60px;font-weight:800;letter-spacing:-0.02em}
-    .left p{margin-top:20px;font-size:27px;font-weight:400;opacity:.94;line-height:1.35}
-    .phone{position:absolute;right:80px;top:-50px;width:280px;
-      padding:10px;background:#101014;border-radius:40px;box-shadow:0 30px 70px rgba(0,0,0,.35)}
-    .phone img{display:block;width:100%;height:auto;border-radius:32px}`;
+    /* balance keeps the tagline from dropping a single orphaned word to its own line */
+    .left p{margin-top:20px;font-size:27px;font-weight:400;opacity:.9;line-height:1.35;text-wrap:balance}
+    /* Top fully visible with rounded corners; only the bottom bleeds off — a
+       "standing phone", not a shot cropped on both edges. */
+    .phone{position:absolute;right:74px;top:54px;width:312px;
+      padding:10px;background:#0f1412;border-radius:44px;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+    .phone img{display:block;width:100%;height:auto;border-radius:34px}`;
   const body = `
     <div class="left">
       <div class="mark"><img src="${iconUri}"><span>${escapeHtml(name)}</span></div>
@@ -178,17 +186,38 @@ try {
   for (const { canvasKey, canvas, scene } of jobs) {
     const W = canvas.width;
     const H = canvas.height;
+    const capturePath = resolve(capturesDir, canvasKey, scene.capture);
+    const isLandscape = canvas.orientation === 'landscape';
+
+    // Default portrait framing: wide device anchored near the top, bleeding off
+    // the bottom edge. A `fit` shot instead sizes the device so the whole
+    // screen (e.g. the audiobook player docked at the bottom) stays on-canvas.
+    let deviceWidth = canvas.deviceWidth;
+    let top = 440;
+    if (scene.fit && !isLandscape) {
+      const { width: iw, height: ih } = pngInfo(readFileSync(capturePath));
+      const captionBottom = 420;
+      const bottomMargin = 70;
+      const framePad = 32; // 16px padding on each side of the screen image
+      const availH = H - captionBottom - bottomMargin;
+      deviceWidth = Math.min(canvas.deviceWidth, Math.round(((availH - framePad) * iw) / ih));
+      const deviceH = Math.round((deviceWidth * ih) / iw) + framePad;
+      top = Math.round(captionBottom + (availH - deviceH) / 2);
+    }
+
     const params = {
-      captureUri: dataUri(resolve(capturesDir, canvasKey, scene.capture)),
+      captureUri: dataUri(capturePath),
       bg: scene.bg || cfg.brand.bg,
       text: scene.text || cfg.brand.text,
+      accent: scene.accent || cfg.brand.accent,
       caption: scene.caption || '',
       sub: scene.subcaption || '',
       W,
       H,
-      deviceWidth: canvas.deviceWidth,
+      deviceWidth,
+      top,
     };
-    const html = canvas.orientation === 'landscape' ? buildLandscapeHtml(params) : buildPortraitHtml(params);
+    const html = isLandscape ? buildLandscapeHtml(params) : buildPortraitHtml(params);
     const outAbs = resolve(outRoot, canvas.outDir, scene.out);
     mkdirSync(dirname(outAbs), { recursive: true });
     const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });

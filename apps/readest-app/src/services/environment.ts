@@ -10,6 +10,13 @@ declare global {
 
 export const isTauriAppPlatform = () => process.env['NEXT_PUBLIC_APP_PLATFORM'] === 'tauri';
 export const isWebAppPlatform = () => process.env['NEXT_PUBLIC_APP_PLATFORM'] === 'web';
+// Store-screenshot capture hook: when the capture harness sets
+// `window.__STORE_CAPTURE__`, platform-gated marketing UI (e.g. the claim
+// dialog's Send-to-Kindle / Play Books actions, which ship on Android but are
+// hidden on web) is rendered so `pnpm store:capture` can screenshot it.
+export const isStoreCapture = () =>
+  typeof window !== 'undefined' &&
+  (window as unknown as { __STORE_CAPTURE__?: boolean }).__STORE_CAPTURE__ === true;
 export const hasCli = () => window.__READEST_CLI_ACCESS === true;
 export const isPWA = () => window.matchMedia('(display-mode: standalone)').matches;
 export const getBaseUrl = () =>

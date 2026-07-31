@@ -1,9 +1,10 @@
 {
   "brand": {
     "name": "BookArc",
-    "tagline": "Your shelf, in full spectrum. Read and listen to your books everywhere.",
-    "bg": "#FF5E5B",
-    "text": "#ffffff",
+    "tagline": "Read and listen to books from your favorite authors.",
+    "bg": "#fef9f6",
+    "text": "#161d1a",
+    "accent": "#161d1a",
     "icon": "public/icon.png"
   },
   "capturesDir": "scripts/store-assets/captures",
@@ -25,50 +26,39 @@
   },
   "scenes": [
     {
-      "capture": "01-library.png",
+      "capture": "01-claim.png",
       "out": "1.png",
-      "caption": "Your shelf, in full spectrum",
-      "subcaption": "Every EPUB, PDF, and audiobook in one place"
+      "caption": "A book, straight from the author",
+      "subcaption": "Read it in BookArc, or send it to Kindle, Kobo, and Apple Books"
     },
     {
-      "capture": "02-reader.png",
+      "capture": "02-library.png",
       "out": "2.png",
-      "caption": "Reading that gets out of the way",
-      "subcaption": "Clean typography with day and night themes",
-      "bg": "#f5f1e8",
-      "text": "#3d2c23"
+      "caption": "Your books and audiobooks, together",
+      "subcaption": "Everything your favorite authors send you, in one library"
     },
     {
-      "capture": "03-annotation.png",
+      "capture": "03-audiobook.png",
       "out": "3.png",
-      "caption": "Highlight, note, and remember",
-      "subcaption": "Your annotations, organized by book"
+      "fit": true,
+      "caption": "Audiobooks with read-along",
+      "subcaption": "Every audiobook follows along with the words"
     },
     {
-      "capture": "04-audiobook.png",
+      "capture": "04-reader.png",
       "out": "4.png",
-      "caption": "Audiobooks with read-along",
-      "subcaption": "Follow along as every sentence is spoken",
-      "bg": "#f5f1e8",
-      "text": "#3d2c23"
+      "caption": "A calm place to read",
+      "subcaption": "Clean typography, day and night"
     },
     {
       "capture": "05-discover.png",
       "out": "5.png",
       "caption": "Discover free classics",
-      "subcaption": "Thousands of public-domain books, one tap away"
-    },
-    {
-      "capture": "06-settings.png",
-      "out": "6.png",
-      "caption": "Make it yours",
-      "subcaption": "Fonts, themes, and layout under your control",
-      "bg": "#f5f1e8",
-      "text": "#3d2c23"
+      "subcaption": "Thousands of public-domain books to read free"
     }
   ],
   "feature": {
-    "capture": "phone/02-reader.png",
+    "capture": "phone/02-library.png",
     "out": "featureGraphic.jpg"
   }
 }

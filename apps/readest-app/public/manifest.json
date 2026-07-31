@@ -4,7 +4,7 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f1e8",
-  "theme_color": "#FF5E5B",
+  "theme_color": "#fef9f6",
   "description": "Bookarc — your shelf in full spectrum. An open-source ebook reader supporting EPUB, PDF, and sync across devices.",
   "icons": [
     {

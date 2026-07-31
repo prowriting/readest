@@ -18,8 +18,16 @@ export const STORE_EPUBS = [
 ].map((name) => path.join(fixturesDir, 'books/store', name));
 
 /**
- * Media-overlay audiobook with real Alice prose and a proper title/author for
- * the read-along shot. Regenerate with `make-audiobook-fixtures.ts` (built by
- * `buildStoreAudiobookEpub` in `audiobook-epubs.ts`).
+ * Media-overlay audiobook of the fictional indie title "The Lantern of Ash
+ * Hollow" by Ava Thornbury — same book as the claim-code shot, with an
+ * embedded cover — for the shelf and read-along shots. Regenerate with
+ * `make-audiobook-fixtures.ts` (built by `buildStoreAudiobookEpub`).
  */
-export const STORE_AUDIOBOOK_EPUB = path.join(fixturesDir, 'books/store/alice-audiobook.epub');
+export const STORE_AUDIOBOOK_EPUB = path.join(fixturesDir, 'books/store/lantern-audiobook.epub');
+
+/**
+ * Painted cover for the store book — embedded in the audiobook EPUB above and
+ * served as the claim-dialog cover, so the claim / shelf / read-along shots all
+ * show the same book.
+ */
+export const STORE_AUDIOBOOK_COVER = path.join(fixturesDir, 'books/store/lantern-cover.jpg');

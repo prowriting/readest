@@ -5,7 +5,7 @@ import type { Page, TestInfo } from '@playwright/test';
 import { unzipSync } from 'fflate';
 import { expect, test } from '../fixtures/base';
 import { installAudioInstrumentation, lastAudioTime } from '../fixtures/audio-instrumentation';
-import { STORE_AUDIOBOOK_EPUB, STORE_EPUBS } from '../fixtures/store-books';
+import { STORE_AUDIOBOOK_COVER, STORE_AUDIOBOOK_EPUB, STORE_EPUBS } from '../fixtures/store-books';
 import { AudiobookPlayerPage } from '../pages/AudiobookPlayerPage';
 import { BottomNav } from '../pages/BottomNav';
 import { LibraryPage } from '../pages/LibraryPage';
@@ -16,8 +16,13 @@ import { LibraryPage } from '../pages/LibraryPage';
  * scene and saves a raw PNG per device project to
  * `scripts/store-assets/captures/<project>/`; the compositor
  * (`scripts/store-assets/compose-store-shots.mjs`) turns those into the
- * final fastlane images. These are captures, not assertions — expects exist
- * only to guarantee the scene is fully loaded before the screenshot.
+ * final fastlane images.
+ *
+ * The narrative follows the store description — books and audiobooks from
+ * your favorite authors: claim a book, keep books and audiobooks together,
+ * listen with read-along, read anywhere, discover free classics. These are
+ * captures, not assertions — expects exist only to guarantee the scene is
+ * fully loaded before the screenshot.
  */
 
 const capturesDir = path.join(
@@ -46,6 +51,16 @@ async function shoot(page: Page, testInfo: TestInfo, name: string): Promise<void
   const dir = path.join(capturesDir, testInfo.project.name);
   mkdirSync(dir, { recursive: true });
   await page.screenshot({ path: path.join(dir, name), fullPage: false });
+}
+
+/** All visible <img> under a locator have decoded (or the given minimum have). */
+function decodedCount(locator: ReturnType<Page['locator']>): Promise<number> {
+  return locator.evaluateAll(
+    (imgs) =>
+      imgs.filter(
+        (img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0,
+      ).length,
+  );
 }
 
 /**
@@ -85,73 +100,102 @@ async function proseVisible(page: Page): Promise<boolean> {
 
 /** Page forward from the cover until prose is on screen. */
 async function advanceToProse(page: Page): Promise<void> {
-  for (let i = 0; i < 20; i += 1) {
-    if (await proseVisible(page)) return;
+  // The first section can still be rendering right after the reader mounts.
+  await page.waitForTimeout(800);
+  for (let i = 0; i < 40; i += 1) {
+    if (await proseVisible(page)) {
+      // Let the settled page paint before the caller screenshots it.
+      await page.waitForTimeout(300);
+      return;
+    }
     await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(500);
   }
   throw new Error('never reached a prose page');
 }
+
+/** The painted cover shared with the audiobook fixture (STORE_AUDIOBOOK_COVER). */
+const CLAIM_COVER_DATA_URI = `data:image/jpeg;base64,${readFileSync(STORE_AUDIOBOOK_COVER).toString('base64')}`;
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
-test('01 library shelf', async ({ page }, testInfo) => {
+test('01 claim from author', async ({ page }, testInfo) => {
+  // Reveal the Send-to-Kindle / Play Books actions that ship on Android but are
+  // platform-hidden on web (see isStoreCapture in environment.ts), so the shot
+  // shows the real send options rather than a reconstruction.
+  await page.addInitScript(() => {
+    (window as unknown as { __STORE_CAPTURE__?: boolean }).__STORE_CAPTURE__ = true;
+  });
+
+  // Mock the redeem endpoint so the "We found your book!" dialog renders a
+  // book from a named author, with the same painted cover as the shelf shot.
+  // (Web dev routes API calls to /api — see environment.ts.)
+  await page.route('**/api/claim/redeem', (route) =>
+    route.fulfill({
+      json: {
+        giftId: 'gift_store_01',
+        code: 'ABCDEFG',
+        book: {
+          title: 'The Lantern of Ash Hollow',
+          author: 'Ava Thornbury',
+          coverImageUrl: CLAIM_COVER_DATA_URI,
+          description:
+            'A windswept coastal mystery from the bestselling author — a keeper’s daughter, a drowned village, and a light that refuses to go out.',
+          format: 'EPUB',
+          // appOnlyReading:false so the send/download actions render.
+          appOnlyReading: false,
+        },
+        downloadRef: 'ref_store_01',
+        expiresAt: '2026-12-31T00:00:00Z',
+      },
+    }),
+  );
+
+  await page.goto('/claim');
+  await expect(page.locator('.claim-page')).toBeVisible();
+  await page.getByLabel('Claim code').fill('ABCDEFG');
+  await page.getByRole('button', { name: 'Claim book' }).click();
+
+  const dialog = page.locator('#book_code_dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('The Lantern of Ash Hollow')).toBeVisible();
+  await expect(dialog.getByText('Ava Thornbury')).toBeVisible();
+  await expect.poll(() => decodedCount(dialog.locator('img'))).toBeGreaterThan(0);
+  await shoot(page, testInfo, '01-claim.png');
+});
+
+test('02 library books and audiobooks', async ({ page }, testInfo) => {
   const library = new LibraryPage(page);
   await library.goto();
-  await library.importBook(STORE_EPUBS[0]!);
+  // A shelf of books plus an audiobook, so the headphones badge is on show.
+  const shelf = [
+    STORE_EPUBS[0]!,
+    STORE_EPUBS[1]!,
+    STORE_AUDIOBOOK_EPUB,
+    STORE_EPUBS[2]!,
+    STORE_EPUBS[3]!,
+  ];
+  await library.importBook(shelf[0]!);
   await expect(library.bookCards()).toHaveCount(1);
-  for (let i = 1; i < STORE_EPUBS.length; i += 1) {
-    await library.importAnotherBook(STORE_EPUBS[i]!);
+  for (let i = 1; i < shelf.length; i += 1) {
+    await library.importAnotherBook(shelf[i]!);
     await expect(library.bookCards()).toHaveCount(i + 1);
   }
 
-  // Every cover image must be decoded before the shot.
+  // The audiobook badge must be present, and covers decoded, before the shot.
+  await expect(page.locator('[aria-label="Audiobook"]').first()).toBeVisible();
   await expect
-    .poll(
-      () =>
-        library.bookshelf
-          .locator('img')
-          .evaluateAll((imgs) =>
-            imgs.every(
-              (img) =>
-                (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0,
-            )
-              ? imgs.length
-              : -1,
-          ),
-      { timeout: 20_000 },
-    )
-    .toBeGreaterThanOrEqual(STORE_EPUBS.length);
-
+    .poll(() => decodedCount(library.bookshelf.locator('img')), { timeout: 20_000 })
+    .toBeGreaterThanOrEqual(4);
   await expect(new BottomNav(page).bar).toBeVisible();
   // The "Successfully imported" toast auto-dismisses; wait it out.
   await expect(page.getByText(/Successfully imported/)).toBeHidden({ timeout: 15_000 });
-  await shoot(page, testInfo, '01-library.png');
+  await shoot(page, testInfo, '02-library.png');
 });
 
-test('02 reading page', async ({ page, openBook }, testInfo) => {
-  await openBook(STORE_EPUBS[0]!);
-  await advanceToProse(page);
-  await shoot(page, testInfo, '02-reader.png');
-});
-
-test('03 annotation popup', async ({ page, openBook }, testInfo) => {
-  const reader = await openBook(STORE_EPUBS[2]!);
-  // The TOC route selectText() takes is not reachable from the mobile
-  // header, so page forward to prose and select in place.
-  await advanceToProse(page);
-  await reader.selectTextInVisibleSection();
-  await expect(reader.annotationPopup).toBeVisible();
-  // The concept chips (Useful / Love this / Thought / …) float with the
-  // popup; wait for them so the store shot always shows the full toolbar.
-  await expect(reader.conceptChips).toBeVisible();
-  await expect(reader.conceptChips.getByRole('button', { name: 'Thought' })).toBeVisible();
-  await shoot(page, testInfo, '03-annotation.png');
-});
-
-test('04 audiobook read-along', async ({ page, openBook }, testInfo) => {
+test('03 audiobook read-along', async ({ page, openBook }, testInfo) => {
   await installAudioInstrumentation(page);
   const reader = await openBook(STORE_AUDIOBOOK_EPUB);
   const player = new AudiobookPlayerPage(page);
@@ -159,11 +203,19 @@ test('04 audiobook read-along', async ({ page, openBook }, testInfo) => {
   await expect.poll(() => lastAudioTime(page), { timeout: 10_000 }).toBeGreaterThan(0.05);
   await expect
     .poll(() => reader.mediaOverlayHighlightText(), { timeout: 10_000 })
-    .toContain('Alice was beginning');
+    .toContain('The lantern had burned');
   await player.pauseButton.click();
   // The highlight must survive the pause so the still shows read-along.
-  await expect.poll(() => reader.mediaOverlayHighlightText()).toContain('Alice was beginning');
-  await shoot(page, testInfo, '04-audiobook.png');
+  await expect.poll(() => reader.mediaOverlayHighlightText()).toContain('The lantern had burned');
+  await shoot(page, testInfo, '03-audiobook.png');
+});
+
+test('04 reading page', async ({ page, openBook }, testInfo) => {
+  await openBook(STORE_EPUBS[0]!);
+  // Chapter 1's opening — the recognizable "It is a truth universally
+  // acknowledged…" page reads well for "a calm place to read".
+  await advanceToProse(page);
+  await shoot(page, testInfo, '04-reader.png');
 });
 
 test('05 discover feed', async ({ page }, testInfo) => {
@@ -233,29 +285,7 @@ test('05 discover feed', async ({ page }, testInfo) => {
   // Covers are loading='lazy', so only the on-screen ones ever decode —
   // require enough of them for the first row to look fully populated.
   await expect
-    .poll(
-      () =>
-        page
-          .locator('.discover-page img')
-          .evaluateAll(
-            (imgs) =>
-              imgs.filter(
-                (img) =>
-                  (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0,
-              ).length,
-          ),
-      { timeout: 15_000 },
-    )
+    .poll(() => decodedCount(page.locator('.discover-page img')), { timeout: 15_000 })
     .toBeGreaterThanOrEqual(4);
   await shoot(page, testInfo, '05-discover.png');
-});
-
-test('06 font and layout settings', async ({ page, openBook }, testInfo) => {
-  const reader = await openBook(STORE_EPUBS[0]!);
-  await advanceToProse(page);
-  await reader.revealHeader();
-  await page.getByRole('button', { name: 'Font & Layout' }).first().click();
-  await page.locator('[data-tab="Font"]').click();
-  await expect(page.locator('[data-setting-id="settings.font.defaultFontSize"]')).toBeVisible();
-  await shoot(page, testInfo, '06-settings.png');
 });

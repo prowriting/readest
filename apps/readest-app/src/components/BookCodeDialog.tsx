@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import { isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
+import { isStoreCapture, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { ingestFile } from '@/services/ingestService';
 import {
   BookCodeResult,
@@ -372,7 +372,7 @@ export const BookCodeDialog = () => {
               )}
             </button>
 
-            {!isWebAppPlatform() && !book.appOnlyReading && (
+            {(!isWebAppPlatform() || isStoreCapture()) && !book.appOnlyReading && (
               <>
                 <button
                   className='btn btn-ghost w-full'

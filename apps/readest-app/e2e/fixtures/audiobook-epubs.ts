@@ -11,8 +11,13 @@
  * Builders must stay deterministic (fixed mtime, no randomness) so committed
  * fixture bytes only change when the spec here changes.
  */
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { zipSync } from 'fflate';
 import type { Zippable } from 'fflate';
+
+const fixturesDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * fflate's own strToU8 is off-limits here: under vitest's jsdom environment
@@ -172,6 +177,8 @@ interface OpfSpec {
   overlayDurations: Record<string, number>;
   /** Total duration meta; omit to model partial authoring. */
   totalDuration?: number;
+  /** Optional cover image manifest entry (href relative to OEBPS/, media type). */
+  coverImage?: { id: string; href: string; mediaType: string };
 }
 
 const opfDoc = (spec: OpfSpec): string => {
@@ -185,8 +192,16 @@ const opfDoc = (spec: OpfSpec): string => {
     spec.totalDuration === undefined
       ? ''
       : `\n    <meta property="media:duration">${formatClock(spec.totalDuration)}</meta>`;
+  const coverMeta = spec.coverImage
+    ? `\n    <meta name="cover" content="${spec.coverImage.id}"/>`
+    : '';
   const manifest = [
     '    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
+    ...(spec.coverImage
+      ? [
+          `    <item id="${spec.coverImage.id}" href="${spec.coverImage.href}" media-type="${spec.coverImage.mediaType}" properties="cover-image"/>`,
+        ]
+      : []),
     ...spec.chapters.map(
       (c) =>
         `    <item id="chap-${c.slug}" href="text/${c.slug}.xhtml" media-type="application/xhtml+xml" media-overlay="smil-${c.slug}"/>`,
@@ -206,7 +221,7 @@ const opfDoc = (spec: OpfSpec): string => {
     <dc:title>${spec.title}</dc:title>
     <dc:language>en</dc:language>
     <dc:creator>${spec.creator ?? 'Bookarc E2E'}</dc:creator>
-    <meta property="dcterms:modified">2026-01-01T00:00:00Z</meta>
+    <meta property="dcterms:modified">2026-01-01T00:00:00Z</meta>${coverMeta}
 ${durationMetas}${totalMeta}
     <meta property="media:active-class">${ACTIVE_CLASS}</meta>
     <meta property="media:playback-active-class">${PLAYBACK_ACTIVE_CLASS}</meta>
@@ -530,37 +545,50 @@ export const buildMoAacEpub = (m4aBySlug: Record<'c1' | 'c2', Uint8Array>): Fixt
 };
 
 /**
- * Store-screenshot audiobook: real public-domain prose (the opening of
- * "Alice's Adventures in Wonderland") with a proper title and author, so the
- * Play Store read-along shot shows a believable book instead of synthetic
- * fixture sentences. Audio is silent (only the highlight matters on camera).
- * Not part of the e2e set — emitted to books/store/ for `pnpm store:capture`.
+ * Store-screenshot audiobook: a fictional indie title ("The Lantern of Ash
+ * Hollow" by Ava Thornbury) with an embedded painted cover and original prose,
+ * so the Play Store shelf and read-along shots show a believable book from an
+ * author — matching the claim-code shot (which serves the same cover file via
+ * STORE_AUDIOBOOK_COVER). Audio is silent (only the highlight matters on
+ * camera). Not part of the e2e set — emitted to books/store/ for
+ * `pnpm store:capture`.
  */
 export const buildStoreAudiobookEpub = (): FixtureEpub => {
+  const coverBytes = new Uint8Array(
+    readFileSync(path.join(fixturesDir, 'books/store/lantern-cover.jpg')),
+  );
   const c1Sentences = [
-    'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do.',
-    'Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.',
-    'And what is the use of a book, thought Alice, without pictures or conversations?',
-    'So she was considering in her own mind, as well as she could, for the hot day made her feel very sleepy and stupid, whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.',
-    'There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, Oh dear! Oh dear! I shall be late!',
-    'But when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet.',
-    'It flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it.',
-    'Burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.',
+    'The lantern had burned every night for a hundred years, and Mira had never once seen it go dark.',
+    'Her father kept the light the way other men kept promises, quietly and without fail.',
+    'On the morning the fog came in thick as wool, a boat drifted into the harbor with no one aboard.',
+    'Mira watched it from the gallery rail, her breath caught somewhere between wonder and dread.',
+    'The village called it an omen; her father called it a warning, and began to trim the wick early.',
+    'By dusk the water had risen higher than the oldest fishermen could remember.',
+    'And still the lantern burned, throwing its long gold road across the waves.',
+    'Mira understood, then, that some lights are not meant to guide ships home, but to keep the dark from ever winning.',
+    'That winter the storms came early and stayed late, and the harbor filled with the masts of ships that dared not leave.',
+    'Sailors climbed the cliff path to thank her father, pressing coins and dried fish into his hands, which he always refused.',
+    'A light is not a debt, he would say; it is only a light.',
+    'But Mira saw how the villagers looked at the tower, half in gratitude and half in fear, as though it kept a secret they would rather not know.',
+    'When her father fell ill, the keeping of the flame fell to her, and she learned the weight of a promise measured in oil and wick.',
+    'Night after night she climbed the spiral stair, and night after night the sea threw itself against the rocks and lost.',
+    'She began to understand that the lantern did not shine for the ships alone.',
+    'It shone for the drowned, so that they might find their way back, or at least know they were not forgotten.',
   ];
   const c2Sentences = [
-    'Curiouser and curiouser! cried Alice; she was so much surprised, that for the moment she quite forgot how to speak good English.',
-    'Now I am opening out like the largest telescope that ever was!',
-    'Good-bye, feet! for when she looked down at her feet, they seemed to be almost out of sight, they were getting so far off.',
-    'And she went on planning to herself how she would manage it.',
+    'They say a village once stood where the bay now lies, its rooftops still faintly ringing beneath the tide.',
+    'On the stillest nights Mira could hear the bells, patient and unhurried, counting hours no clock kept.',
+    'Her father forbade her from answering them, though he never said what an answer might cost.',
+    'So she kept the light, and listened, and waited for the fog to give back what the sea had taken.',
   ];
   const sentenceSpans = (sentences: string[]): string =>
     `    <p>${sentences.map((s, i) => `<span id="s${i + 1}">${s}</span>`).join(' ')}</p>`;
 
   const chapters: ChapterRef[] = [
-    { slug: 'c1', label: 'Down the Rabbit-Hole' },
-    { slug: 'c2', label: 'The Pool of Tears' },
+    { slug: 'c1', label: "The Keeper's Daughter" },
+    { slug: 'c2', label: 'The Drowned Village' },
   ];
-  const title = "Alice's Adventures in Wonderland";
+  const title = 'The Lantern of Ash Hollow';
   const bytes = packEpub([
     ['META-INF/container.xml', CONTAINER_XML],
     [
@@ -568,26 +596,28 @@ export const buildStoreAudiobookEpub = (): FixtureEpub => {
       opfDoc({
         uuid: '3b2a5f04-0000-4000-8000-000000000006',
         title,
-        creator: 'Lewis Carroll',
+        creator: 'Ava Thornbury',
         chapters,
         audioFiles: ['c1.wav', 'c2.wav'],
         overlayDurations: { c1: c1Sentences.length * 2.5, c2: c2Sentences.length * 2.5 },
         totalDuration: (c1Sentences.length + c2Sentences.length) * 2.5,
+        coverImage: { id: 'cover-img', href: 'cover.jpg', mediaType: 'image/jpeg' },
       }),
     ],
+    ['OEBPS/cover.jpg', coverBytes],
     ['OEBPS/nav.xhtml', navXhtml(title, chapters)],
     [
       'OEBPS/text/c1.xhtml',
       chapterXhtml(
         chapters[0]!.label,
-        `    <h1>Chapter 1: Down the Rabbit-Hole</h1>\n${sentenceSpans(c1Sentences)}`,
+        `    <h1>Chapter 1: The Keeper's Daughter</h1>\n${sentenceSpans(c1Sentences)}`,
       ),
     ],
     [
       'OEBPS/text/c2.xhtml',
       chapterXhtml(
         chapters[1]!.label,
-        `    <h1>Chapter 2: The Pool of Tears</h1>\n${sentenceSpans(c2Sentences)}`,
+        `    <h1>Chapter 2: The Drowned Village</h1>\n${sentenceSpans(c2Sentences)}`,
       ),
     ],
     ['OEBPS/smil/c1.smil', smilDoc('c1', contiguousClips(c1Sentences.length, 2.5, 'c1.wav', 's'))],
@@ -607,7 +637,7 @@ export const buildStoreAudiobookEpub = (): FixtureEpub => {
       ),
     ],
   ]);
-  return { name: 'alice-audiobook.epub', bytes };
+  return { name: 'lantern-audiobook.epub', bytes };
 };
 
 export const buildAllAudiobookFixtures = (): FixtureEpub[] => [

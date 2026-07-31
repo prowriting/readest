@@ -6,10 +6,10 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.bilingify.readest",
+      "package_name": "com.bookarc.app",
       "sha256_cert_fingerprints": [
-        "65:2D:11:67:76:12:29:14:18:42:CB:3D:18:50:B6:E4:7E:46:E1:2F:4B:E4:7F:5A:6C:14:B6:D7:12:74:1E:82",
-        "E0:E7:60:55:80:8D:3A:DE:A0:D1:CF:7C:20:85:40:A3:DD:4B:E6:4D:17:5C:0F:DE:26:57:7D:9C:5B:29:5F:51"
+        "91:39:7A:92:78:DC:83:D3:A7:27:CD:95:58:D3:91:56:6C:FB:B2:07:E7:73:5F:75:3F:8F:37:B3:DF:15:39:F5",
+        "50:17:C3:D8:84:E5:1D:C8:62:6F:12:23:98:00:D1:34:F3:C8:D2:85:83:10:8D:E2:9A:BE:3E:4F:0E:F8:C3:26"
       ]
     }
   }
