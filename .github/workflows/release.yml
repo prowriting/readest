@@ -238,7 +238,7 @@ jobs:
           cd apps/readest-app/
           rm -rf src-tauri/gen/android
           pnpm tauri android init
-          pnpm tauri icon ../../data/icons/readest-book.png
+          pnpm tauri icon public/icon.png
           git checkout .
 
           pushd src-tauri/gen/android
