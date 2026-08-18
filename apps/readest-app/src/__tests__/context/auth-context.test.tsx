@@ -100,3 +100,55 @@ describe('AuthContext memoization', () => {
     expect(last.refresh).toBe(prev.refresh);
   });
 });
+
+describe('AuthContext logout', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  test('clears the local session immediately even if the server logout call never resolves', async () => {
+    window.localStorage.setItem('token', 'access-tok');
+    window.localStorage.setItem('refresh_token', 'refresh-tok');
+    window.localStorage.setItem(
+      'user',
+      JSON.stringify({ id: 'u1', email: 'a@b.co', plan: 'free', createdAt: '2026-01-01' }),
+    );
+
+    // Simulate a hung/unreachable backend (e.g. a cold-starting API): the request
+    // never settles. Logout must not depend on that call completing — otherwise the
+    // user is navigated away but stays signed in locally.
+    const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
+    vi.stubGlobal('fetch', fetchMock);
+
+    let auth!: ReturnType<typeof useAuth>;
+    function Probe() {
+      auth = useAuth();
+      return null;
+    }
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+
+    expect(auth.token).toBe('access-tok');
+
+    await act(async () => {
+      // Intentionally not awaited: logout's returned promise is blocked on the hung fetch.
+      auth.logout();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(window.localStorage.getItem('token')).toBeNull();
+    expect(window.localStorage.getItem('refresh_token')).toBeNull();
+    expect(window.localStorage.getItem('user')).toBeNull();
+    expect(auth.token).toBeNull();
+    expect(auth.user).toBeNull();
+  });
+});

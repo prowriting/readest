@@ -43,23 +43,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     const storedRefresh = localStorage.getItem('refresh_token');
+    const currentToken = token;
+    // Clear the local session first so logout always takes effect, even if the
+    // server call hangs or is unreachable (e.g. a cold-starting API). Otherwise the
+    // user gets navigated away while still signed in locally.
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    // Best-effort server-side token revocation — must not block or reverse logout.
     try {
       await fetch(`${getAPIBaseUrl()}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
         },
         body: JSON.stringify({ refreshToken: storedRefresh ?? '' }),
       });
     } catch {
       /* best-effort */
     }
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
   }, [token]);
 
   const refresh = useCallback(async () => {
