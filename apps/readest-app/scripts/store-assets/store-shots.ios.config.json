@@ -1,0 +1,71 @@
+{
+  "brand": {
+    "name": "BookArc",
+    "tagline": "Read and listen to books from your favorite authors.",
+    "bg": "#fef9f6",
+    "text": "#161d1a",
+    "accent": "#161d1a",
+    "icon": "public/icon.png"
+  },
+  "capturesDir": "scripts/store-assets/captures",
+  "outRoot": "../../fastlane/screenshots/en-US",
+  "canvases": {
+    "iphone69": {
+      "width": 1290,
+      "height": 2796,
+      "outDir": ".",
+      "outPrefix": "iphone-",
+      "captureKey": "phone",
+      "deviceWidth": 1040,
+      "deviceTop": 620,
+      "captionTop": 170,
+      "h1Size": 76,
+      "pSize": 40
+    },
+    "ipad13": {
+      "width": 2064,
+      "height": 2752,
+      "outDir": ".",
+      "outPrefix": "ipad-",
+      "captureKey": "tablet7",
+      "deviceWidth": 1360,
+      "deviceTop": 600,
+      "captionTop": 190,
+      "h1Size": 92,
+      "pSize": 48
+    }
+  },
+  "scenes": [
+    {
+      "capture": "01-claim.png",
+      "out": "1.png",
+      "caption": "A book, straight from the author",
+      "subcaption": "Read it in BookArc, or send it to Kindle, Kobo, and Apple Books"
+    },
+    {
+      "capture": "02-library.png",
+      "out": "2.png",
+      "caption": "Your books and audiobooks, together",
+      "subcaption": "Everything your favorite authors send you, in one library"
+    },
+    {
+      "capture": "03-audiobook.png",
+      "out": "3.png",
+      "fit": true,
+      "caption": "Audiobooks with read-along",
+      "subcaption": "Every audiobook follows along with the words"
+    },
+    {
+      "capture": "04-reader.png",
+      "out": "4.png",
+      "caption": "A calm place to read",
+      "subcaption": "Clean typography, day and night"
+    },
+    {
+      "capture": "05-discover.png",
+      "out": "5.png",
+      "caption": "Discover free classics",
+      "subcaption": "Thousands of public-domain books to read free"
+    }
+  ]
+}

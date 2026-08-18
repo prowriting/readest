@@ -1,6 +1,12 @@
 /**
- * Compose Google Play listing images from the raw captures produced by
+ * Compose store listing images from the raw captures produced by
  * `pnpm store:capture` (see e2e/store/store-capture.spec.ts).
+ *
+ * Two configs share this compositor and the same captures:
+ *   store-shots.config.json      → Google Play (phone/7"/10" + feature graphic)
+ *   store-shots.ios.config.json  → App Store (iPhone 6.9" + iPad 13")
+ * A canvas may reuse another form factor's captures (captureKey), disambiguate
+ * filenames (outPrefix), and tune caption/device placement per canvas.
  *
  * Style: flat brand-colored background, a short benefit caption, and the app
  * capture inside a rounded dark device frame with a soft shadow that bleeds
@@ -73,12 +79,13 @@ const captionHtml = (caption, sub) =>
  * shot (used where the bottom of the screen matters, e.g. the audiobook player)
  * is sized to sit fully on-canvas so nothing is cropped.
  */
-function buildPortraitHtml({ captureUri, bg, text, accent, caption, sub, W, H, deviceWidth, top }) {
+function buildPortraitHtml({ captureUri, bg, text, accent, caption, sub, W, H, deviceWidth, top,
+  captionTop = 110, h1Size = 64, pSize = 32 }) {
   const css = `
     .stage{background:${bg}}
-    .caption{position:absolute;top:110px;left:96px;right:96px;text-align:center}
-    .caption h1{color:${accent};font-size:64px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
-    .caption p{color:${text};margin-top:20px;font-size:32px;font-weight:400;opacity:.88;line-height:1.4}
+    .caption{position:absolute;top:${captionTop}px;left:96px;right:96px;text-align:center}
+    .caption h1{color:${accent};font-size:${h1Size}px;font-weight:800;line-height:1.12;letter-spacing:-0.02em}
+    .caption p{color:${text};margin-top:20px;font-size:${pSize}px;font-weight:400;opacity:.88;line-height:1.4}
     .device{position:absolute;top:${top}px;left:50%;transform:translateX(-50%);width:${deviceWidth}px;
       padding:16px;background:#161d1a;border-radius:56px;box-shadow:${FRAME_SHADOW}}
     .device img{display:block;width:100%;height:auto;border-radius:42px}`;
@@ -186,14 +193,18 @@ try {
   for (const { canvasKey, canvas, scene } of jobs) {
     const W = canvas.width;
     const H = canvas.height;
-    const capturePath = resolve(capturesDir, canvasKey, scene.capture);
+    // A canvas may reuse another form factor's captures (e.g. iOS iPhone canvas
+    // reusing the `phone` captures) via captureKey.
+    const capturePath = resolve(capturesDir, canvas.captureKey || canvasKey, scene.capture);
     const isLandscape = canvas.orientation === 'landscape';
 
     // Default portrait framing: wide device anchored near the top, bleeding off
     // the bottom edge. A `fit` shot instead sizes the device so the whole
     // screen (e.g. the audiobook player docked at the bottom) stays on-canvas.
+    // captionTop/deviceTop/font sizes are tunable per canvas (taller App Store
+    // canvases want them larger than the Play Store defaults).
     let deviceWidth = canvas.deviceWidth;
-    let top = 440;
+    let top = canvas.deviceTop ?? 440;
     if (scene.fit && !isLandscape) {
       const { width: iw, height: ih } = pngInfo(readFileSync(capturePath));
       const captionBottom = 420;
@@ -216,9 +227,13 @@ try {
       H,
       deviceWidth,
       top,
+      captionTop: canvas.captionTop,
+      h1Size: canvas.h1Size,
+      pSize: canvas.pSize,
     };
     const html = isLandscape ? buildLandscapeHtml(params) : buildPortraitHtml(params);
-    const outAbs = resolve(outRoot, canvas.outDir, scene.out);
+    const outName = (canvas.outPrefix || '') + scene.out;
+    const outAbs = resolve(outRoot, canvas.outDir, outName);
     mkdirSync(dirname(outAbs), { recursive: true });
     const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: 'load' });
@@ -226,7 +241,7 @@ try {
     await page.screenshot({ path: outAbs, clip: { x: 0, y: 0, width: W, height: H } });
     await page.close();
     rendered.push({ path: outAbs, width: W, height: H });
-    console.log(`✓ ${canvas.outDir}/${scene.out} (${W}×${H})`);
+    console.log(`✓ ${canvas.outDir}/${outName} (${W}×${H})`);
   }
 
   if (cfg.feature && args['skip-feature'] !== 'true' && !args.only && !args.canvas) {
