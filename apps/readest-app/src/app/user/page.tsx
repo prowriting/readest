@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import { isAmazonDistribution } from '@/services/distribution';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEnv } from '@/context/EnvContext';
@@ -296,7 +297,7 @@ const ProfilePage = () => {
               <Spinner loading className='text-gray-900' />
             </div>
           )}
-          {showEmbeddedCheckout ? (
+          {showEmbeddedCheckout && !isAmazonDistribution() ? (
             <div className='bg-base-100 rounded-lg p-4'>
               <Checkout
                 clientSecret={checkoutState.clientSecret}
@@ -336,7 +337,7 @@ const ProfilePage = () => {
                   </div>
                 ) : (
                   <>
-                    {SHOW_PLANS_SECTION && (
+                    {SHOW_PLANS_SECTION && !isAmazonDistribution() && (
                       <div className='flex flex-col gap-y-8 sm:px-6'>
                         <PlansComparison
                           availablePlans={availablePlans}

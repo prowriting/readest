@@ -1,4 +1,5 @@
 import posthog from 'posthog-js';
+import { isAmazonDistribution } from '@/services/distribution';
 import Stripe from 'stripe';
 import { loadStripe, Stripe as StripeClient } from '@stripe/stripe-js';
 import { getAPIBaseUrl, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
@@ -10,6 +11,7 @@ import { AvailablePlan, PlanType } from '@/types/quota';
 let stripePromise: Promise<StripeClient | null>;
 
 export const getStripe = () => {
+  if (isAmazonDistribution()) return Promise.resolve(null);
   if (!stripePromise) {
     const publishableKey =
       process.env.NODE_ENV === 'production'
@@ -37,6 +39,7 @@ export type StripeAvailablePlan = AvailablePlan & {
 };
 
 export const fetchStripePlans = async () => {
+  if (isAmazonDistribution()) return [];
   const response = await fetch(WEB_STRIPE_PLANS_URL);
   const data = await response.json();
   return data && Array.isArray(data) ? data : [];
@@ -46,6 +49,7 @@ export const createStripeCheckoutSession = async (
   productId: string,
   planType: PlanType = 'subscription',
 ): Promise<StripeCheckoutResponse> => {
+  if (isAmazonDistribution()) throw new Error('Purchases are disabled in the Amazon edition.');
   const token = await getAccessToken();
   const isEmbeddedCheckout = isTauriAppPlatform();
 
@@ -66,6 +70,7 @@ export const createStripeCheckoutSession = async (
 };
 
 export const redirectToStripeCheckout = async (url?: string): Promise<void> => {
+  if (isAmazonDistribution()) return;
   if (url) {
     if (isWebAppPlatform()) {
       window.location.href = url;
@@ -78,6 +83,7 @@ export const redirectToStripeCheckout = async (url?: string): Promise<void> => {
 };
 
 export const createStripePortalSession = async () => {
+  if (isAmazonDistribution()) throw new Error('Purchases are disabled in the Amazon edition.');
   const token = await getAccessToken();
 
   const response = await fetch(WEB_STRIPE_PORTAL_URL, {
@@ -98,6 +104,7 @@ export const createStripePortalSession = async () => {
 };
 
 export const redirectToStripePortal = async (url: string): Promise<void> => {
+  if (isAmazonDistribution()) return;
   if (isWebAppPlatform()) {
     window.location.href = url;
   } else if (isTauriAppPlatform()) {

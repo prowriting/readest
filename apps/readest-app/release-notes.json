@@ -1,5 +1,11 @@
 {
   "releases": {
+    "0.12.5": {
+      "date": "2026-09-07",
+      "notes": [
+        "Added a free Amazon Appstore edition for Fire tablets, with account access, reading and library sync."
+      ]
+    },
     "0.12.2": {
       "date": "2026-07-20",
       "notes": ["Initial open release"]
