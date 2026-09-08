@@ -1,5 +1,6 @@
 import CarPlay
 import Foundation
+import UIKit
 
 /// CarPlay audio-app scene. Referenced from the app's Info.plist scene
 /// manifest by its module-qualified name
@@ -45,7 +46,9 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
     guard let interfaceController else { return }
     let books = AudiobookCarLibrary.shared.books
     let items = books.map { book -> CPListItem in
-      let item = CPListItem(text: book.title, detailText: book.author)
+      let cover = AudiobookCarLibrary.shared.playbackManifest(for: book.id)?.coverPath
+        .flatMap(UIImage.init(contentsOfFile:))
+      let item = CPListItem(text: book.title, detailText: book.author, image: cover)
       item.handler = { [weak self] _, completion in
         self?.openBook(book)
         completion()
@@ -74,7 +77,8 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
       }
       return item
     }
-    let playAll = CPListItem(text: "Resume", detailText: book.title)
+    let canResume = AudiobookCarLibrary.shared.playbackProgress(for: book.id) != nil
+    let playAll = CPListItem(text: canResume ? "Resume" : "Play", detailText: book.title)
     playAll.handler = { [weak self] _, completion in
       self?.playAndShowNowPlaying(bookId: book.id, chapterIndex: nil)
       completion()
@@ -87,7 +91,11 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
   }
 
   private func playAndShowNowPlaying(bookId: String, chapterIndex: Int?) {
-    AudiobookCarLibrary.shared.requestPlay(bookId: bookId, chapterIndex: chapterIndex)
+    if !AudiobookCarPlayer.shared.play(bookId: bookId, chapterIndex: chapterIndex) {
+      // A book opened with an older app build may not have a native manifest
+      // yet. Ask the web layer to open it so the manifest can be prepared.
+      AudiobookCarLibrary.shared.requestPlay(bookId: bookId, chapterIndex: chapterIndex)
+    }
     interfaceController?.pushTemplate(CPNowPlayingTemplate.shared, animated: true, completion: nil)
   }
 }

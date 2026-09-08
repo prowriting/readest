@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /**
- * The Claim screen (`/claim`) — redeem a 7-letter author code.
+ * The Claim screen (`/claim`) — redeem a 7-character author code.
  */
 export class ClaimPage extends BasePage {
   readonly container: Locator;

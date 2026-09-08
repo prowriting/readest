@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import React, { useRef } from 'react';
 import { MdClose, MdMyLocation, MdOutlinePause, MdPlayArrow } from 'react-icons/md';
-import { RiArrowUpSLine, RiForward30Line } from 'react-icons/ri';
+import { RiArrowUpSLine } from 'react-icons/ri';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
 import { formatPlaybackTime, formatTimeLeft } from '@/services/audiobook/bookTimeline';
@@ -14,6 +14,7 @@ interface AudiobookMiniBarProps {
   elapsed: number;
   total: number | null;
   rate: number;
+  skipForwardSec: number;
   bottomInset: number;
   /** The reader wandered away from the playing position. */
   followSuspended: boolean;
@@ -38,6 +39,7 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   elapsed,
   total,
   rate,
+  skipForwardSec,
   bottomInset,
   followSuspended,
   footerVisible,
@@ -53,6 +55,8 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   const isPlaying = state === 'playing' || state === 'loading';
   const remaining = total != null ? Math.max(0, total - elapsed) : null;
   const dragStartY = useRef<number | null>(null);
+  const skipForwardLabel = _('Skip Forward {{sec}} s', { sec: skipForwardSec });
+  const hidePlayerLabel = _('Hide Player, audio keeps playing');
 
   const handlePointerDown = (ev: React.PointerEvent<HTMLDivElement>) => {
     dragStartY.current = ev.clientY;
@@ -69,11 +73,12 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
 
   return (
     <div
+      role='region'
       aria-label={_('Audiobook Mini Player')}
       className={clsx(
         'bg-base-100 eink-bordered absolute z-40 shadow-md',
-        'inset-x-0 bottom-2 mx-auto flex w-fit max-w-[92%] flex-col',
-        'rounded-2xl px-2 pb-1 pt-0.5',
+        'inset-x-2 bottom-2 mx-auto flex w-auto max-w-md flex-col sm:inset-x-0 sm:w-fit',
+        'rounded-2xl px-1.5 pb-1 pt-0.5',
       )}
       // Sit above the footer toolbar's height (~72px) when it's revealed;
       // instant (no transition) so the bar stays clickable and stable.
@@ -91,19 +96,19 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
       >
         <div className='bg-base-content/30 h-1 w-10 rounded-full' />
       </div>
-      <div className='flex items-center gap-1'>
+      <div className='flex min-w-0 items-center gap-0.5'>
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm btn-primary'
+          className='btn btn-primary btn-circle h-11 min-h-11 w-11 min-w-11 p-0'
           aria-label={isPlaying ? _('Pause') : _('Play')}
           title={isPlaying ? _('Pause') : _('Play')}
           onClick={onTogglePlay}
         >
           {isPlaying ? <MdOutlinePause size={iconSize} /> : <MdPlayArrow size={iconSize} />}
         </button>
-        <div className='flex min-w-0 flex-col px-1 text-start'>
-          <span className='max-w-40 truncate text-sm font-medium'>{title}</span>
-          <span className='text-base-content/70 text-xs' dir='ltr'>
+        <div className='flex min-w-0 flex-1 flex-col px-1 text-start'>
+          <span className='truncate text-sm font-medium'>{title}</span>
+          <span className='text-base-content/70 truncate text-sm leading-tight' dir='ltr'>
             {remaining != null
               ? _('{{time}} left', { time: formatTimeLeft(remaining) })
               : formatPlaybackTime(elapsed)}
@@ -111,36 +116,42 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
         </div>
         <button
           type='button'
-          className='btn btn-ghost btn-xs eink-bordered rounded-full px-1.5 tabular-nums'
+          className={clsx(
+            'btn btn-ghost eink-bordered hidden h-11 min-h-11 min-w-11 rounded-full px-2',
+            'tabular-nums min-[430px]:inline-flex',
+          )}
           aria-label={_('Playback Speed')}
           title={_('Playback Speed')}
           onClick={onCycleRate}
         >
           {Number(rate.toFixed(2))}×
         </button>
-        <button
-          type='button'
-          className='btn btn-ghost btn-circle btn-sm eink-bordered'
-          aria-label={_('Skip Forward')}
-          title={_('Skip Forward')}
-          onClick={onSkipForward}
-        >
-          <RiForward30Line size={iconSize} />
-        </button>
-        {followSuspended && (
+        {followSuspended ? (
           <button
             type='button'
-            className='btn btn-ghost btn-circle btn-sm eink-bordered'
+            className='btn btn-ghost btn-circle eink-bordered h-11 min-h-11 w-11 min-w-11 p-0'
             aria-label={_('Go to Playing Position')}
             title={_('Go to Playing Position')}
             onClick={onReturnToPlaying}
           >
             <MdMyLocation size={iconSize} />
           </button>
+        ) : (
+          <button
+            type='button'
+            className='btn btn-ghost btn-circle eink-bordered h-11 min-h-11 w-11 min-w-11 p-0'
+            aria-label={skipForwardLabel}
+            title={skipForwardLabel}
+            onClick={onSkipForward}
+          >
+            <span aria-hidden='true' className='text-sm font-semibold tabular-nums'>
+              +{skipForwardSec}
+            </span>
+          </button>
         )}
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm'
+          className='btn btn-ghost btn-circle h-11 min-h-11 w-11 min-w-11 p-0'
           aria-label={_('Open Player')}
           title={_('Open Player')}
           onClick={onExpand}
@@ -149,9 +160,9 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
         </button>
         <button
           type='button'
-          className='btn btn-ghost btn-circle btn-sm'
-          aria-label={_('Close Player')}
-          title={_('Close Player')}
+          className='btn btn-ghost btn-circle h-11 min-h-11 w-11 min-w-11 p-0'
+          aria-label={hidePlayerLabel}
+          title={hidePlayerLabel}
           onClick={onDismiss}
         >
           <MdClose size={iconSize} />

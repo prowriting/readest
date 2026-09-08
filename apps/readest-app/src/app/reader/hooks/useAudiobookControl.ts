@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEnv } from '@/context/EnvContext';
 import { useBookDataStore } from '@/store/bookDataStore';
+import { useAudiobookStore } from '@/store/audiobookStore';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useReaderStore } from '@/store/readerStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -23,6 +24,7 @@ import { getMediaSession, TauriMediaSession } from '@/libs/mediaSession';
 import {
   buildBridgeChapters,
   consumePendingCarPlayIntent,
+  prepareAndPushCarPlayback,
   pushChaptersToCar,
   type CarPlayIntent,
 } from '@/services/audiobook/carBridge';
@@ -65,7 +67,7 @@ export interface AudiobookBookmark {
  */
 export const useAudiobookControl = (bookKey: string) => {
   const _ = useTranslation();
-  const { envConfig } = useEnv();
+  const { envConfig, appService } = useEnv();
   const { settings } = useSettingsStore();
   const { getConfig, setConfig, saveConfig, getBookData, updateBooknotes } = useBookDataStore();
   const { updateBook } = useLibraryStore();
@@ -94,7 +96,6 @@ export const useAudiobookControl = (bookKey: string) => {
   // Section changes landing shortly after are manual, not a chapter rollover.
   const manualNavAtRef = useRef(0);
   const lastHighlightTextRef = useRef<string | null>(null);
-  const tapWiredDocsRef = useRef(new WeakSet<Document>());
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -319,15 +320,19 @@ export const useAudiobookControl = (bookKey: string) => {
   }, [view, engine]);
 
   // Tap-to-seek: a tap on (or inside) a SMIL text target jumps the audio
-  // there. Section documents live in iframes and can outlive this effect, so
-  // each doc is wired at most once and stale listeners die with their doc.
+  // there. Section documents live in iframes, so retain each handler and
+  // explicitly remove it whenever this reader instance unmounts or rewires.
   useEffect(() => {
     if (!view || !engine) return;
+    const wiredDocs = new Map<Document, EventListener>();
     const wireDoc = (doc: Document | undefined, index: number) => {
-      if (!doc?.addEventListener || index < 0 || tapWiredDocsRef.current.has(doc)) return;
-      tapWiredDocsRef.current.add(doc);
-      doc.addEventListener('click', (ev) => {
+      if (!doc?.addEventListener || index < 0 || wiredDocs.has(doc)) return;
+      const onClick: EventListener = (ev) => {
         if (!isActive(stateRef.current)) return;
+        // Dismissing the audiobook tray returns the page to normal reading.
+        // Playback may remain active (especially after leaving Android Auto),
+        // but page taps must no longer seek or highlight narration text.
+        if (useAudiobookStore.getState().trayCollapsed[bookKey] ?? false) return;
         const fragment = findTapFragment(ev.target);
         if (!fragment) return;
         void engine.playFromText(index, fragment).then((matched) => {
@@ -336,7 +341,9 @@ export const useAudiobookControl = (bookKey: string) => {
             syncPosition();
           }
         });
-      });
+      };
+      wiredDocs.set(doc, onClick);
+      doc.addEventListener('click', onClick);
     };
     const onLoad = (e: Event) => {
       const detail = (e as CustomEvent).detail as { doc?: Document; index?: number } | undefined;
@@ -348,8 +355,12 @@ export const useAudiobookControl = (bookKey: string) => {
     for (const content of view.renderer?.getContents?.() ?? []) {
       wireDoc(content.doc, content.index ?? -1);
     }
-    return () => view.removeEventListener('load', onLoad);
-  }, [view, engine, syncPosition]);
+    return () => {
+      view.removeEventListener('load', onLoad);
+      for (const [doc, onClick] of wiredDocs) doc.removeEventListener('click', onClick);
+      wiredDocs.clear();
+    };
+  }, [view, engine, syncPosition, bookKey]);
 
   // Duration sleep timer: tick the countdown, fade the last seconds, pause
   // at expiry, and always leave the volume restored for the next session.
@@ -854,6 +865,13 @@ export const useAudiobookControl = (bookKey: string) => {
     const bookHash = bookKey.split('-')[0]!;
     void pushChaptersToCar(buildBridgeChapters(bookHash, chapters, sectionIndex));
   }, [isAvailable, bookKey, chapters, sectionIndex]);
+
+  useEffect(() => {
+    const book = bookData?.book;
+    if (!isAvailable || !appService || !book || !engine || chapters.length === 0) return;
+    const bridgeChapters = buildBridgeChapters(book.hash, chapters, sectionIndex).chapters;
+    void prepareAndPushCarPlayback(appService, book, engine, bridgeChapters, sectionIndex);
+  }, [isAvailable, appService, bookData?.book, engine, chapters, sectionIndex]);
 
   const returnToPlaying = useCallback(() => {
     if (!view || !engine || engine.activeSectionIndex < 0) return;

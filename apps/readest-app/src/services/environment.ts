@@ -26,6 +26,8 @@ export const getBaseUrl = () =>
   READEST_WEB_BASE_URL;
 export const getNodeBaseUrl = () =>
   process.env['NEXT_PUBLIC_NODE_BASE_URL'] ?? READEST_NODE_BASE_URL;
+export const getAuthorBaseUrl = () =>
+  process.env['NEXT_PUBLIC_AUTHOR_BASE_URL'] ?? 'https://author.bookarc.app';
 
 export const isMacPlatform = () =>
   typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);

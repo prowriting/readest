@@ -30,6 +30,34 @@ class UpdateAudiobookChaptersArgs: Decodable {
   let currentIndex: Int?
 }
 
+class CarPlaybackCueArgs: Decodable {
+  let offsetMs: Int64
+  let text: String
+}
+
+class CarPlaybackSegmentArgs: Decodable {
+  let path: String
+  let clipBeginMs: Int64
+  let clipEndMs: Int64
+  let cues: [CarPlaybackCueArgs]?
+}
+
+class CarPlaybackSectionArgs: Decodable {
+  let sectionIndex: Int
+  let label: String?
+  let durationMs: Int64?
+  let segments: [CarPlaybackSegmentArgs]?
+}
+
+class UpdateAudiobookPlaybackManifestArgs: Decodable {
+  let bookId: String
+  let title: String?
+  let author: String?
+  let coverPath: String?
+  let currentSectionIndex: Int?
+  let sections: [CarPlaybackSectionArgs]?
+}
+
 class NativeTTSPlugin: Plugin {
   public override func load(webview: WKWebView) {
     // CarPlay play requests flow back to the webview as plugin events.
@@ -92,6 +120,38 @@ class NativeTTSPlugin: Plugin {
       AudiobookCarLibrary.Chapter(index: chapter.index, label: chapter.label ?? "")
     }
     AudiobookCarLibrary.shared.updateChapters(bookId: args.bookId, chapters: chapters)
+    invoke.resolve()
+  }
+
+  @objc public func update_audiobook_playback_manifest(_ invoke: Invoke) throws {
+    let args = try invoke.parseArgs(UpdateAudiobookPlaybackManifestArgs.self)
+    let sections = (args.sections ?? []).map { section in
+      AudiobookCarLibrary.PlaybackSection(
+        sectionIndex: section.sectionIndex,
+        label: section.label ?? "",
+        durationMs: section.durationMs ?? 0,
+        segments: (section.segments ?? []).map { segment in
+          AudiobookCarLibrary.PlaybackSegment(
+            path: segment.path,
+            clipBeginMs: segment.clipBeginMs,
+            clipEndMs: segment.clipEndMs,
+            cues: (segment.cues ?? []).map { cue in
+              AudiobookCarLibrary.PlaybackCue(offsetMs: cue.offsetMs, text: cue.text)
+            }
+          )
+        }
+      )
+    }
+    AudiobookCarLibrary.shared.updatePlaybackManifest(
+      AudiobookCarLibrary.PlaybackManifest(
+        bookId: args.bookId,
+        title: args.title ?? "",
+        author: args.author ?? "",
+        coverPath: args.coverPath,
+        currentSectionIndex: args.currentSectionIndex,
+        sections: sections
+      )
+    )
     invoke.resolve()
   }
 }

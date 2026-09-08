@@ -139,6 +139,15 @@ impl<R: Runtime> NativeTts<R> {
             .run_mobile_plugin("update_audiobook_chapters", payload)
             .map_err(Into::into)
     }
+
+    pub fn update_audiobook_playback_manifest(
+        &self,
+        payload: UpdateAudiobookPlaybackManifestRequest,
+    ) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin("update_audiobook_playback_manifest", payload)
+            .map_err(Into::into)
+    }
 }
 
 impl<R: Runtime> NativeTts<R> {

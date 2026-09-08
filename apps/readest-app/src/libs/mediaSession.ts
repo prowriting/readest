@@ -61,6 +61,15 @@ export class TauriMediaSession {
     });
     this.eventListeners.push(pauseListener);
 
+    const stopListener = await addPluginListener('native-tts', 'media-session-stop', () => {
+      if (this.handlers['stop']) {
+        (this.handlers['stop'] as () => void)();
+      } else if (this.handlers['pause']) {
+        (this.handlers['pause'] as () => void)();
+      }
+    });
+    this.eventListeners.push(stopListener);
+
     const nextListener = await addPluginListener('native-tts', 'media-session-next', () => {
       if (this.handlers['nexttrack']) {
         (this.handlers['nexttrack'] as () => void)();

@@ -1,5 +1,9 @@
 {
   "releases": {
+    "0.12.6": {
+      "date": "2026-09-04",
+      "notes": ["Restore Android Auto discovery, browsing, voice search, and playback controls"]
+    },
     "0.12.2": {
       "date": "2026-07-20",
       "notes": ["Initial open release"]

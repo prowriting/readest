@@ -18,6 +18,7 @@ Default permissions for the plugin
 - `allow-update-media-session-metadata`
 - `allow-update-audiobook-library`
 - `allow-update-audiobook-chapters`
+- `allow-update-audiobook-playback-manifest`
 - `allow-show-audio-route-picker`
 - `allow-register-listener`
 - `allow-remove-listener`
@@ -525,6 +526,32 @@ Enables the update_audiobook_library command without any pre-configured scope.
 <td>
 
 Denies the update_audiobook_library command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-update-audiobook-playback-manifest`
+
+</td>
+<td>
+
+Enables the update_audiobook_playback_manifest command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-update-audiobook-playback-manifest`
+
+</td>
+<td>
+
+Denies the update_audiobook_playback_manifest command without any pre-configured scope.
 
 </td>
 </tr>

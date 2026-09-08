@@ -9,6 +9,7 @@ import { fetchBookByCode, BookCodeError } from '@/services/bookCode';
 import { eventDispatcher } from '@/utils/event';
 
 const CODE_LENGTH = 7;
+const INVALID_CLAIM_CODE_CHARACTER = /[^a-hj-km-np-zA-HJ-KM-NP-Z2-9]/g;
 
 // Mirrors the deep-link claim error mapping in useOpenWithCode so manual and
 // link-driven claims surface the same messages.
@@ -21,13 +22,10 @@ const ERROR_MESSAGES: Record<number, string> = {
 };
 
 const sanitize = (raw: string) =>
-  raw
-    .replace(/[^a-zA-Z]/g, '')
-    .toUpperCase()
-    .slice(0, CODE_LENGTH);
+  raw.replace(INVALID_CLAIM_CODE_CHARACTER, '').toUpperCase().slice(0, CODE_LENGTH);
 
 /**
- * The Claim screen. A reader enters the 7-letter code an author sent them; on a
+ * The Claim screen. A reader enters the 7-character code an author sent them; on a
  * successful redemption the found book is handed to the existing
  * {@link BookCodeDialog} (via the `book-code-found` event), which downloads it
  * and adds it to the library — the same path deep-link claims use.
@@ -47,7 +45,7 @@ const ClaimScreen: React.FC = () => {
     e.preventDefault();
     if (busy) return;
     if (code.length !== CODE_LENGTH) {
-      setError(_('Claim codes are {{count}} letters (A–Z).', { count: CODE_LENGTH }));
+      setError(_('Claim codes are {{count}} letters or numbers.', { count: CODE_LENGTH }));
       return;
     }
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -94,7 +92,7 @@ const ClaimScreen: React.FC = () => {
           maxLength={CODE_LENGTH}
           value={code}
           onChange={handleChange}
-          placeholder='ABCDEFG'
+          placeholder='FBC83A2'
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'claim-code-error' : undefined}
           className='eink-bordered bg-base-200 text-base-content rounded-lg px-3 py-2.5 font-mono text-base tracking-[0.28em]'

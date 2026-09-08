@@ -120,6 +120,42 @@ pub struct UpdateAudiobookChaptersRequest {
     pub current_index: Option<u32>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CarPlaybackCue {
+    pub offset_ms: u64,
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CarPlaybackSegment {
+    pub path: String,
+    pub clip_begin_ms: u64,
+    pub clip_end_ms: u64,
+    pub cues: Vec<CarPlaybackCue>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CarPlaybackSection {
+    pub section_index: u32,
+    pub label: String,
+    pub duration_ms: u64,
+    pub segments: Vec<CarPlaybackSegment>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateAudiobookPlaybackManifestRequest {
+    pub book_id: String,
+    pub title: String,
+    pub author: String,
+    pub cover_path: Option<String>,
+    pub current_section_index: Option<u32>,
+    pub sections: Vec<CarPlaybackSection>,
+}
+
 #[cfg(test)]
 mod bridge_contract_tests {
     use super::*;
@@ -161,5 +197,19 @@ mod bridge_contract_tests {
         let json = r#"{"bookId": "abc123", "chapters": []}"#;
         let payload: UpdateAudiobookChaptersRequest = serde_json::from_str(json).unwrap();
         assert_eq!(payload.current_index, None);
+    }
+
+    #[test]
+    fn deserializes_the_shared_car_playback_manifest() {
+        let json = r#"{
+            "bookId":"abc123","title":"Book","author":"Author","currentSectionIndex":4,
+            "sections":[{"sectionIndex":4,"label":"One","durationMs":12000,
+              "segments":[{"path":"/data/audio.mp3","clipBeginMs":1250,"clipEndMs":5500,
+                "cues":[{"offsetMs":500,"text":"text/c1.xhtml#p1"}]}]}]
+        }"#;
+        let payload: UpdateAudiobookPlaybackManifestRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.current_section_index, Some(4));
+        assert_eq!(payload.sections[0].segments[0].clip_begin_ms, 1250);
+        assert_eq!(payload.sections[0].segments[0].cues[0].offset_ms, 500);
     }
 }

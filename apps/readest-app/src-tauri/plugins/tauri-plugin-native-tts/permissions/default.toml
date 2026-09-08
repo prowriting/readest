@@ -15,6 +15,7 @@ permissions = [
   "allow-update-media-session-metadata",
   "allow-update-audiobook-library",
   "allow-update-audiobook-chapters",
+  "allow-update-audiobook-playback-manifest",
   "allow-show-audio-route-picker",
   "allow-register-listener",
   "allow-remove-listener",

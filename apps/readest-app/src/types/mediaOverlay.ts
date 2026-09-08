@@ -12,6 +12,31 @@ export interface MediaOverlayItem {
   end: number;
 }
 
+export interface MediaOverlayPlaybackCue {
+  /** Seconds from the beginning of this audio segment. */
+  offset: number;
+  /** Resolved EPUB text target, including its fragment. */
+  text: string;
+}
+
+export interface MediaOverlayPlaybackSegment {
+  /** Resolved EPUB entry path. */
+  source: string;
+  clipBegin: number;
+  clipEnd: number;
+  cues: MediaOverlayPlaybackCue[];
+}
+
+export interface MediaOverlayPlaybackSection {
+  sectionIndex: number;
+  duration: number;
+  segments: MediaOverlayPlaybackSegment[];
+}
+
+export interface MediaOverlayPlaybackManifest {
+  sections: MediaOverlayPlaybackSection[];
+}
+
 export interface MediaOverlayEngine extends EventTarget {
   /** Start playback at the beginning of a section (skips overlay-less sections). */
   start(sectionIndex: number): Promise<void>;
@@ -29,6 +54,10 @@ export interface MediaOverlayEngine extends EventTarget {
    * `#fragment`, or null when nothing matches. Never touches playback.
    */
   textOffset(sectionIndex: number, fragment: string): Promise<number | null>;
+  /** Export the parsed SMIL timeline for a native background player. */
+  exportPlaybackManifest(): Promise<MediaOverlayPlaybackManifest>;
+  /** Materialize one source returned by exportPlaybackManifest(). */
+  loadAudioSource(source: string): Promise<Blob>;
   pause(): void;
   resume(): void;
   stop(): void;

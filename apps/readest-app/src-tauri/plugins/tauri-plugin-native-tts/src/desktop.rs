@@ -71,6 +71,12 @@ impl<R: Runtime> NativeTts<R> {
     ) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+    pub fn update_audiobook_playback_manifest(
+        &self,
+        _payload: UpdateAudiobookPlaybackManifestRequest,
+    ) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
     pub fn show_audio_route_picker(&self) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }

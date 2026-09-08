@@ -22,6 +22,8 @@
         <key>CPTemplateApplicationSceneSessionRoleApplication</key>
         <array>
           <dict>
+            <key>UISceneClassName</key>
+            <string>CPTemplateApplicationScene</string>
             <key>UISceneConfigurationName</key>
             <string>Bookarc CarPlay</string>
             <key>UISceneDelegateClassName</key>

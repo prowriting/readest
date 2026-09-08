@@ -11,6 +11,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
+import android.webkit.WebView
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.content.ContextCompat
@@ -88,8 +89,8 @@ class UpdateMediaSessionMetadataArgs {
 @InvokeArg
 class UpdateMediaSessionStateArgs {
   var playing: Boolean? = null
-  var position: Int? = null // in milliseconds
-  var duration: Int? = null // in milliseconds
+  var position: Long? = null // in milliseconds
+  var duration: Long? = null // in milliseconds
 }
 
 @InvokeArg
@@ -116,6 +117,38 @@ class UpdateAudiobookChaptersArgs {
   var bookId: String? = null
   var chapters: List<BridgeChapterArg>? = null
   var currentIndex: Int? = null
+}
+
+@InvokeArg
+class CarPlaybackCueArg {
+  var offsetMs: Long? = null
+  var text: String? = null
+}
+
+@InvokeArg
+class CarPlaybackSegmentArg {
+  var path: String? = null
+  var clipBeginMs: Long? = null
+  var clipEndMs: Long? = null
+  var cues: List<CarPlaybackCueArg>? = null
+}
+
+@InvokeArg
+class CarPlaybackSectionArg {
+  var sectionIndex: Int? = null
+  var label: String? = null
+  var durationMs: Long? = null
+  var segments: List<CarPlaybackSegmentArg>? = null
+}
+
+@InvokeArg
+class UpdateAudiobookPlaybackManifestArgs {
+  var bookId: String? = null
+  var title: String? = null
+  var author: String? = null
+  var coverPath: String? = null
+  var currentSectionIndex: Int? = null
+  var sections: List<CarPlaybackSectionArg>? = null
 }
 
 @InvokeArg
@@ -160,6 +193,37 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
     private val idleShutdownRunnable = Runnable {
         Log.d(TAG, "Idle timeout reached, shutting down TTS engine to save battery")
         shutdownTTSEngine()
+    }
+
+    override fun load(webView: WebView) {
+        super.load(webView)
+        installMediaEventTrigger()
+    }
+
+    override fun registerListener(invoke: Invoke) {
+        super.registerListener(invoke)
+        deliverPendingCarPlayIntent()
+    }
+
+    private fun installMediaEventTrigger() {
+        MediaPlaybackService.pluginEventTrigger = { event, data ->
+            if (hasListener(event)) {
+                trigger(event, data)
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun deliverPendingCarPlayIntent() {
+        if (!hasListener("audiobook-play")) return
+        val request = CarBridgeStore(activity.applicationContext).takePendingPlayRequest() ?: return
+        val data = JSObject().apply {
+            put("bookId", request.bookId)
+            request.chapterIndex?.let { put("chapterIndex", it) }
+        }
+        trigger("audiobook-play", data)
     }
 
     @Command
@@ -529,7 +593,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
             try {
                 val artworkBitmap = args.artwork?.let { loadArtworkFromUrl(it) }
                 val intent = Intent(activity, MediaPlaybackService::class.java).apply {
-                    action = "UPDATE_METADATA"
+                    action = MediaPlaybackService.ACTION_UPDATE_METADATA
                     putExtra("title", title)
                     putExtra("artist", artist)
                     putExtra("album", album)
@@ -546,28 +610,73 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
     @Command
     fun update_audiobook_library(invoke: Invoke) {
         val args = invoke.parseArgs(UpdateAudiobookLibraryArgs::class.java)
-        MediaPlaybackService.bridgeBooks = (args.books ?: emptyList()).mapNotNull { book ->
+        val books = (args.books ?: emptyList()).mapNotNull { book ->
             val id = book.id ?: return@mapNotNull null
-            MediaPlaybackService.BridgeBook(
+            BridgeBook(
                 id,
                 book.title ?: "",
                 book.author ?: "",
                 book.durationSec ?: 0.0
             )
         }
-        MediaPlaybackService.notifyBridgeChanged()
+        MediaPlaybackService.updateLibrary(activity, books)
         invoke.resolve()
     }
 
     @Command
     fun update_audiobook_chapters(invoke: Invoke) {
         val args = invoke.parseArgs(UpdateAudiobookChaptersArgs::class.java)
-        MediaPlaybackService.bridgeChaptersBookId = args.bookId
-        MediaPlaybackService.bridgeChapters = (args.chapters ?: emptyList()).mapNotNull { chapter ->
-            val index = chapter.index ?: return@mapNotNull null
-            MediaPlaybackService.BridgeChapter(index, chapter.label ?: "")
+        val bookId = args.bookId
+        if (bookId == null) {
+            invoke.reject("bookId is required")
+            return
         }
-        MediaPlaybackService.notifyBridgeChanged()
+        val chapters = (args.chapters ?: emptyList()).mapNotNull { chapter ->
+            val index = chapter.index ?: return@mapNotNull null
+            BridgeChapter(index, chapter.label ?: "")
+        }
+        MediaPlaybackService.updateChapters(activity, bookId, chapters)
+        invoke.resolve()
+    }
+
+    @Command
+    fun update_audiobook_playback_manifest(invoke: Invoke) {
+        val args = invoke.parseArgs(UpdateAudiobookPlaybackManifestArgs::class.java)
+        val bookId = args.bookId
+        if (bookId.isNullOrBlank()) {
+            invoke.reject("bookId is required")
+            return
+        }
+        val sections = (args.sections ?: emptyList()).mapNotNull section@{ section ->
+            val sectionIndex = section.sectionIndex ?: return@section null
+            val segments = (section.segments ?: emptyList()).mapNotNull segment@{ segment ->
+                val path = segment.path ?: return@segment null
+                val clipBeginMs = segment.clipBeginMs ?: return@segment null
+                val clipEndMs = segment.clipEndMs ?: return@segment null
+                val cues = (segment.cues ?: emptyList()).mapNotNull cue@{ cue ->
+                    val offsetMs = cue.offsetMs ?: return@cue null
+                    val text = cue.text ?: return@cue null
+                    BridgePlaybackCue(offsetMs, text)
+                }
+                BridgePlaybackSegment(path, clipBeginMs, clipEndMs, cues)
+            }
+            BridgePlaybackSection(
+                sectionIndex,
+                section.label ?: "",
+                section.durationMs ?: 0L,
+                segments
+            )
+        }
+        val manifest = BridgePlaybackManifest(
+            bookId,
+            args.title ?: "",
+            args.author ?: "",
+            args.currentSectionIndex,
+            sections,
+            args.coverPath
+        )
+        CarBridgeStore(activity.applicationContext).savePlaybackManifest(manifest)
+        MediaPlaybackService.notifyPlaybackManifestChanged(bookId)
         invoke.resolve()
     }
 
@@ -580,7 +689,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
 
         try {
             val intent = Intent(activity, MediaPlaybackService::class.java).apply {
-                action = "UPDATE_PLAYBACK_STATE"
+                action = MediaPlaybackService.ACTION_UPDATE_PLAYBACK_STATE
                 putExtra("playing", isPlaying)
                 putExtra("position", position)
                 putExtra("duration", duration)
@@ -603,16 +712,17 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         args.foregroundServiceText?.let { FOREGROUND_SERVICE_TEXT = it }
 
         try {
-            val intent = Intent(activity, MediaPlaybackService::class.java)
+            val intent = Intent(activity, MediaPlaybackService::class.java).apply {
+                action = MediaPlaybackService.ACTION_ACTIVATE
+            }
             if (active) {
                 cancelIdleTimer()
-                MediaPlaybackService.pluginEventTrigger = { event, data -> trigger(event, data) }
+                installMediaEventTrigger()
                 MediaPlaybackService.currentTitle = FOREGROUND_SERVICE_TITLE
                 MediaPlaybackService.currentArtist = FOREGROUND_SERVICE_TEXT
                 ContextCompat.startForegroundService(activity, intent)
             } else {
                 activity.stopService(intent)
-                MediaPlaybackService.pluginEventTrigger = null
             }
             invoke.resolve()
         } catch (e: Exception) {
@@ -633,7 +743,6 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         try {
             val intent = Intent(activity, MediaPlaybackService::class.java)
             activity.stopService(intent)
-            MediaPlaybackService.pluginEventTrigger = null
 
             textToSpeech?.shutdown()
             textToSpeech = null
@@ -652,7 +761,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         }
     }
 
-    fun destroy() {
+    override fun onDestroy() {
         try {
             cancelIdleTimer()
 
@@ -667,10 +776,13 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
             eventChannels.clear()
             speakingJobs.values.forEach { it.cancel() }
             speakingJobs.clear()
+            MediaPlaybackService.pluginEventTrigger = null
 
             Log.d(TAG, "Plugin destroyed successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error during plugin destruction", e)
+        } finally {
+            super.onDestroy()
         }
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="android_auto_audiobooks">Audiobooks</string>
+  <string name="android_auto_nothing_to_resume">Choose an audiobook to start listening.</string>
+  <string name="android_auto_player_unavailable">Playback is temporarily unavailable.</string>
+  <string name="android_auto_open_book_to_prepare">Open this audiobook in BookArc once to prepare it for car playback.</string>
+  <string name="android_auto_audio_unavailable">This audiobook is not available offline.</string>
+</resources>

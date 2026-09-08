@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24">
+  <!-- Android Auto may place this tintable mark in a tight mask. Keep the
+       complete BookArc silhouette within the central 75% safe area. -->
+  <group
+    android:pivotX="12"
+    android:pivotY="12"
+    android:scaleX="0.75"
+    android:scaleY="0.75">
+    <path
+      android:fillColor="@android:color/transparent"
+      android:pathData="M3,17 A9,9 0,0 1,21 17 M5,17 A7,7 0,0 1,19 17 M7,17 A5,5 0,0 1,17 17 M9,17 A3,3 0,0 1,15 17"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeLineCap="round"
+      android:strokeWidth="1.4" />
+    <path
+      android:fillColor="#FFFFFFFF"
+      android:pathData="M2,17 L22,17 L20.8,20 L3.2,20 Z" />
+    <path
+      android:fillColor="@android:color/transparent"
+      android:pathData="M12,7 L12,20"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1" />
+  </group>
+</vector>

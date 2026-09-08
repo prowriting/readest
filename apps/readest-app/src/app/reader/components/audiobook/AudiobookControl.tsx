@@ -127,6 +127,7 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
       elapsed={audiobook.elapsed}
       total={audiobook.total}
       rate={audiobook.rate}
+      skipForwardSec={audiobook.skipForwardSec}
       bottomInset={bottomInset}
       followSuspended={audiobook.followSuspended}
       // Lift above the footer toolbar while it's showing (they share the

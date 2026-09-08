@@ -13,6 +13,7 @@ const COMMANDS: &[&str] = &[
     "update_media_session_metadata",
     "update_audiobook_library",
     "update_audiobook_chapters",
+    "update_audiobook_playback_manifest",
     "show_audio_route_picker",
     "register_listener",
     "remove_listener",

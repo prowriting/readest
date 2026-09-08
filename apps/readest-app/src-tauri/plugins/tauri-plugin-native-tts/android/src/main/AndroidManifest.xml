@@ -1,9 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
   <application>
     <meta-data
       android:name="com.google.android.gms.car.application"
       android:resource="@xml/automotive_app_desc" />
+    <meta-data
+      android:name="androidx.car.app.TintableAttributionIcon"
+      android:resource="@drawable/ic_car_attribution" />
+
+    <receiver
+      android:name="androidx.media.session.MediaButtonReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_BUTTON" />
+      </intent-filter>
+    </receiver>
+
+    <service
+      android:name="com.readest.native_tts.MediaPlaybackService"
+      android:exported="true"
+      android:foregroundServiceType="mediaPlayback"
+      android:stopWithTask="false">
+      <intent-filter>
+        <action android:name="android.media.browse.MediaBrowserService" />
+      </intent-filter>
+    </service>
   </application>
   <queries>
     <intent>

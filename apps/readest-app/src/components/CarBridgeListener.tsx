@@ -22,10 +22,11 @@ import { navigateToReader } from '@/utils/nav';
 const CarBridgeListener: React.FC = () => {
   const router = useRouter();
   const library = useLibraryStore((state) => state.library);
+  const libraryLoaded = useLibraryStore((state) => state.libraryLoaded);
 
   useEffect(() => {
-    if (library.length > 0) void pushLibraryToCar(library);
-  }, [library]);
+    if (libraryLoaded) void pushLibraryToCar(library);
+  }, [library, libraryLoaded]);
 
   useEffect(() => {
     let listener: PluginListener | null = null;

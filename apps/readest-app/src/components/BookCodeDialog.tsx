@@ -29,6 +29,10 @@ const PLAY_BOOKS_WEB_URL = 'https://play.google.com/books/uploads';
 
 type BusyAction = 'reading' | 'saving' | 'kindle' | 'playbooks' | 'downloads' | null;
 type CodeError = { code: string; statusCode: number; message: string };
+type TransferStatus = {
+  phase: 'downloading' | 'processing';
+  percent: number | null;
+};
 
 export const BookCodeDialog = () => {
   const _ = useTranslation();
@@ -46,6 +50,7 @@ export const BookCodeDialog = () => {
   const [result, setResult] = useState<BookCodeResult | null>(null);
   const [codeError, setCodeError] = useState<CodeError | null>(null);
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+  const [transferStatus, setTransferStatus] = useState<TransferStatus | null>(null);
   const kindleRef = useRef<DetectKindleResult | null>(null);
 
   useEffect(() => {
@@ -96,12 +101,19 @@ export const BookCodeDialog = () => {
     setResult(null);
     setCodeError(null);
     setBusyAction(null);
+    setTransferStatus(null);
   };
 
   const getDownloadedFile = async (): Promise<File | null> => {
     if (!result) return null;
     try {
-      const bytes = await downloadGiftBook(result.downloadRef);
+      setTransferStatus({ phase: 'downloading', percent: null });
+      const bytes = await downloadGiftBook(result.downloadRef, ({ receivedBytes, totalBytes }) => {
+        const percent = totalBytes
+          ? Math.min(100, Math.round((receivedBytes / totalBytes) * 100))
+          : null;
+        setTransferStatus({ phase: 'downloading', percent });
+      });
       return new File([bytes], `${result.book.title}.epub`, {
         type: 'application/epub+zip',
       });
@@ -111,6 +123,7 @@ export const BookCodeDialog = () => {
           ? _('This gift has expired')
           : _('Download failed — please try again');
       eventDispatcher.dispatch('toast', { type: 'error', message, timeout: 3500 });
+      setTransferStatus(null);
       return null;
     }
   };
@@ -142,6 +155,7 @@ export const BookCodeDialog = () => {
     try {
       const file = await getDownloadedFile();
       if (!file) return;
+      setTransferStatus({ phase: 'processing', percent: null });
       const book = await ingestAndConfirm(file);
       if (book) {
         navigateToReader(router, [book.hash]);
@@ -149,6 +163,7 @@ export const BookCodeDialog = () => {
       }
     } finally {
       setBusyAction(null);
+      setTransferStatus(null);
     }
   };
 
@@ -166,6 +181,7 @@ export const BookCodeDialog = () => {
     try {
       const file = await getDownloadedFile();
       if (!file) return;
+      setTransferStatus({ phase: 'processing', percent: null });
       const book = await ingestAndConfirm(file);
       if (book) {
         eventDispatcher.dispatch('toast', {
@@ -173,10 +189,12 @@ export const BookCodeDialog = () => {
           message: _('Added to your library'),
           timeout: 2500,
         });
+        navigateToReader(router, [book.hash]);
         handleClose();
       }
     } finally {
       setBusyAction(null);
+      setTransferStatus(null);
     }
   };
 
@@ -200,6 +218,7 @@ export const BookCodeDialog = () => {
       void openUrl(fallbackWebUrl);
     } finally {
       setBusyAction(null);
+      setTransferStatus(null);
     }
   };
 
@@ -231,6 +250,7 @@ export const BookCodeDialog = () => {
       window.open(KINDLE_WEB_URL, '_blank', 'noopener');
     } finally {
       setBusyAction(null);
+      setTransferStatus(null);
     }
   };
 
@@ -246,6 +266,7 @@ export const BookCodeDialog = () => {
       });
     } finally {
       setBusyAction(null);
+      setTransferStatus(null);
     }
   };
 
@@ -294,6 +315,12 @@ export const BookCodeDialog = () => {
       })
     : null;
   const primaryLabel = alreadyOwned ? _('Continue Reading') : _('Start Reading');
+  const transferLabel =
+    transferStatus?.phase === 'processing'
+      ? _('Adding to your library…')
+      : transferStatus?.percent != null
+        ? _('Downloading… {{percent}}%', { percent: transferStatus.percent })
+        : _('Downloading…');
 
   return (
     <Dialog
@@ -348,6 +375,22 @@ export const BookCodeDialog = () => {
 
           {/* Actions */}
           <div className='flex flex-col gap-3'>
+            {transferStatus && (
+              <div className='flex flex-col gap-2' aria-live='polite'>
+                <span className='text-base-content/70 text-sm'>{transferLabel}</span>
+                <progress
+                  className='progress progress-primary h-2 w-full'
+                  aria-label={
+                    transferStatus.phase === 'processing'
+                      ? _('Adding book to library')
+                      : _('Downloading book')
+                  }
+                  aria-valuenow={transferStatus.percent ?? undefined}
+                  value={transferStatus.percent ?? undefined}
+                  max={100}
+                />
+              </div>
+            )}
             <button
               className='btn btn-primary btn-lg w-full font-bold tracking-wide'
               onClick={handleStartReading}

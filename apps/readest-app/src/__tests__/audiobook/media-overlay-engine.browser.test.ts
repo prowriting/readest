@@ -17,6 +17,7 @@ import type { FoliateView } from '@/types/view';
  */
 
 const EPUB_URL = new URL('../../../e2e/fixtures/books/mo-sentences.epub', import.meta.url).href;
+const LONG_EPUB_URL = new URL('../../../e2e/fixtures/books/mo-long.epub', import.meta.url).href;
 
 let book: BookDoc;
 
@@ -24,6 +25,13 @@ const loadEPUB = async (): Promise<BookDoc> => {
   const resp = await fetch(EPUB_URL);
   const buffer = await resp.arrayBuffer();
   const file = new File([buffer], 'mo-sentences.epub', { type: 'application/epub+zip' });
+  return (await new DocumentLoader(file).open()).book;
+};
+
+const loadLongEPUB = async (): Promise<BookDoc> => {
+  const resp = await fetch(LONG_EPUB_URL);
+  const buffer = await resp.arrayBuffer();
+  const file = new File([buffer], 'mo-long.epub', { type: 'application/epub+zip' });
   return (await new DocumentLoader(file).open()).book;
 };
 
@@ -95,6 +103,37 @@ describe('MediaOverlay engine — durations metadata', () => {
     const durations = book.sections.map((s) => s.mediaOverlayDuration);
     expect(durations).toEqual([12, 12, 6]);
     expect(book.media?.duration).toBe(30);
+  });
+
+  it('exports resolved audio segments and text cues for native car playback', async () => {
+    const engine = createEngine();
+    const manifest = await engine.exportPlaybackManifest();
+
+    expect(manifest.sections).toHaveLength(3);
+    expect(manifest.sections[1]).toMatchObject({
+      sectionIndex: 1,
+      duration: 12,
+      segments: [
+        {
+          source: 'OEBPS/audio/c2a.wav',
+          clipBegin: 0,
+          clipEnd: 6,
+        },
+        {
+          source: 'OEBPS/audio/c2b.wav',
+          clipBegin: 0,
+          clipEnd: 6,
+        },
+      ],
+    });
+    expect(manifest.sections[1]!.segments[1]!.cues[0]).toEqual({
+      offset: 0,
+      text: 'OEBPS/text/c2.xhtml#s5',
+    });
+
+    const audio = await engine.loadAudioSource(manifest.sections[1]!.segments[1]!.source);
+    expect(audio.type).toBe('audio/wav');
+    expect(audio.size).toBeGreaterThan(40_000);
   });
 });
 
@@ -386,6 +425,93 @@ describe('foliate-view media overlay integration (view.js)', () => {
     await nextEvent<MediaOverlayItem>(view.mediaOverlay!, 'highlight');
     await poll(() => view.renderer.primaryIndex === 1);
     destroyView(view);
+  });
+
+  it('follows Chapter 1 narration when the next sentence begins on the next page', async () => {
+    // The production Christmas Carol has the same inline-SMIL structure. On
+    // its Chapter 1 layout the first observed boundary is f000036 -> f000037;
+    // mo-long keeps that reproduction deterministic without committing the
+    // customer's 87 MB EPUB to the repository.
+    await import('foliate-js/view.js');
+    const view = document.createElement('foliate-view') as FoliateView;
+    Object.assign(view.style, {
+      // This models the narrow reader pane used on the phone. The outer test
+      // viewport is intentionally wider: visibility must be clipped to the
+      // reader, not inferred from the browser window.
+      width: '250px',
+      height: '700px',
+      position: 'absolute',
+      left: '0',
+      top: '0',
+    });
+    document.body.append(view);
+    await view.open(await loadLongEPUB());
+    view.mediaOverlay!.setVolume(0);
+    view.mediaOverlayFollowEnabled = true;
+
+    const chapterIndex = 0;
+    const sectionHref = view.book.sections[chapterIndex]!.id;
+    await view.renderer.goTo({ index: chapterIndex, anchor: 0 });
+
+    let priorFragment = '';
+    let nextFragment = '';
+    let priorPage = view.renderer.page;
+    for (let i = 1; i <= 16; i += 1) {
+      const fragment = `s${i}`;
+      const resolved = view.resolveNavigation(`${sectionHref}#${fragment}`);
+      expect(resolved).not.toBeNull();
+      await view.renderer.goTo(resolved);
+      const page = view.renderer.page;
+      if (page > priorPage) {
+        priorFragment = `s${i - 1}`;
+        nextFragment = fragment;
+        break;
+      }
+      priorPage = page;
+    }
+    expect(nextFragment).not.toBe('');
+
+    const priorTarget = view.resolveNavigation(`${sectionHref}#${priorFragment}`);
+    const nextTarget = view.resolveNavigation(`${sectionHref}#${nextFragment}`);
+    await view.renderer.goTo(priorTarget);
+    const pageBeforePlayback = view.renderer.page;
+
+    const chapter = view.renderer.getContents().find(({ index }) => index === chapterIndex);
+    const nextElement = nextTarget?.anchor?.(chapter!.doc!);
+    expect(nextElement).toBeDefined();
+    const readerRect = view.getBoundingClientRect();
+    const nextRect = nextElement!.getBoundingClientRect();
+    expect(nextRect.left).toBeGreaterThanOrEqual(readerRect.right);
+
+    const nextOffset = await view.mediaOverlay!.textOffset(chapterIndex, nextFragment);
+    expect(nextOffset).not.toBeNull();
+
+    const nextPageHighlight = new Promise<MediaOverlayItem>((resolve) => {
+      const onHighlight = (event: Event) => {
+        const item = (event as CustomEvent<MediaOverlayItem>).detail;
+        if (!item.text.endsWith(`#${nextFragment}`)) return;
+        view.mediaOverlay!.removeEventListener('highlight', onHighlight);
+        resolve(item);
+      };
+      view.mediaOverlay!.addEventListener('highlight', onHighlight);
+    });
+    // Start at the tail of the previous sentence and allow the real audio
+    // element to roll naturally into the first sentence on the next page.
+    await withGesture(() => view.mediaOverlay!.startAtOffset(chapterIndex, nextOffset! - 0.1));
+    const item = await nextPageHighlight;
+    expect(item.text).toContain(`#${nextFragment}`);
+
+    // Keep the assertion within this target's 2.5 second clip, so a later
+    // sentence cannot accidentally make the test pass by turning the page.
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+      expect(
+        view.renderer.page,
+        `audio advanced to ${nextFragment}, but the reader stayed on page ${pageBeforePlayback}`,
+      ).toBeGreaterThan(pageBeforePlayback);
+    } finally {
+      destroyView(view);
+    }
   });
 
   it('mediaOverlayHighlightEnabled=false clears and withholds the active class', async () => {

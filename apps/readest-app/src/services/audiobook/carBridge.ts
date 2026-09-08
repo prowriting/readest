@@ -3,6 +3,13 @@ import { isTauriAppPlatform } from '@/services/environment';
 import type { Book } from '@/types/book';
 import { getOSPlatform } from '@/utils/misc';
 import type { AudiobookChapter } from '@/app/reader/hooks/useAudiobookControl';
+import type { AppService } from '@/types/system';
+import type { MediaOverlayEngine } from '@/types/mediaOverlay';
+import { getCoverFilename } from '@/utils/book';
+import {
+  prepareCarPlaybackManifest,
+  type CarPlaybackManifest,
+} from '@/services/audiobook/carPlaybackManifest';
 
 /**
  * Car bridge protocol (CarPlay / Android Auto). The web layer PUSHES the
@@ -80,6 +87,38 @@ export const pushChaptersToCar = async (payload: BridgeChaptersPayload): Promise
     await invoke('plugin:native-tts|update_audiobook_chapters', { payload });
   } catch (error) {
     console.warn('car bridge chapters push failed', error);
+  }
+};
+
+export const pushPlaybackManifestToCar = async (manifest: CarPlaybackManifest): Promise<void> => {
+  if (!carBridgeAvailable()) return;
+  await invoke('plugin:native-tts|update_audiobook_playback_manifest', { payload: manifest });
+};
+
+export const prepareAndPushCarPlayback = async (
+  appService: AppService,
+  book: Book,
+  engine: MediaOverlayEngine,
+  chapters: BridgeChapter[],
+  currentSectionIndex: number,
+): Promise<void> => {
+  if (!carBridgeAvailable()) return;
+  try {
+    const coverFilename = getCoverFilename(book);
+    const coverPath = (await appService.exists(coverFilename, 'Books'))
+      ? await appService.resolveFilePath(coverFilename, 'Books')
+      : undefined;
+    const manifest = await prepareCarPlaybackManifest(
+      appService,
+      book,
+      engine,
+      chapters,
+      currentSectionIndex,
+      coverPath,
+    );
+    await pushPlaybackManifestToCar(manifest);
+  } catch (error) {
+    console.warn('car bridge playback preparation failed', error);
   }
 };
 

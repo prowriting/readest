@@ -37,18 +37,18 @@ describe('ClaimScreen', () => {
     vi.clearAllMocks();
   });
 
-  it('explains claiming and shows the 7-letter code field and button', () => {
+  it('explains claiming and shows the 7-character code field and button', () => {
     render(<ClaimScreen />);
     expect(screen.getByRole('heading', { name: 'Claim a book' })).toBeTruthy();
     expect(screen.getByText(/code an author sent/i)).toBeTruthy();
-    expect(codeInput().getAttribute('placeholder')).toBe('ABCDEFG');
+    expect(codeInput().getAttribute('placeholder')).toBe('FBC83A2');
     expect(claimButton()).toBeTruthy();
   });
 
-  it('auto-uppercases, restricts to A–Z, and caps at 7 characters', () => {
+  it('auto-uppercases, accepts the server claim alphabet, and caps at 7 characters', () => {
     render(<ClaimScreen />);
-    fireEvent.change(codeInput(), { target: { value: 'ab3c-def ghij' } });
-    expect(codeInput().value).toBe('ABCDEFG');
+    fireEvent.change(codeInput(), { target: { value: 'fb-c8!3a2xyz' } });
+    expect(codeInput().value).toBe('FBC83A2');
   });
 
   it('rejects an invalid-format code inline without calling the server', () => {
@@ -57,7 +57,7 @@ describe('ClaimScreen', () => {
     fireEvent.click(claimButton());
 
     expect(fetchBookByCode).not.toHaveBeenCalled();
-    expect(screen.getByText(/7 letters/i)).toBeTruthy();
+    expect(screen.getByText(/7 letters or numbers/i)).toBeTruthy();
   });
 
   it('redeems a valid code and hands the found book to the existing dialog', async () => {
@@ -65,10 +65,10 @@ describe('ClaimScreen', () => {
     fetchBookByCode.mockResolvedValueOnce(result);
 
     render(<ClaimScreen />);
-    fireEvent.change(codeInput(), { target: { value: 'ABCDEFG' } });
+    fireEvent.change(codeInput(), { target: { value: 'fbc83a2' } });
     fireEvent.click(claimButton());
 
-    await waitFor(() => expect(fetchBookByCode).toHaveBeenCalledWith('ABCDEFG'));
+    await waitFor(() => expect(fetchBookByCode).toHaveBeenCalledWith('FBC83A2'));
     await waitFor(() => expect(dispatch).toHaveBeenCalledWith('book-code-found', { result }));
   });
 

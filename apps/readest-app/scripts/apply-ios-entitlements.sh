@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prepare the generated iOS project for a valid App Store build:
-#   1. Re-apply the Sign in with Apple + universal-links entitlements.
+#   1. Re-apply the Sign in with Apple, universal-links, and CarPlay audio entitlements.
 #   2. Strip the alpha channel from the app icons (App Store rejects icons with alpha).
 #
 # `src-tauri/gen` is gitignored and regenerated per machine, and `tauri ios init` writes
@@ -10,7 +10,8 @@
 #
 # The matching Apple-side setup: App ID `com.bookarc.app` (team BYFE3Y9258) with Sign in
 # with Apple enabled and grouped under primary App ID `app.bookarc.reader`, plus the AASA
-# at public/.well-known/apple-app-site-association (appID BYFE3Y9258.com.bookarc.app).
+# at public/.well-known/apple-app-site-association (appID BYFE3Y9258.com.bookarc.app), and
+# Apple's CarPlay audio-app entitlement approval for the same App ID.
 set -euo pipefail
 
 APP_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,11 +35,13 @@ cat > "$ENTITLEMENTS" <<'PLIST'
 	<array>
 		<string>applinks:web.bookarc.app</string>
 	</array>
+	<key>com.apple.developer.carplay-audio</key>
+	<true/>
 </dict>
 </plist>
 PLIST
 
-echo "Applied Sign in with Apple + associated-domains entitlements to:"
+echo "Applied Sign in with Apple + associated-domains + CarPlay audio entitlements to:"
 echo "  $ENTITLEMENTS"
 
 # App Store Connect rejects app icons that carry an alpha channel, but `tauri icon` /

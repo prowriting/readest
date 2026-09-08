@@ -17,13 +17,15 @@ test.describe('Claim tab', () => {
     await expect(new BottomNav(page).claimTab).toHaveAttribute('aria-current', 'page');
   });
 
-  test('the code field auto-uppercases, restricts to A–Z, and caps at 7', async ({ page }) => {
+  test('the code field auto-uppercases, accepts the server claim alphabet, and caps at 7', async ({
+    page,
+  }) => {
     const claim = new ClaimPage(page);
     await claim.goto();
 
     await claim.codeInput.fill('');
-    await claim.codeInput.pressSequentially('ab3c-def ghij');
-    await expect(claim.codeInput).toHaveValue('ABCDEFG');
+    await claim.codeInput.pressSequentially('fb-c8!3a2xyz');
+    await expect(claim.codeInput).toHaveValue('FBC83A2');
   });
 
   test('shows an inline error for an invalid-format code', async ({ page }) => {
@@ -34,6 +36,6 @@ test.describe('Claim tab', () => {
     await claim.codeInput.pressSequentially('ABC');
     await claim.claimButton.click();
 
-    await expect(page.locator('#claim-code-error')).toContainText(/7 letters/i);
+    await expect(page.locator('#claim-code-error')).toContainText(/7 letters or numbers/i);
   });
 });

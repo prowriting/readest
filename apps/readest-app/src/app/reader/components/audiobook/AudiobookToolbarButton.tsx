@@ -24,13 +24,20 @@ const AudiobookToolbarButton: React.FC<AudiobookToolbarButtonProps> = ({
   const playbackState = useAudiobookStore((state) => state.playbackStates[bookKey]);
   const toggleTray = useAudiobookStore((state) => state.toggleTray);
   const isPlaying = playbackState === 'playing' || playbackState === 'loading';
+  const label = isPlaying
+    ? trayCollapsed
+      ? _('Audiobook playing, show controls')
+      : _('Audiobook playing, hide controls')
+    : trayCollapsed
+      ? _('Show Audiobook Player')
+      : _('Hide Audiobook Player');
 
   return (
     <button
       type='button'
-      className='btn btn-ghost h-8 min-h-8 w-8 p-0'
-      title={_('Audiobook')}
-      aria-label={_('Audiobook')}
+      className='touch-target btn btn-ghost relative h-8 min-h-8 w-8 p-0'
+      title={label}
+      aria-label={label}
       aria-pressed={!trayCollapsed}
       data-playing={isPlaying ? 'true' : 'false'}
       onClick={() => {
@@ -38,7 +45,14 @@ const AudiobookToolbarButton: React.FC<AudiobookToolbarButtonProps> = ({
         onAfterToggle?.();
       }}
     >
-      <MdOutlineHeadphones className={clsx((isPlaying || !trayCollapsed) && 'text-blue-500')} />
+      <MdOutlineHeadphones className={clsx((isPlaying || !trayCollapsed) && 'text-primary')} />
+      {isPlaying && (
+        <span
+          data-testid='audiobook-playing-indicator'
+          aria-hidden='true'
+          className='bg-primary absolute end-0.5 top-0.5 size-1.5 rounded-full'
+        />
+      )}
     </button>
   );
 };
