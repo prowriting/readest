@@ -1,4 +1,5 @@
 import semver from 'semver';
+import { isAmazonDistribution } from '@/services/distribution';
 import { check } from '@tauri-apps/plugin-updater';
 import { type as osType } from '@tauri-apps/plugin-os';
 import { fetch } from '@tauri-apps/plugin-http';
@@ -38,6 +39,7 @@ export const checkForAppUpdates = async (
   _: TranslationFunc,
   isAutoCheck = true,
 ): Promise<boolean> => {
+  if (isAmazonDistribution()) return false;
   const lastCheck = localStorage.getItem(LAST_CHECK_KEY);
   const now = Date.now();
   if (isAutoCheck && lastCheck && now - parseInt(lastCheck, 10) < CHECK_UPDATE_INTERVAL_SEC * 1000)

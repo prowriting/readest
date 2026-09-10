@@ -1,3 +1,4 @@
+import { isAmazonDistribution } from '@/services/distribution';
 import {
   exists,
   mkdir,
@@ -457,6 +458,7 @@ export class NativeAppService extends BaseAppService {
   override hasSafeAreaInset = OS_TYPE === 'ios' || OS_TYPE === 'android';
   override hasHaptics = OS_TYPE === 'ios' || OS_TYPE === 'android';
   override hasUpdater =
+    !isAmazonDistribution() &&
     OS_TYPE !== 'ios' &&
     !process.env['NEXT_PUBLIC_DISABLE_UPDATER'] &&
     !window.__READEST_UPDATER_DISABLED;
@@ -468,7 +470,8 @@ export class NativeAppService extends BaseAppService {
   // CustomizeRootDir has a blocker on macOS App Store builds due to Security Scoped Resource restrictions.
   // See: https://github.com/tauri-apps/tauri/issues/3716
   override canCustomizeRootDir = DIST_CHANNEL !== 'appstore';
-  override canReadExternalDir = DIST_CHANNEL !== 'appstore' && DIST_CHANNEL !== 'playstore';
+  override canReadExternalDir =
+    DIST_CHANNEL !== 'appstore' && DIST_CHANNEL !== 'playstore' && !isAmazonDistribution();
   override supportsCanvasContext2DFilter =
     OS_TYPE !== 'ios' && OS_TYPE !== 'macos' && OS_TYPE !== 'linux';
   override distChannel = DIST_CHANNEL;

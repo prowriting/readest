@@ -1,0 +1,14 @@
+{
+  "language": "en-US",
+  "title": "BookArc",
+  "shortDescription": "Read free ebooks, listen to audiobooks, and receive books directly from authors. Bring your library with you.",
+  "fullDescription": "BookArc connects readers and authors.\n\nReceive books and audiobooks from authors using claim codes, or discover free classic ebooks. Read in the BookArc app and keep your library and reading progress in sync with your BookArc account.\n\nBring your own EPUB and PDF files, customise your reading experience, and save bookmarks, highlights and notes. Download your books to read offline.\n\nCreate a free account in the app to access your BookArc library across devices, or import your own files to read locally.\n\nBookArc is free for readers. No in-app purchases. No adverts.",
+  "featureBullets": [
+    "Claim books and audiobooks shared directly by authors",
+    "Discover free classic ebooks",
+    "Import and read your own EPUB and PDF files",
+    "Sync your library, reading progress, bookmarks and notes",
+    "Download books for offline reading"
+  ],
+  "keywords": ["ebooks", "reader", "audiobooks", "EPUB", "PDF", "books", "library"]
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isAmazonDistribution } from '@/services/distribution';
 import { fetchAndTransformIAPPlans, isIAPAvailable } from '@/libs/payment/iap/client';
 import { fetchStripePlans } from '@/libs/payment/stripe/client';
 import { AvailablePlan } from '@/types/quota';
@@ -25,6 +26,7 @@ export const useAvailablePlans = ({ hasIAP, onError }: UseAvailablePlansParams) 
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (isAmazonDistribution()) return;
     const fetchPlans = async () => {
       setLoading(true);
       setError(null);

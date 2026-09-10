@@ -73,12 +73,21 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 // ── Helper to create a dummy TranslationFunc ─────────────────────
 const dummyTranslate = (key: string) => key;
 
 describe('updater', () => {
+  test('Amazon never checks or opens a direct APK updater, even for a manual request', async () => {
+    vi.stubEnv('NEXT_PUBLIC_DIST_CHANNEL', 'amazon');
+    mockOsType.mockReturnValue('android');
+    expect(await checkForAppUpdates(dummyTranslate, false)).toBe(false);
+    expect(mockTauriFetch).not.toHaveBeenCalled();
+    expect(mockCheck).not.toHaveBeenCalled();
+    expect(mockSetUpdaterWindowVisible).not.toHaveBeenCalled();
+  });
   // ── setLastShownReleaseNotesVersion / getLastShownReleaseNotesVersion ──
   describe('release notes version tracking', () => {
     test('getLastShownReleaseNotesVersion returns empty string when not set', () => {

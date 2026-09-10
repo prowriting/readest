@@ -1,4 +1,6 @@
 'use client';
+
+import { isAmazonDistribution } from '@/services/distribution';
 import Stripe from 'stripe';
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -439,7 +441,16 @@ const SuccessPageWithSearchParams = () => {
   );
 };
 
+function AmazonPaymentRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/user');
+  }, [router]);
+  return null;
+}
+
 export default function SuccessPage() {
+  if (isAmazonDistribution()) return <AmazonPaymentRedirect />;
   return (
     <Suspense
       fallback={
