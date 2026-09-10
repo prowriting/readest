@@ -3,10 +3,9 @@
     "0.12.7": {
       "date": "2026-09-10",
       "notes": [
-        "Keep audiobook playback controls, sentence highlighting, and progress in sync between the phone and car.",
-        "Closing the mini-player pauses audio; the full-screen down arrow minimizes the player.",
-        "Improve car playback, bookmarks, and listening progress synchronization.",
-        "Add the free Amazon Appstore edition for Fire tablets."
+        "Fixed the Android Auto issue reported in the previous review: BookArc now appears in Android Auto and supports audiobook browsing and playback.",
+        "Fixed play/pause state and sentence highlighting when switching between the car and phone.",
+        "Closing the mini-player now pauses audio; the full-screen down arrow minimizes the player."
       ]
     },
     "0.12.6": {
