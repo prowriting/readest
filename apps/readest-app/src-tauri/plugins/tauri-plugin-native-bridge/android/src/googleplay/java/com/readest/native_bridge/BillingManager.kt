@@ -41,7 +41,7 @@ class BillingManager(private val activity: Activity) : PurchasesUpdatedListener 
 
         billingClient = BillingClient.newBuilder(activity)
             .setListener(this)
-            .enablePendingPurchases()
+            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
             .build()
 
         billingClient.startConnection(object : BillingClientStateListener {
@@ -119,9 +119,9 @@ class BillingManager(private val activity: Activity) : PurchasesUpdatedListener 
             .setProductList(productList)
             .build()
 
-        billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(params) { billingResult, queryResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                val products = productDetailsList.map { productDetails ->
+                val products = queryResult.productDetailsList.map { productDetails ->
                     // Cache for purchase later
                     productsCache[productDetails.productId] = productDetails
                     

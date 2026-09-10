@@ -14,6 +14,8 @@ android {
         consumerProguardFiles("consumer-rules.pro")
     }
 
+    testOptions { unitTests.isReturnDefaultValues = true }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -43,7 +45,7 @@ android {
 }
 
 dependencies {
-    "googleplayImplementation"("com.android.billingclient:billing-ktx:7.1.1")
+    "googleplayImplementation"("com.android.billingclient:billing:8.3.0")
     "googleplayImplementation"("com.google.android.gms:play-services-base:18.5.0")
     "googleplayImplementation"("com.android.installreferrer:installreferrer:2.2")
     implementation("androidx.core:core-ktx:1.12.0")
@@ -56,6 +58,7 @@ dependencies {
     // in production and the API is stable.
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     testImplementation("junit:junit:4.13.2")
+    "testGoogleplayImplementation"("org.mockito:mockito-core:5.12.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation(project(":tauri-android"))

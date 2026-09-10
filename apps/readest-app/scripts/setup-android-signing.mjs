@@ -56,6 +56,18 @@ console.log(`✓ wrote ${PROPS_FILE}`);
 if (!existsSync(GRADLE_FILE)) fail(`Missing ${GRADLE_FILE}`);
 let gradle = readFileSync(GRADLE_FILE, 'utf8');
 
+// Release commands select the native billing implementation with storeFlavor.
+// Generated projects may already hard-code foss from local phone development.
+const storeStrategy = 'missingDimensionStrategy("store", providers.gradleProperty("storeFlavor").getOrElse("foss"))';
+if (/missingDimensionStrategy\("store",[^\n]+/.test(gradle)) {
+  gradle = gradle.replace(/missingDimensionStrategy\("store",[^\n]+/, storeStrategy);
+} else if (gradle.includes('defaultConfig {')) {
+  gradle = gradle.replace('defaultConfig {', `defaultConfig {\n        ${storeStrategy}`);
+} else {
+  fail('anchor `defaultConfig {` not found in build.gradle.kts');
+}
+writeFileSync(GRADLE_FILE, gradle);
+
 if (gradle.includes('keystore.properties')) {
   console.log('✓ build.gradle.kts already has release signing — nothing to patch');
   process.exit(0);

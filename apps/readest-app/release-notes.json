@@ -1,5 +1,14 @@
 {
   "releases": {
+    "0.12.7": {
+      "date": "2026-09-10",
+      "notes": [
+        "Keep audiobook playback controls, sentence highlighting, and progress in sync between the phone and car.",
+        "Closing the mini-player pauses audio; the full-screen down arrow minimizes the player.",
+        "Improve car playback, bookmarks, and listening progress synchronization.",
+        "Add the free Amazon Appstore edition for Fire tablets."
+      ]
+    },
     "0.12.6": {
       "date": "2026-09-04",
       "notes": ["Restore Android Auto discovery, browsing, voice search, and playback controls"]
