@@ -20,8 +20,7 @@ interface AudiobookControlProps {
  * Mounts the audiobook surfaces for books with an audio track (v2 PRD §5):
  * the docked tray of the combined view, the fullscreen player it expands
  * into (default for audio-only books), or nothing while the tray is
- * dismissed — playback state lives in the hook, so switching surfaces never
- * interrupts audio.
+ * dismissed. Expanding/minimizing preserves playback; dismissing pauses it.
  */
 const AudiobookControl: React.FC<AudiobookControlProps> = ({
   bookKey,
@@ -41,7 +40,6 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
   const setAvailable = useAudiobookStore((state) => state.setAvailable);
   const setPlaybackState = useAudiobookStore((state) => state.setPlaybackState);
   const setPlayerExpanded = useAudiobookStore((state) => state.setPlayerExpanded);
-  const setTrayCollapsed = useAudiobookStore((state) => state.setTrayCollapsed);
 
   // Mirror availability/playback into the store for the footer-bar toggle.
   const { isAvailable, state: playbackState } = audiobook;
@@ -138,7 +136,7 @@ const AudiobookControl: React.FC<AudiobookControlProps> = ({
       onCycleRate={cycleRate}
       onReturnToPlaying={audiobook.returnToPlaying}
       onExpand={() => setPlayerExpanded(bookKey, true)}
-      onDismiss={() => setTrayCollapsed(bookKey, true)}
+      onDismiss={() => void audiobook.dismiss()}
     />
   );
 };

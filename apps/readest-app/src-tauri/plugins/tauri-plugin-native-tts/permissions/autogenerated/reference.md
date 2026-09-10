@@ -19,6 +19,11 @@ Default permissions for the plugin
 - `allow-update-audiobook-library`
 - `allow-update-audiobook-chapters`
 - `allow-update-audiobook-playback-manifest`
+- `allow-update-audiobook-playback-location`
+- `allow-get-audiobook-playback-location`
+- `allow-take-audiobook-pending-bookmarks`
+- `allow-control-audiobook-playback`
+- `allow-get-audiobook-playback-snapshot`
 - `allow-show-audio-route-picker`
 - `allow-register-listener`
 - `allow-remove-listener`
@@ -91,6 +96,32 @@ Denies the check_permissions command without any pre-configured scope.
 <tr>
 <td>
 
+`native-tts:allow-control-audiobook-playback`
+
+</td>
+<td>
+
+Enables the control_audiobook_playback command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-control-audiobook-playback`
+
+</td>
+<td>
+
+Denies the control_audiobook_playback command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `native-tts:allow-get-all-voices`
 
 </td>
@@ -110,6 +141,58 @@ Enables the get_all_voices command without any pre-configured scope.
 <td>
 
 Denies the get_all_voices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-get-audiobook-playback-location`
+
+</td>
+<td>
+
+Enables the get_audiobook_playback_location command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-get-audiobook-playback-location`
+
+</td>
+<td>
+
+Denies the get_audiobook_playback_location command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-get-audiobook-playback-snapshot`
+
+</td>
+<td>
+
+Enables the get_audiobook_playback_snapshot command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-get-audiobook-playback-snapshot`
+
+</td>
+<td>
+
+Denies the get_audiobook_playback_snapshot command without any pre-configured scope.
 
 </td>
 </tr>
@@ -481,6 +564,32 @@ Denies the stop command without any pre-configured scope.
 <tr>
 <td>
 
+`native-tts:allow-take-audiobook-pending-bookmarks`
+
+</td>
+<td>
+
+Enables the take_audiobook_pending_bookmarks command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-take-audiobook-pending-bookmarks`
+
+</td>
+<td>
+
+Denies the take_audiobook_pending_bookmarks command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `native-tts:allow-update-audiobook-chapters`
 
 </td>
@@ -526,6 +635,32 @@ Enables the update_audiobook_library command without any pre-configured scope.
 <td>
 
 Denies the update_audiobook_library command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:allow-update-audiobook-playback-location`
+
+</td>
+<td>
+
+Enables the update_audiobook_playback_location command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`native-tts:deny-update-audiobook-playback-location`
+
+</td>
+<td>
+
+Denies the update_audiobook_playback_location command without any pre-configured scope.
 
 </td>
 </tr>

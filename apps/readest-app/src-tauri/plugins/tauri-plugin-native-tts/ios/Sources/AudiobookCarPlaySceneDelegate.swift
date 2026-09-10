@@ -14,31 +14,63 @@ import UIKit
 @available(iOS 14.0, *)
 public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
   private var interfaceController: CPInterfaceController?
-  private var observer: NSObjectProtocol?
+  private var libraryObserver: NSObjectProtocol?
+  private var bookmarkObserver: NSObjectProtocol?
+  private var displayedBookmarkState: Bool?
 
   public func templateApplicationScene(
     _ templateApplicationScene: CPTemplateApplicationScene,
     didConnect interfaceController: CPInterfaceController
   ) {
     self.interfaceController = interfaceController
-    observer = NotificationCenter.default.addObserver(
+    libraryObserver = NotificationCenter.default.addObserver(
       forName: AudiobookCarLibrary.changedNotification,
       object: nil,
       queue: .main
     ) { [weak self] _ in
       self?.refreshRootTemplate()
     }
+    bookmarkObserver = NotificationCenter.default.addObserver(
+      forName: AudiobookCarPlayer.bookmarkStateDidChangeNotification,
+      object: AudiobookCarPlayer.shared,
+      queue: .main
+    ) { [weak self] notification in
+      guard let isBookmarked = notification.userInfo?["isBookmarked"] as? Bool else { return }
+      self?.configureNowPlayingButtons(isBookmarked: isBookmarked)
+    }
+    let isBookmarked = AudiobookCarPlayer.shared.snapshot()["isBookmarked"] as? Bool ?? false
+    configureNowPlayingButtons(isBookmarked: isBookmarked)
     refreshRootTemplate()
+  }
+
+  private func configureNowPlayingButtons(isBookmarked: Bool) {
+    guard displayedBookmarkState != isBookmarked else { return }
+    displayedBookmarkState = isBookmarked
+    let rate = CPNowPlayingPlaybackRateButton { _ in
+      _ = AudiobookCarPlayer.shared.cyclePlaybackRateOrRequestWeb()
+    }
+    let bookmarkImage =
+      UIImage(systemName: isBookmarked ? "bookmark.fill" : "bookmark") ?? UIImage()
+    let bookmark = CPNowPlayingImageButton(image: bookmarkImage) { _ in
+      _ = AudiobookCarPlayer.shared.addBookmarkOrRequestWeb()
+    }
+    CPNowPlayingTemplate.shared.updateNowPlayingButtons([rate, bookmark])
   }
 
   public func templateApplicationScene(
     _ templateApplicationScene: CPTemplateApplicationScene,
     didDisconnectInterfaceController interfaceController: CPInterfaceController
   ) {
-    if let observer {
-      NotificationCenter.default.removeObserver(observer)
+    AudiobookCarPlayer.shared.persistProgress()
+    if let libraryObserver {
+      NotificationCenter.default.removeObserver(libraryObserver)
     }
-    observer = nil
+    if let bookmarkObserver {
+      NotificationCenter.default.removeObserver(bookmarkObserver)
+    }
+    libraryObserver = nil
+    bookmarkObserver = nil
+    displayedBookmarkState = nil
     self.interfaceController = nil
   }
 
@@ -77,7 +109,7 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
       }
       return item
     }
-    let canResume = AudiobookCarLibrary.shared.playbackProgress(for: book.id) != nil
+    let canResume = AudiobookCarLibrary.shared.playbackLocation(for: book.id) != nil
     let playAll = CPListItem(text: canResume ? "Resume" : "Play", detailText: book.title)
     playAll.handler = { [weak self] _, completion in
       self?.playAndShowNowPlaying(bookId: book.id, chapterIndex: nil)
@@ -91,11 +123,7 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
   }
 
   private func playAndShowNowPlaying(bookId: String, chapterIndex: Int?) {
-    if !AudiobookCarPlayer.shared.play(bookId: bookId, chapterIndex: chapterIndex) {
-      // A book opened with an older app build may not have a native manifest
-      // yet. Ask the web layer to open it so the manifest can be prepared.
-      AudiobookCarLibrary.shared.requestPlay(bookId: bookId, chapterIndex: chapterIndex)
-    }
+    _ = AudiobookCarPlayer.shared.play(bookId: bookId, chapterIndex: chapterIndex)
     interfaceController?.pushTemplate(CPNowPlayingTemplate.shared, animated: true, completion: nil)
   }
 }

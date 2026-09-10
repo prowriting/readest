@@ -1,5 +1,6 @@
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { DocumentLoader } from '@/libs/document';
 import type { BookDoc } from '@/libs/document';
 import type { MediaOverlayEngine, MediaOverlayItem } from '@/types/mediaOverlay';
@@ -32,6 +33,21 @@ const loadLongEPUB = async (): Promise<BookDoc> => {
   const resp = await fetch(LONG_EPUB_URL);
   const buffer = await resp.arrayBuffer();
   const file = new File([buffer], 'mo-long.epub', { type: 'application/epub+zip' });
+  return (await new DocumentLoader(file).open()).book;
+};
+
+const loadEPUBWithDeclaredAudioType = async (mediaType: string): Promise<BookDoc> => {
+  const resp = await fetch(EPUB_URL);
+  const archive = unzipSync(new Uint8Array(await resp.arrayBuffer()));
+  const opfPath = 'OEBPS/content.opf';
+  archive[opfPath] = strToU8(
+    strFromU8(archive[opfPath]!).replace('media-type="audio/wav"', `media-type="${mediaType}"`),
+  );
+  const zipped = zipSync(archive);
+  const bytes = zipped.buffer.slice(zipped.byteOffset, zipped.byteOffset + zipped.byteLength);
+  const file = new File([bytes as ArrayBuffer], 'declared-audio-type.epub', {
+    type: 'application/epub+zip',
+  });
   return (await new DocumentLoader(file).open()).book;
 };
 
@@ -135,9 +151,31 @@ describe('MediaOverlay engine — durations metadata', () => {
     expect(audio.type).toBe('audio/wav');
     expect(audio.size).toBeGreaterThan(40_000);
   });
+
+  it('uses the EPUB manifest MIME type instead of guessing from the filename', async () => {
+    const declaredBook = await loadEPUBWithDeclaredAudioType('audio/vnd.bookarc-test');
+    const engine = declaredBook.getMediaOverlay!();
+    engines.push(engine);
+
+    const manifest = await engine.exportPlaybackManifest();
+
+    expect(manifest.sections[0]!.segments[0]!.source).toBe('OEBPS/audio/c1.wav');
+    expect(manifest.sections[0]!.segments[0]!.type).toBe('audio/vnd.bookarc-test');
+  });
 });
 
 describe('MediaOverlay engine — position (Phase 1)', () => {
+  it('synchronizes a native position without creating browser audio playback', async () => {
+    const engine = createEngine();
+    const highlight = nextEvent<MediaOverlayItem>(engine, 'highlight');
+
+    await engine.synchronizeAtOffset(1, 7);
+
+    expect((await highlight).text).toContain('#s5');
+    expect(engine.activeSectionIndex).toBe(1);
+    expect(engine.sectionOffset).toBeCloseTo(7, 2);
+  });
+
   it('startAtOffset resolves file and item across restarting clip clocks', async () => {
     const engine = createEngine();
     const highlight = nextEvent<MediaOverlayItem>(engine, 'highlight');
@@ -167,6 +205,39 @@ describe('MediaOverlay engine — position (Phase 1)', () => {
     await poll(() => engine.sectionOffset > pausedAt + 0.2);
     // Resume must not have jumped backwards to the clip start.
     expect(engine.sectionOffset).toBeGreaterThan(pausedAt);
+  });
+
+  it('reports a browser-initiated pause without reporting its own deliberate pause', async () => {
+    const OriginalAudio = window.Audio;
+    let activeAudio: HTMLAudioElement | null = null;
+    const CapturingAudio = function (src?: string) {
+      const audio = new OriginalAudio(src);
+      activeAudio = audio;
+      return audio;
+    } as unknown as typeof Audio;
+    CapturingAudio.prototype = OriginalAudio.prototype;
+    window.Audio = CapturingAudio;
+
+    try {
+      const engine = createEngine();
+      await withGesture(() => engine.start(0));
+      await poll(() => activeAudio !== null && !activeAudio.paused);
+
+      let interruptions = 0;
+      engine.addEventListener('pause', () => interruptions++);
+      engine.pause();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(interruptions).toBe(0);
+
+      await withGesture(() => engine.resume());
+      await poll(() => activeAudio !== null && !activeAudio.paused);
+      const interrupted = nextEvent<void>(engine, 'pause');
+      activeAudio!.pause();
+      await interrupted;
+      expect(interruptions).toBe(1);
+    } finally {
+      window.Audio = OriginalAudio;
+    }
   });
 });
 
@@ -391,6 +462,71 @@ describe('foliate-view media overlay integration (view.js)', () => {
     view.renderer
       .getContents()
       .filter(({ doc }) => doc?.querySelector('.-epub-media-overlay-active') != null).length;
+
+  it('clears a paused sentence immediately on dismissal and restores it only after Play', async () => {
+    const view = await createView();
+    try {
+      await withGesture(() => view.mediaOverlay!.startAtOffset(0, 3.2));
+      await poll(() => activeClassCount(view) === 1);
+      view.mediaOverlay!.pause();
+      const pausedAt = view.mediaOverlay!.audioTime;
+      view.mediaOverlayHighlightEnabled = false;
+      view.mediaOverlayFollowEnabled = false;
+      view.mediaOverlay!.dispatchEvent(new CustomEvent('unhighlight'));
+      expect(activeClassCount(view)).toBe(0);
+
+      view.mediaOverlayHighlightEnabled = true;
+      view.mediaOverlayFollowEnabled = true;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(activeClassCount(view)).toBe(0);
+      expect(view.mediaOverlay!.audioTime).toBeCloseTo(pausedAt, 2);
+      await withGesture(() => view.mediaOverlay!.resume());
+      await poll(() => activeClassCount(view) === 1);
+      expect(view.mediaOverlay!.audioTime).toBeGreaterThanOrEqual(pausedAt);
+    } finally {
+      destroyView(view);
+    }
+  });
+
+  it('renders native read-along across chapters and restores the same cue without browser audio', async () => {
+    const view = await createView();
+    const audio = vi.spyOn(window, 'Audio');
+    const activeIds = () =>
+      view.renderer
+        .getContents()
+        .flatMap(({ doc }) =>
+          [...(doc?.querySelectorAll('.-epub-media-overlay-active') ?? [])].map((el) => el.id),
+        );
+    try {
+      await view.mediaOverlay!.synchronizeAtOffset(0, 3);
+      await poll(() => activeIds().includes('s3'));
+      await view.mediaOverlay!.synchronizeAtOffset(1, 7);
+      // The reader hook follows the native snapshot's text target after
+      // synchronizing the cue. Exercise both operations against real iframes.
+      await view.goTo(`${view.book.sections[1]!.id}#s5`);
+      await poll(() => view.renderer.primaryIndex === 1 && activeIds().includes('s5'));
+      expect(activeIds()).toEqual(['s5']);
+
+      // Returning to the phone may recreate the page or re-enable read-along
+      // while native playback is paused on exactly the same sentence.
+      view.mediaOverlayHighlightEnabled = false;
+      await view.mediaOverlay!.synchronizeAtOffset(1, 7);
+      expect(activeIds()).toEqual([]);
+      view.mediaOverlayHighlightEnabled = true;
+      await view.mediaOverlay!.synchronizeAtOffset(1, 7);
+      await poll(() => activeIds().includes('s5'));
+      expect(activeIds()).toEqual(['s5']);
+
+      await view.mediaOverlay!.synchronizeAtOffset(0, 0);
+      await view.goTo(`${view.book.sections[0]!.id}#s1`);
+      await poll(() => view.renderer.primaryIndex === 0 && activeIds().includes('s1'));
+      expect(activeIds()).toEqual(['s1']);
+      expect(audio).not.toHaveBeenCalled();
+    } finally {
+      audio.mockRestore();
+      destroyView(view);
+    }
+  });
 
   it('applies the active class without corrupting renderer content indexes', async () => {
     const view = await createView();

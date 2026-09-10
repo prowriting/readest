@@ -390,11 +390,27 @@ export interface MediaOverlayConfig {
   moHighlightOptions: TTSHighlightOptions;
 }
 
-/** A saved listening position inside a Media Overlay audiobook. */
+export interface ReadiumLocator {
+  href: string;
+  type: string;
+  title?: string;
+  locations: {
+    fragments: string[];
+    /** Progression within the referenced resource, from 0 to 1. */
+    progression?: number;
+    /** Progression within the whole publication, from 0 to 1. */
+    totalProgression?: number;
+  };
+}
+
+/** A portable saved position inside an EPUB Media Overlay audiobook. */
 export interface MediaOverlayLocation {
-  sectionIndex: number;
-  /** Seconds from the start of the section's concatenated audio timeline. */
-  offset: number;
+  schemaVersion: 2;
+  /** Exact audiobook edition. Metadata hashes must never be used here. */
+  editionId: string;
+  locator: ReadiumLocator;
+  /** EPUB text target paired with the audio by the active SMIL cue. */
+  textLocator?: ReadiumLocator;
   updatedAt: number;
 }
 

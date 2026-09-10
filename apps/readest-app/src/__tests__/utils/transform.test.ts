@@ -286,7 +286,16 @@ describe('transformBookConfigToDB / transformBookConfigFromDB rsvpPosition', () 
 });
 
 describe('media overlay location through the sync transform', () => {
-  const location = { sectionIndex: 1, offset: 7.25, updatedAt: 1751500000000 };
+  const location = {
+    schemaVersion: 2 as const,
+    editionId: 'abc123',
+    locator: {
+      href: 'audio/chapter.mp3',
+      type: 'audio/mpeg',
+      locations: { fragments: ['t=7.25'], progression: 0.25, totalProgression: 0.1 },
+    },
+    updatedAt: 1751500000000,
+  };
 
   it('round-trips as a JSON string column', () => {
     const config: BookConfig = {
@@ -304,5 +313,18 @@ describe('media overlay location through the sync transform', () => {
     const db = transformBookConfigToDB({ bookHash: 'abc123', updatedAt: 1 }, 'user1');
     expect(db.media_overlay_location).toBeFalsy();
     expect(transformBookConfigFromDB(db).mediaOverlayLocation).toBeFalsy();
+  });
+
+  it('discards legacy chapter-relative positions from the server', () => {
+    const db = transformBookConfigToDB({ bookHash: 'abc123', updatedAt: 1 }, 'user1');
+    db.media_overlay_location = JSON.stringify({ sectionIndex: 1, offset: 7.25, updatedAt: 1 });
+    expect(transformBookConfigFromDB(db).mediaOverlayLocation).toBeUndefined();
+  });
+
+  it('ignores malformed audiobook progress loaded from the database', () => {
+    const db = transformBookConfigToDB({ bookHash: 'abc123', updatedAt: 1 }, 'user1');
+    db.media_overlay_location = '{broken-json';
+    expect(() => transformBookConfigFromDB(db)).not.toThrow();
+    expect(transformBookConfigFromDB(db).mediaOverlayLocation).toBeUndefined();
   });
 });

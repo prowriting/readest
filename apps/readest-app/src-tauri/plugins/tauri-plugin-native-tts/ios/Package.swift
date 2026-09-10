@@ -31,6 +31,7 @@ let package = Package(
     .testTarget(
       name: "PluginTests",
       dependencies: ["tauri-plugin-native-tts"],
-      path: "Tests/PluginTests")
+      path: "Tests/PluginTests",
+      resources: [.process("Fixtures")])
   ]
 )

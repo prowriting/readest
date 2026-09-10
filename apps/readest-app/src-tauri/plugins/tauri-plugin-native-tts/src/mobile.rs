@@ -148,6 +148,50 @@ impl<R: Runtime> NativeTts<R> {
             .run_mobile_plugin("update_audiobook_playback_manifest", payload)
             .map_err(Into::into)
     }
+
+    pub fn update_audiobook_playback_location(
+        &self,
+        payload: UpdateAudiobookPlaybackLocationRequest,
+    ) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin("update_audiobook_playback_location", payload)
+            .map_err(Into::into)
+    }
+
+    pub fn get_audiobook_playback_location(
+        &self,
+        payload: GetAudiobookPlaybackLocationRequest,
+    ) -> crate::Result<GetAudiobookPlaybackLocationResponse> {
+        self.0
+            .run_mobile_plugin("get_audiobook_playback_location", payload)
+            .map_err(Into::into)
+    }
+
+    pub fn take_audiobook_pending_bookmarks(
+        &self,
+        payload: TakeAudiobookPendingBookmarksRequest,
+    ) -> crate::Result<TakeAudiobookPendingBookmarksResponse> {
+        self.0
+            .run_mobile_plugin("take_audiobook_pending_bookmarks", payload)
+            .map_err(Into::into)
+    }
+
+    pub fn control_audiobook_playback(
+        &self,
+        payload: AudiobookPlaybackCommandRequest,
+    ) -> crate::Result<AudiobookPlaybackSnapshot> {
+        self.0
+            .run_mobile_plugin("control_audiobook_playback", payload)
+            .map_err(Into::into)
+    }
+
+    pub fn get_audiobook_playback_snapshot(
+        &self,
+    ) -> crate::Result<AudiobookPlaybackSnapshot> {
+        self.0
+            .run_mobile_plugin("get_audiobook_playback_snapshot", ())
+            .map_err(Into::into)
+    }
 }
 
 impl<R: Runtime> NativeTts<R> {

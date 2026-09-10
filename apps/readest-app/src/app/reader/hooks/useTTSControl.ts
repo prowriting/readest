@@ -91,6 +91,7 @@ export const useTTSControl = ({ bookKey, onRequestHidePanel }: UseTTSControlProp
       setIsPaused(true);
       await ttsController.pause();
     } else {
+      eventDispatcher.dispatch('audiobook-pause', { bookKey });
       setIsPlaying(true);
       setIsPaused(false);
       if (ttsController.state === 'paused') {
@@ -493,6 +494,7 @@ export const useTTSControl = ({ bookKey, onRequestHidePanel }: UseTTSControlProp
       }
 
       try {
+        eventDispatcher.dispatch('audiobook-pause', { bookKey });
         if (appService?.isIOSApp) {
           await invokeUseBackgroundAudio({ enabled: true });
         }
@@ -551,7 +553,7 @@ export const useTTSControl = ({ bookKey, onRequestHidePanel }: UseTTSControlProp
   const handleTTSStop = async (event: CustomEvent) => {
     const { bookKey: ttsBookKey } = event.detail;
     if (ttsControllerRef.current && bookKey === ttsBookKey) {
-      handleStop(bookKey);
+      await handleStop(bookKey);
     }
   };
 
@@ -565,6 +567,7 @@ export const useTTSControl = ({ bookKey, onRequestHidePanel }: UseTTSControlProp
       setIsPaused(true);
       await ttsController.pause();
     } else if (isPaused) {
+      eventDispatcher.dispatch('audiobook-pause', { bookKey });
       setIsPlaying(true);
       setIsPaused(false);
       // start for forward/backward/setvoice-paused

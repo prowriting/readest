@@ -51,6 +51,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::update_audiobook_library,
             commands::update_audiobook_chapters,
             commands::update_audiobook_playback_manifest,
+            commands::update_audiobook_playback_location,
+            commands::get_audiobook_playback_location,
+            commands::take_audiobook_pending_bookmarks,
+            commands::control_audiobook_playback,
+            commands::get_audiobook_playback_snapshot,
             commands::show_audio_route_picker,
         ])
         .setup(|app, api| {

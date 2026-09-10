@@ -15,4 +15,35 @@ class MediaSessionBridgeTest {
         assertEquals(beyondIntRange, args.position)
         assertEquals(beyondIntRange + 1L, args.duration)
     }
+
+    @Test
+    fun pendingPlayIntentIsLoadingRatherThanPaused() {
+        assertEquals(
+            "loading",
+            nativePlaybackSnapshotState(
+                isPlaying = false,
+                playWhenReady = true,
+                playbackEnded = false,
+                hasMedia = true
+            )
+        )
+        assertEquals(
+            "paused",
+            nativePlaybackSnapshotState(
+                isPlaying = false,
+                playWhenReady = false,
+                playbackEnded = false,
+                hasMedia = true
+            )
+        )
+        assertEquals(
+            "playing",
+            nativePlaybackSnapshotState(
+                isPlaying = true,
+                playWhenReady = true,
+                playbackEnded = false,
+                hasMedia = true
+            )
+        )
+    }
 }

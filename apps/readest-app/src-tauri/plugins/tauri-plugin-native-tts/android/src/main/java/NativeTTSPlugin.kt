@@ -91,6 +91,7 @@ class UpdateMediaSessionStateArgs {
   var playing: Boolean? = null
   var position: Long? = null // in milliseconds
   var duration: Long? = null // in milliseconds
+  var playbackRate: Float? = null
 }
 
 @InvokeArg
@@ -127,9 +128,12 @@ class CarPlaybackCueArg {
 
 @InvokeArg
 class CarPlaybackSegmentArg {
+  var href: String? = null
+  var type: String? = null
   var path: String? = null
   var clipBeginMs: Long? = null
   var clipEndMs: Long? = null
+  var sourceDurationMs: Long? = null
   var cues: List<CarPlaybackCueArg>? = null
 }
 
@@ -147,8 +151,59 @@ class UpdateAudiobookPlaybackManifestArgs {
   var title: String? = null
   var author: String? = null
   var coverPath: String? = null
-  var currentSectionIndex: Int? = null
   var sections: List<CarPlaybackSectionArg>? = null
+}
+
+@InvokeArg
+class LocatorLocationsArg {
+  var fragments: List<String>? = null
+  var progression: Double? = null
+  var totalProgression: Double? = null
+}
+
+@InvokeArg
+class BridgeLocatorArg {
+  var href: String? = null
+  var type: String? = null
+  var title: String? = null
+  var locations: LocatorLocationsArg? = null
+}
+
+@InvokeArg
+class PlaybackLocationArg {
+  var schemaVersion: Int? = null
+  var editionId: String? = null
+  var locator: BridgeLocatorArg? = null
+  var textLocator: BridgeLocatorArg? = null
+  var updatedAt: Long? = null
+}
+
+@InvokeArg
+class UpdateAudiobookPlaybackLocationArgs {
+  var location: PlaybackLocationArg? = null
+}
+
+@InvokeArg
+class GetAudiobookPlaybackLocationArgs {
+  var bookId: String? = null
+}
+
+@InvokeArg
+class TakeAudiobookPendingBookmarksArgs {
+  var bookId: String? = null
+}
+
+@InvokeArg
+class AudiobookPlaybackCommandArgs {
+  var action: String? = null
+  var bookId: String? = null
+  var location: PlaybackLocationArg? = null
+  var chapterIndex: Int? = null
+  var offsetMs: Long? = null
+  var rate: Float? = null
+  var volume: Float? = null
+  var mode: String? = null
+  var endsAt: Long? = null
 }
 
 @InvokeArg
@@ -650,6 +705,8 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         val sections = (args.sections ?: emptyList()).mapNotNull section@{ section ->
             val sectionIndex = section.sectionIndex ?: return@section null
             val segments = (section.segments ?: emptyList()).mapNotNull segment@{ segment ->
+                val href = segment.href ?: return@segment null
+                val type = segment.type ?: return@segment null
                 val path = segment.path ?: return@segment null
                 val clipBeginMs = segment.clipBeginMs ?: return@segment null
                 val clipEndMs = segment.clipEndMs ?: return@segment null
@@ -658,7 +715,15 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
                     val text = cue.text ?: return@cue null
                     BridgePlaybackCue(offsetMs, text)
                 }
-                BridgePlaybackSegment(path, clipBeginMs, clipEndMs, cues)
+                BridgePlaybackSegment(
+                    href,
+                    type,
+                    path,
+                    clipBeginMs,
+                    clipEndMs,
+                    segment.sourceDurationMs ?: clipEndMs,
+                    cues
+                )
             }
             BridgePlaybackSection(
                 sectionIndex,
@@ -671,7 +736,6 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
             bookId,
             args.title ?: "",
             args.author ?: "",
-            args.currentSectionIndex,
             sections,
             args.coverPath
         )
@@ -680,12 +744,182 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         invoke.resolve()
     }
 
+    private fun decodeLocatorArg(arg: BridgeLocatorArg?): BridgeLocator? {
+        arg ?: return null
+        val href = arg.href?.takeIf(String::isNotBlank) ?: return null
+        val type = arg.type?.takeIf(String::isNotBlank) ?: return null
+        val fragments = arg.locations?.fragments?.filter(String::isNotBlank).orEmpty()
+        if (fragments.isEmpty()) return null
+        return BridgeLocator(
+            href,
+            type,
+            arg.title,
+            fragments,
+            arg.locations?.progression,
+            arg.locations?.totalProgression
+        )
+    }
+
+    private fun decodePlaybackLocationArg(arg: PlaybackLocationArg?): BridgePlaybackLocation? {
+        arg ?: return null
+        if (arg.schemaVersion != 2) return null
+        val editionId = arg.editionId?.takeIf(String::isNotBlank) ?: return null
+        val locator = decodeLocatorArg(arg.locator) ?: return null
+        if (locator.fragments.none { it.matches(Regex("^t=(?:npt:)?\\d+(?:\\.\\d+)?$")) }) {
+            return null
+        }
+        return BridgePlaybackLocation(
+            2,
+            editionId,
+            locator,
+            decodeLocatorArg(arg.textLocator),
+            arg.updatedAt ?: return null
+        )
+    }
+
+    private fun locatorToJs(locator: BridgeLocator): JSObject = JSObject().apply {
+        put("href", locator.href)
+        put("type", locator.type)
+        locator.title?.let { put("title", it) }
+        put("locations", JSObject().apply {
+            put("fragments", JSONArray(locator.fragments))
+            locator.progression?.let { put("progression", it) }
+            locator.totalProgression?.let { put("totalProgression", it) }
+        })
+    }
+
+    private fun playbackLocationToJs(location: BridgePlaybackLocation): JSObject = JSObject().apply {
+        put("schemaVersion", 2)
+        put("editionId", location.editionId)
+        put("locator", locatorToJs(location.locator))
+        location.textLocator?.let { put("textLocator", locatorToJs(it)) }
+        put("updatedAt", location.updatedAt)
+    }
+
+    @Command
+    fun update_audiobook_playback_location(invoke: Invoke) {
+        val args = invoke.parseArgs(UpdateAudiobookPlaybackLocationArgs::class.java)
+        val location = decodePlaybackLocationArg(args.location)
+        if (location == null) {
+            invoke.reject("valid Readium playback location is required")
+            return
+        }
+        CarBridgeStore(activity.applicationContext).savePlaybackLocation(location)
+        invoke.resolve()
+    }
+
+    @Command
+    fun get_audiobook_playback_location(invoke: Invoke) {
+        val args = invoke.parseArgs(GetAudiobookPlaybackLocationArgs::class.java)
+        val bookId = args.bookId
+        if (bookId.isNullOrBlank()) {
+            invoke.reject("bookId is required")
+            return
+        }
+        val result = JSObject()
+        val location = MediaPlaybackService.currentPlaybackLocation(bookId)
+            ?: CarBridgeStore(activity.applicationContext).loadPlaybackLocation(bookId)
+        location?.let {
+            result.put("location", playbackLocationToJs(it))
+        }
+        invoke.resolve(result)
+    }
+
+    @Command
+    fun take_audiobook_pending_bookmarks(invoke: Invoke) {
+        val args = invoke.parseArgs(TakeAudiobookPendingBookmarksArgs::class.java)
+        val bookId = args.bookId
+        if (bookId.isNullOrBlank()) {
+            invoke.reject("bookId is required")
+            return
+        }
+        val bookmarks = CarBridgeStore(activity.applicationContext)
+            .takePendingBookmarks(bookId)
+            .map(::playbackLocationToJs)
+        invoke.resolve(JSObject().apply { put("locations", JSONArray(bookmarks)) })
+    }
+
+    @Command
+    fun control_audiobook_playback(invoke: Invoke) {
+        val args = invoke.parseArgs(AudiobookPlaybackCommandArgs::class.java)
+        val action = args.action?.takeIf(String::isNotBlank)
+        if (action == null) {
+            invoke.reject("action is required")
+            return
+        }
+        val location = if (args.location != null) decodePlaybackLocationArg(args.location) else null
+        if (args.location != null && location == null) {
+            invoke.reject("valid Readium playback location is required")
+            return
+        }
+        if (action == "play" || action == "startChapter") {
+            textToSpeech?.stop()
+            isSpeaking.set(false)
+            isPaused.set(false)
+        }
+        ContextCompat.startForegroundService(
+            activity,
+            Intent(activity, MediaPlaybackService::class.java).apply {
+                this.action = MediaPlaybackService.ACTION_ACTIVATE
+            }
+        )
+        coroutineScope.launch {
+            repeat(50) {
+                val service = MediaPlaybackService.instance
+                if (service != null) {
+                    try {
+                        invoke.resolve(
+                            service.handleAudiobookCommand(
+                                action,
+                                args.bookId,
+                                args.chapterIndex,
+                                args.offsetMs,
+                                args.rate,
+                                args.volume,
+                                location,
+                                args.mode,
+                                args.endsAt
+                            )
+                        )
+                    } catch (error: Exception) {
+                        invoke.reject("Audiobook command failed: ${error.message}")
+                    }
+                    return@launch
+                }
+                delay(20L)
+            }
+            invoke.reject("Audiobook playback service unavailable")
+        }
+    }
+
+    @Command
+    fun get_audiobook_playback_snapshot(invoke: Invoke) {
+        val service = MediaPlaybackService.instance
+        if (service != null) {
+            invoke.resolve(service.playbackSnapshot())
+            return
+        }
+        val request = CarBridgeStore(activity.applicationContext).loadLastPlayRequest()
+        invoke.resolve(JSObject().apply {
+            put("sessionId", "")
+            put("sequence", 0L)
+            put("bookId", request?.bookId.orEmpty())
+            put("state", "stopped")
+            put("chapterIndex", -1)
+            put("chapterPositionMs", 0L)
+            put("chapterDurationMs", 0L)
+            put("playbackRate", 1.0)
+            put("isBookmarked", false)
+        })
+    }
+
     @Command
     fun update_media_session_state(invoke: Invoke) {
         var args = invoke.parseArgs(UpdateMediaSessionStateArgs::class.java)
         val isPlaying = args.playing ?: false
         val position = args.position ?: 0
         val duration = args.duration ?: 0
+        val playbackRate = args.playbackRate ?: 1.0f
 
         try {
             val intent = Intent(activity, MediaPlaybackService::class.java).apply {
@@ -693,6 +927,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
                 putExtra("playing", isPlaying)
                 putExtra("position", position)
                 putExtra("duration", duration)
+                putExtra("playbackRate", playbackRate)
             }
             activity.startService(intent)
             invoke.resolve()
@@ -741,9 +976,6 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
 
     private fun shutdownTTSEngine() {
         try {
-            val intent = Intent(activity, MediaPlaybackService::class.java)
-            activity.stopService(intent)
-
             textToSpeech?.shutdown()
             textToSpeech = null
             isInitialized.set(false)
@@ -754,6 +986,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
             eventChannels.values.forEach { it.close() }
             speakingJobs.clear()
             eventChannels.clear()
+            MediaPlaybackService.releaseTtsOwnership()
 
             Log.d(TAG, "TTS engine shut down due to idle timeout")
         } catch (e: Exception) {
@@ -765,9 +998,6 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
         try {
             cancelIdleTimer()
 
-            val intent = Intent(activity, MediaPlaybackService::class.java)
-            activity.stopService(intent)
-
             coroutineScope.cancel()
             textToSpeech?.shutdown()
             textToSpeech = null
@@ -776,6 +1006,7 @@ class NativeTTSPlugin(private val activity: Activity) : Plugin(activity) {
             eventChannels.clear()
             speakingJobs.values.forEach { it.cancel() }
             speakingJobs.clear()
+            MediaPlaybackService.releaseTtsOwnership()
             MediaPlaybackService.pluginEventTrigger = null
 
             Log.d(TAG, "Plugin destroyed successfully")

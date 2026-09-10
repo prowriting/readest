@@ -1,0 +1,159 @@
+{
+  "version": 2,
+  "availableBookId": "contract-book",
+  "missingBookId": "contract-missing",
+  "durationMs": 60000,
+  "scenarios": [
+    {
+      "id": "missing-book-play",
+      "commands": [{ "action": "play", "bookId": "contract-missing" }],
+      "expected": {
+        "bookId": "contract-missing",
+        "state": "error",
+        "error": "manifest_unavailable"
+      }
+    },
+    {
+      "id": "missing-book-chapter",
+      "commands": [{ "action": "startChapter", "bookId": "contract-missing", "chapterIndex": 0 }],
+      "expected": {
+        "bookId": "contract-missing",
+        "state": "error",
+        "error": "manifest_unavailable"
+      }
+    },
+    {
+      "id": "play-seek-stop",
+      "commands": [
+        { "action": "play", "bookId": "contract-book", "rate": 1.5 },
+        { "action": "seekRelative", "offsetMs": 30000 },
+        { "action": "stop" }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "stopped",
+        "playbackRate": 1.5,
+        "chapterIndex": 0,
+        "timeSeconds": 30
+      }
+    },
+    {
+      "id": "paused-bookmark-timer",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "pause" },
+        { "action": "addBookmark" },
+        { "action": "setSleepTimer", "mode": "duration", "endsAt": 4102444800000 }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "isBookmarked": true,
+        "sleepTimerEndsAt": 4102444800000
+      }
+    },
+    {
+      "id": "cancel-timer",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "pause" },
+        { "action": "setSleepTimer", "mode": "duration", "endsAt": 4102444800000 },
+        { "action": "cancelSleepTimer" }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "sleepTimerAbsent": true
+      }
+    },
+    {
+      "id": "failed-book-replacement",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "seekRelative", "offsetMs": 10000 },
+        { "action": "play", "bookId": "contract-missing" }
+      ],
+      "expected": {
+        "bookId": "contract-missing",
+        "state": "error",
+        "error": "manifest_unavailable",
+        "locationAbsent": true
+      }
+    },
+    {
+      "id": "resume-without-losing-position",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "seekRelative", "offsetMs": 10000 },
+        { "action": "pause" },
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "pause" }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "chapterIndex": 0,
+        "timeSeconds": 10
+      }
+    },
+    {
+      "id": "seek-to-readium-locator",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "pause" },
+        {
+          "action": "seekToLocator",
+          "location": {
+            "schemaVersion": 2,
+            "editionId": "contract-book",
+            "locator": {
+              "href": "audio/chapter.mp3",
+              "type": "audio/mpeg",
+              "locations": { "fragments": ["t=42"] }
+            },
+            "textLocator": {
+              "href": "text/chapter.xhtml",
+              "type": "application/xhtml+xml",
+              "locations": { "fragments": ["p1"] }
+            },
+            "updatedAt": 42
+          }
+        }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "chapterIndex": 0,
+        "timeSeconds": 42
+      }
+    },
+    {
+      "id": "chapter-navigation-preserves-paused-state",
+      "commands": [
+        { "action": "startChapter", "bookId": "contract-book", "chapterIndex": 1 },
+        { "action": "pause" },
+        { "action": "previousChapter" },
+        { "action": "nextChapter" }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "chapterIndex": 1,
+        "timeSeconds": 0
+      }
+    },
+    {
+      "id": "volume-command",
+      "commands": [
+        { "action": "play", "bookId": "contract-book" },
+        { "action": "pause" },
+        { "action": "setVolume", "volume": 0.4 }
+      ],
+      "expected": {
+        "bookId": "contract-book",
+        "state": "paused",
+        "volume": 0.4
+      }
+    }
+  ]
+}

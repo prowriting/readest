@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-control-audiobook-playback"
+description = "Enables the control_audiobook_playback command without any pre-configured scope."
+commands.allow = ["control_audiobook_playback"]
+
+[[permission]]
+identifier = "deny-control-audiobook-playback"
+description = "Denies the control_audiobook_playback command without any pre-configured scope."
+commands.deny = ["control_audiobook_playback"]

@@ -75,7 +75,7 @@ export function useSync(bookKey?: string) {
 
   useEffect(() => {
     if (!settings.version) return;
-    if (bookKey && !config?.location) return;
+    if (bookKey && !config?.location && !config?.mediaOverlayLocation) return;
     if (lastSyncedAtInited) return;
 
     const lastSyncedBooksAt = settings.lastSyncedAtBooks ?? 0;

@@ -1,5 +1,6 @@
 import { Book, BookConfig, BookNote } from '@/types/book';
 import { WebDAVSettings } from '@/types/settings';
+import { mergeSyncedConfig } from '@/utils/configMerge';
 import {
   WebDAVConfig,
   buildBasicAuthHeader,
@@ -76,6 +77,7 @@ const buildRemotePayload = (book: Book, config: BookConfig, deviceId: string): R
     progress: config.progress,
     location: config.location,
     xpointer: config.xpointer,
+    mediaOverlayLocation: config.mediaOverlayLocation,
     updatedAt: config.updatedAt,
   };
   return {
@@ -187,10 +189,11 @@ export const pullBookConfig = async (
   const filteredRemote = Object.fromEntries(
     Object.entries(remote.config).filter(([, v]) => v !== null && v !== undefined),
   ) as Partial<BookConfig>;
-  const mergedConfig: BookConfig =
-    remoteConfigUpdated >= localConfigUpdated
-      ? ({ ...localConfig, ...filteredRemote } as BookConfig)
-      : ({ ...filteredRemote, ...localConfig } as BookConfig);
+  const mergedConfig = mergeSyncedConfig(
+    { ...localConfig, bookHash: book.hash, updatedAt: localConfigUpdated },
+    { ...filteredRemote, bookHash: book.hash, updatedAt: remoteConfigUpdated },
+    book.hash,
+  );
   const mergedNotes = mergeNotes(localConfig.booknotes ?? [], remote.booknotes ?? []);
   mergedConfig.booknotes = mergedNotes;
   return {

@@ -1,9 +1,8 @@
 import Foundation
 
 /// Native-side cache of the audiobook browse data the webview pushes down
-/// (car bridge). CarPlay serves its lists from here instantly and offline;
-/// play requests flow back to the webview through `playHandler`, which the
-/// plugin wires to a `trigger("audiobook-play")` event.
+/// (car bridge). CarPlay serves its lists and native playback manifests from
+/// here instantly and offline.
 public final class AudiobookCarLibrary {
   public struct Book: Codable {
     public let id: String
@@ -23,9 +22,12 @@ public final class AudiobookCarLibrary {
   }
 
   public struct PlaybackSegment: Codable {
+    public let href: String
+    public let type: String
     public let path: String
     public let clipBeginMs: Int64
     public let clipEndMs: Int64
+    public let sourceDurationMs: Int64
     public let cues: [PlaybackCue]
   }
 
@@ -41,14 +43,28 @@ public final class AudiobookCarLibrary {
     public let title: String
     public let author: String
     public let coverPath: String?
-    public let currentSectionIndex: Int?
     public let sections: [PlaybackSection]
   }
 
-  public struct PlaybackProgress: Codable {
-    public let bookId: String
-    public let sectionIndex: Int
-    public let positionMs: Int64
+  public struct LocatorLocations: Codable {
+    public let fragments: [String]
+    public let progression: Double?
+    public let totalProgression: Double?
+  }
+
+  public struct Locator: Codable {
+    public let href: String
+    public let type: String
+    public let title: String?
+    public let locations: LocatorLocations
+  }
+
+  public struct PlaybackLocation: Codable {
+    public let schemaVersion: Int
+    public let editionId: String
+    public let locator: Locator
+    public let textLocator: Locator?
+    public let updatedAt: Int64
   }
 
   public static let shared = AudiobookCarLibrary()
@@ -59,7 +75,8 @@ public final class AudiobookCarLibrary {
   private var _books: [Book] = []
   private var _chapters: [String: [Chapter]] = [:]
   private var _playbackManifests: [String: PlaybackManifest] = [:]
-  private var _playbackProgress: [String: PlaybackProgress] = [:]
+  private var _playbackLocations: [String: PlaybackLocation] = [:]
+  private var _pendingBookmarks: [String: [PlaybackLocation]] = [:]
 
   init(defaults: UserDefaults = .standard) {
     self.defaults = defaults
@@ -71,15 +88,17 @@ public final class AudiobookCarLibrary {
         [String: PlaybackManifest].self,
         from: defaults.data(forKey: Keys.playbackManifests)
       ) ?? [:]
-    _playbackProgress =
+    _playbackLocations =
       Self.decode(
-        [String: PlaybackProgress].self,
-        from: defaults.data(forKey: Keys.playbackProgress)
+        [String: PlaybackLocation].self,
+        from: defaults.data(forKey: Keys.playbackLocations)
+      ) ?? [:]
+    _pendingBookmarks =
+      Self.decode(
+        [String: [PlaybackLocation]].self,
+        from: defaults.data(forKey: Keys.pendingBookmarks)
       ) ?? [:]
   }
-
-  /// Set by the plugin; called from CarPlay with (bookId, chapterIndex?).
-  public var playHandler: ((String, Int?) -> Void)?
 
   public var books: [Book] {
     queue.sync { _books }
@@ -117,23 +136,52 @@ public final class AudiobookCarLibrary {
     queue.sync { _playbackManifests[bookId] }
   }
 
-  public func updatePlaybackProgress(bookId: String, sectionIndex: Int, positionMs: Int64) {
+  public func updatePlaybackLocation(_ location: PlaybackLocation) {
+    guard location.schemaVersion == 2, location.editionId.isEmpty == false else { return }
     queue.sync {
-      _playbackProgress[bookId] = PlaybackProgress(
-        bookId: bookId,
-        sectionIndex: sectionIndex,
-        positionMs: positionMs
-      )
-      persist(_playbackProgress, key: Keys.playbackProgress)
+      if let existing = _playbackLocations[location.editionId],
+        existing.updatedAt >= location.updatedAt
+      {
+        return
+      }
+      _playbackLocations[location.editionId] = location
+      persist(_playbackLocations, key: Keys.playbackLocations)
     }
   }
 
-  public func playbackProgress(for bookId: String) -> PlaybackProgress? {
-    queue.sync { _playbackProgress[bookId] }
+  public func playbackLocation(for bookId: String) -> PlaybackLocation? {
+    queue.sync { _playbackLocations[bookId] }
   }
 
-  public func requestPlay(bookId: String, chapterIndex: Int?) {
-    playHandler?(bookId, chapterIndex)
+  public func addPendingBookmark(_ location: PlaybackLocation) {
+    guard location.schemaVersion == 2, location.editionId.isEmpty == false else { return }
+    queue.sync {
+      var bookmarks = _pendingBookmarks[location.editionId] ?? []
+      let audioKey = location.locator.href + "#" + (location.locator.locations.fragments.first ?? "")
+      let textKey = location.textLocator.map {
+        $0.href + "#" + ($0.locations.fragments.first ?? "")
+      }
+      let duplicate = bookmarks.contains { existing in
+        let existingAudio = existing.locator.href + "#"
+          + (existing.locator.locations.fragments.first ?? "")
+        let existingText = existing.textLocator.map {
+          $0.href + "#" + ($0.locations.fragments.first ?? "")
+        }
+        return (textKey != nil && existingText == textKey) || existingAudio == audioKey
+      }
+      guard !duplicate else { return }
+      bookmarks.append(location)
+      _pendingBookmarks[location.editionId] = bookmarks
+      persist(_pendingBookmarks, key: Keys.pendingBookmarks)
+    }
+  }
+
+  public func takePendingBookmarks(for bookId: String) -> [PlaybackLocation] {
+    queue.sync {
+      let bookmarks = _pendingBookmarks.removeValue(forKey: bookId) ?? []
+      if !bookmarks.isEmpty { persist(_pendingBookmarks, key: Keys.pendingBookmarks) }
+      return bookmarks
+    }
   }
 
   private func persist<T: Encodable>(_ value: T, key: String) {
@@ -149,6 +197,7 @@ public final class AudiobookCarLibrary {
     static let books = "bookarc.car.books"
     static let chapters = "bookarc.car.chapters"
     static let playbackManifests = "bookarc.car.playback-manifests"
-    static let playbackProgress = "bookarc.car.playback-progress"
+    static let playbackLocations = "bookarc.car.playback-locations-v2"
+    static let pendingBookmarks = "bookarc.car.pending-bookmarks-v2"
   }
 }

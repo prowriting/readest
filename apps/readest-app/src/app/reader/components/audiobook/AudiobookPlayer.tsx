@@ -4,7 +4,6 @@ import {
   MdAirplay,
   MdArrowBackIosNew,
   MdBookmark,
-  MdClose,
   MdDeleteOutline,
   MdMoreHoriz,
   MdOutlineBookmarkAdd,
@@ -15,7 +14,7 @@ import {
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
-import { RiForward30Line, RiListUnordered, RiReplay15Line } from 'react-icons/ri';
+import { RiArrowDownSLine, RiForward30Line, RiListUnordered, RiReplay15Line } from 'react-icons/ri';
 import BookCover from '@/components/BookCover';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
@@ -87,7 +86,7 @@ interface AudiobookPlayerProps {
 
 /**
  * Fullscreen player (PRD §5.1 mock): top bar (chapters left; speed, sleep,
- * bookmark, overflow, close right), large rounded cover, bold chapter title,
+ * bookmark, overflow, minimize right), large rounded cover, bold chapter title,
  * whole-book time-left, a hairline CHAPTER-scoped scrubber with the time
  * labels underneath, and a transport row around a large outlined play.
  */
@@ -222,7 +221,7 @@ const AudiobookPlayer: React.FC<AudiobookPlayerProps> = ({
           title={_('Minimize Player')}
           onClick={onClose}
         >
-          <MdClose size={iconSize} />
+          <RiArrowDownSLine size={iconSize} />
         </button>
       </div>
 

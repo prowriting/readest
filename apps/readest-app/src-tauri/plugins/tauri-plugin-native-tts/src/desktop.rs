@@ -77,6 +77,35 @@ impl<R: Runtime> NativeTts<R> {
     ) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }
+    pub fn update_audiobook_playback_location(
+        &self,
+        _payload: UpdateAudiobookPlaybackLocationRequest,
+    ) -> crate::Result<()> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+    pub fn get_audiobook_playback_location(
+        &self,
+        _payload: GetAudiobookPlaybackLocationRequest,
+    ) -> crate::Result<GetAudiobookPlaybackLocationResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+    pub fn take_audiobook_pending_bookmarks(
+        &self,
+        _payload: TakeAudiobookPendingBookmarksRequest,
+    ) -> crate::Result<TakeAudiobookPendingBookmarksResponse> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+    pub fn control_audiobook_playback(
+        &self,
+        _payload: AudiobookPlaybackCommandRequest,
+    ) -> crate::Result<AudiobookPlaybackSnapshot> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
+    pub fn get_audiobook_playback_snapshot(
+        &self,
+    ) -> crate::Result<AudiobookPlaybackSnapshot> {
+        Err(crate::Error::UnsupportedPlatformError)
+    }
     pub fn show_audio_route_picker(&self) -> crate::Result<()> {
         Err(crate::Error::UnsupportedPlatformError)
     }

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="android_auto_audiobooks">Audiobooks</string>
+  <string name="android_auto_chapters">Chapters</string>
   <string name="android_auto_nothing_to_resume">Choose an audiobook to start listening.</string>
   <string name="android_auto_player_unavailable">Playback is temporarily unavailable.</string>
   <string name="android_auto_open_book_to_prepare">Open this audiobook in BookArc once to prepare it for car playback.</string>
   <string name="android_auto_audio_unavailable">This audiobook is not available offline.</string>
+  <string name="android_auto_seek_back_30">Back 30 seconds</string>
+  <string name="android_auto_seek_forward_30">Forward 30 seconds</string>
+  <string name="android_auto_playback_speed">Playback speed %1$s×</string>
+  <string name="android_auto_add_bookmark">Add bookmark</string>
+  <string name="android_auto_bookmark_added">Bookmark added</string>
 </resources>

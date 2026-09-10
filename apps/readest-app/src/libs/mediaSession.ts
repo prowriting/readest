@@ -14,6 +14,7 @@ export interface PlaybackState {
   playing: boolean;
   position?: number; // in milliseconds
   duration?: number; // in milliseconds
+  playbackRate?: number;
 }
 
 export interface MediaSessionState {
@@ -30,7 +31,7 @@ interface Permissions {
 }
 
 export class TauriMediaSession {
-  private handlers: { [key: string]: (() => void) | ((position: number) => void) } = {};
+  private handlers: { [key: string]: (() => void) | ((value: number) => void) } = {};
   private eventListenerInited: boolean = false;
   private eventListeners: PluginListener[] = [];
 
@@ -95,6 +96,33 @@ export class TauriMediaSession {
       },
     );
     this.eventListeners.push(seekListener);
+
+    const relativeSeekListener = await addPluginListener(
+      'native-tts',
+      'media-session-seek-relative',
+      (event: { payload: { seconds: number } }) => {
+        if (this.handlers['seekrelative']) {
+          (this.handlers['seekrelative'] as (seconds: number) => void)(event.payload.seconds);
+        }
+      },
+    );
+    this.eventListeners.push(relativeSeekListener);
+
+    const rateListener = await addPluginListener(
+      'native-tts',
+      'media-session-set-rate',
+      (event: { payload: { rate: number } }) => {
+        if (this.handlers['setrate']) {
+          (this.handlers['setrate'] as (rate: number) => void)(event.payload.rate);
+        }
+      },
+    );
+    this.eventListeners.push(rateListener);
+
+    const bookmarkListener = await addPluginListener('native-tts', 'media-session-bookmark', () => {
+      if (this.handlers['bookmark']) (this.handlers['bookmark'] as () => void)();
+    });
+    this.eventListeners.push(bookmarkListener);
   }
 
   private async cleanupListeners() {
@@ -148,11 +176,13 @@ export class TauriMediaSession {
   }
 }
 
+const tauriMediaSession = new TauriMediaSession();
+
 export function getMediaSession() {
   if ('mediaSession' in navigator) {
     return navigator.mediaSession;
   } else if (getOSPlatform() === 'android' && isTauriAppPlatform()) {
-    return new TauriMediaSession();
+    return tauriMediaSession;
   }
   return null;
 }

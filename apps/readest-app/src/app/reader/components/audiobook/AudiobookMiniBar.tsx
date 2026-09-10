@@ -31,7 +31,7 @@ interface AudiobookMiniBarProps {
 /**
  * Docked audio tray of the combined view (v2 PRD §5.2): drag the handle up
  * (or tap the chevron) to expand the fullscreen player, drag it down to
- * dismiss the tray — audio keeps playing either way.
+ * pause playback and dismiss the tray.
  */
 const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   state,
@@ -56,7 +56,7 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
   const remaining = total != null ? Math.max(0, total - elapsed) : null;
   const dragStartY = useRef<number | null>(null);
   const skipForwardLabel = _('Skip Forward {{sec}} s', { sec: skipForwardSec });
-  const hidePlayerLabel = _('Hide Player, audio keeps playing');
+  const closePlayerLabel = _('Close Player and Pause Audio');
 
   const handlePointerDown = (ev: React.PointerEvent<HTMLDivElement>) => {
     dragStartY.current = ev.clientY;
@@ -161,8 +161,8 @@ const AudiobookMiniBar: React.FC<AudiobookMiniBarProps> = ({
         <button
           type='button'
           className='btn btn-ghost btn-circle h-11 min-h-11 w-11 min-w-11 p-0'
-          aria-label={hidePlayerLabel}
-          title={hidePlayerLabel}
+          aria-label={closePlayerLabel}
+          title={closePlayerLabel}
           onClick={onDismiss}
         >
           <MdClose size={iconSize} />

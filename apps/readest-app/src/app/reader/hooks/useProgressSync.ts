@@ -28,6 +28,7 @@ export const useProgressSync = (bookKey: string) => {
   const { syncedConfigs, syncConfigs } = useSync(bookKey);
   const { user } = useAuth();
   const progress = getProgress(bookKey);
+  const mediaOverlayUpdatedAt = getConfig(bookKey)?.mediaOverlayLocation?.updatedAt;
 
   const configPulled = useRef(false);
   const hasPulledConfigOnce = useRef(false);
@@ -112,18 +113,22 @@ export const useProgressSync = (bookKey: string) => {
       const config = getConfig(bookKey);
       const view = getView(bookKey);
       const book = getBookData(bookKey)?.book;
-      if (config && view && book && config.progress && config.progress[0] > 0) {
-        try {
-          const contents = view.renderer.getContents();
-          const primaryIndex = view.renderer.primaryIndex;
-          const content = contents.find((x) => x.index === primaryIndex) ?? contents[0];
-          if (content && !FIXED_LAYOUT_FORMATS.has(book.format)) {
-            const { doc, index } = content;
-            const xpointerResult = await getXPointerFromCFI(config.location!, doc, index || 0);
-            config.xpointer = xpointerResult.xpointer;
+      const hasPageProgress = Boolean(config?.progress && config.progress[0] > 0);
+      const hasAudioProgress = Boolean(config?.mediaOverlayLocation);
+      if (config && book && (hasPageProgress || hasAudioProgress)) {
+        if (view && hasPageProgress) {
+          try {
+            const contents = view.renderer.getContents();
+            const primaryIndex = view.renderer.primaryIndex;
+            const content = contents.find((x) => x.index === primaryIndex) ?? contents[0];
+            if (content && !FIXED_LAYOUT_FORMATS.has(book.format)) {
+              const { doc, index } = content;
+              const xpointerResult = await getXPointerFromCFI(config.location!, doc, index || 0);
+              config.xpointer = xpointerResult.xpointer;
+            }
+          } catch (error) {
+            console.warn('Failed to convert CFI to XPointer', error);
           }
-        } catch (error) {
-          console.warn('Failed to convert CFI to XPointer', error);
         }
         pushConfig(bookKey, config);
       }
@@ -160,20 +165,21 @@ export const useProgressSync = (bookKey: string) => {
     [],
   );
 
-  // Push: auto-push progress when progress changes with a debounce
+  // Push when either the page location or the audiobook locator changes.
   useEffect(() => {
-    if (!progress?.location || !user) return;
+    const config = getConfig(bookKey);
+    if ((!progress?.location && !config?.mediaOverlayLocation) || !user) return;
     handleAutoSync();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress?.location]);
+  }, [progress?.location, mediaOverlayUpdatedAt]);
 
   // Pull: pull progress once when the book is opened, with retry on failure
   useEffect(() => {
-    if (!progress || hasPulledConfigOnce.current) return;
+    if ((!progress && !mediaOverlayUpdatedAt) || hasPulledConfigOnce.current) return;
     hasPulledConfigOnce.current = true;
     pullWithRetry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress]);
+  }, [progress, mediaOverlayUpdatedAt]);
 
   // Clean up any pending retry timer on unmount so it doesn't fire after the
   // reader has been torn down.
@@ -211,7 +217,7 @@ export const useProgressSync = (bookKey: string) => {
           remoteCFILocation = candidateCFI;
         }
       }
-      setConfig(bookKey, mergeSyncedConfig(config, syncedConfig));
+      setConfig(bookKey, mergeSyncedConfig(config, syncedConfig, book.hash));
       if (remoteCFILocation && configCFI) {
         if (CFI.compare(configCFI, remoteCFILocation) < 0) {
           // While previewing a deep-link target, do NOT yank the view to the

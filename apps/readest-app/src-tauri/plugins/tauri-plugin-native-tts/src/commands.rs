@@ -101,6 +101,45 @@ pub(crate) async fn update_audiobook_playback_manifest<R: Runtime>(
 }
 
 #[command]
+pub(crate) async fn update_audiobook_playback_location<R: Runtime>(
+    app: AppHandle<R>,
+    payload: UpdateAudiobookPlaybackLocationRequest,
+) -> Result<()> {
+    app.native_tts().update_audiobook_playback_location(payload)
+}
+
+#[command]
+pub(crate) async fn get_audiobook_playback_location<R: Runtime>(
+    app: AppHandle<R>,
+    payload: GetAudiobookPlaybackLocationRequest,
+) -> Result<GetAudiobookPlaybackLocationResponse> {
+    app.native_tts().get_audiobook_playback_location(payload)
+}
+
+#[command]
+pub(crate) async fn take_audiobook_pending_bookmarks<R: Runtime>(
+    app: AppHandle<R>,
+    payload: TakeAudiobookPendingBookmarksRequest,
+) -> Result<TakeAudiobookPendingBookmarksResponse> {
+    app.native_tts().take_audiobook_pending_bookmarks(payload)
+}
+
+#[command]
+pub(crate) async fn control_audiobook_playback<R: Runtime>(
+    app: AppHandle<R>,
+    payload: AudiobookPlaybackCommandRequest,
+) -> Result<AudiobookPlaybackSnapshot> {
+    app.native_tts().control_audiobook_playback(payload)
+}
+
+#[command]
+pub(crate) async fn get_audiobook_playback_snapshot<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<AudiobookPlaybackSnapshot> {
+    app.native_tts().get_audiobook_playback_snapshot()
+}
+
+#[command]
 pub(crate) async fn show_audio_route_picker<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.native_tts().show_audio_route_picker()
 }

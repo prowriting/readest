@@ -1,6 +1,23 @@
-import { describe, expect, it } from 'vitest';
-import { buildBridgeChapters, buildBridgeLibrary } from '@/services/audiobook/carBridge';
-import type { Book } from '@/types/book';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  buildBridgeChapters,
+  buildBridgeLibrary,
+  getPlaybackLocationFromCar,
+  pushPlaybackLocationToCar,
+  takePendingBookmarksFromCar,
+} from '@/services/audiobook/carBridge';
+import type { Book, MediaOverlayLocation } from '@/types/book';
+
+const mocks = vi.hoisted(() => ({ invoke: vi.fn() }));
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: mocks.invoke,
+  addPluginListener: vi.fn(),
+}));
+vi.mock('@/services/environment', () => ({ isTauriAppPlatform: () => true }));
+vi.mock('@/utils/misc', () => ({
+  getOSPlatform: () => 'android',
+  stubTranslation: (value: string) => value,
+}));
 
 const book = (over: Partial<Book>): Book =>
   ({
@@ -12,6 +29,10 @@ const book = (over: Partial<Book>): Book =>
     updatedAt: 1,
     ...over,
   }) as Book;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('buildBridgeLibrary', () => {
   it('exposes only audiobooks, most recently used first', () => {
@@ -60,5 +81,42 @@ describe('buildBridgeChapters', () => {
     const payload = buildBridgeChapters('book1', [], -1);
     expect(payload.currentIndex).toBeUndefined();
     expect(payload.chapters).toEqual([]);
+  });
+});
+
+describe('car playback location bridge failures', () => {
+  const location: MediaOverlayLocation = {
+    schemaVersion: 2,
+    editionId: 'book1',
+    locator: {
+      href: 'audio/chapter.mp3',
+      type: 'audio/mpeg',
+      locations: { fragments: ['t=12'] },
+    },
+    updatedAt: 1000,
+  };
+
+  it('contains a rejected native location write', async () => {
+    mocks.invoke.mockRejectedValueOnce(new Error('native unavailable'));
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await expect(pushPlaybackLocationToCar(location)).resolves.toBeUndefined();
+  });
+
+  it('treats a rejected native location read as no cached location', async () => {
+    mocks.invoke.mockRejectedValueOnce(new Error('native unavailable'));
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await expect(getPlaybackLocationFromCar('book1')).resolves.toBeUndefined();
+  });
+
+  it('takes queued native bookmarks using the shared Readium locator shape', async () => {
+    mocks.invoke.mockResolvedValueOnce({ locations: [location] });
+
+    await expect(takePendingBookmarksFromCar('book1')).resolves.toEqual([location]);
+    expect(mocks.invoke).toHaveBeenCalledWith(
+      'plugin:native-tts|take_audiobook_pending_bookmarks',
+      { payload: { bookId: 'book1' } },
+    );
   });
 });

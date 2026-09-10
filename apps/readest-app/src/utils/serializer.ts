@@ -4,6 +4,7 @@ import {
   BookSearchConfig,
   ViewSettings,
 } from '@/types/book';
+import { parseMediaOverlayLocation } from '@/services/audiobook/mediaOverlayLocation';
 
 export const stampBookConfigSchema = <T extends Partial<BookConfig>>(config: T): T => {
   return { ...config, schemaVersion: BOOK_CONFIG_SCHEMA_VERSION };
@@ -61,6 +62,7 @@ export const deserializeConfig = (
   defaultSearchConfig: BookSearchConfig,
 ): BookConfig => {
   const config = JSON.parse(str) as BookConfig;
+  config.mediaOverlayLocation = parseMediaOverlayLocation(config.mediaOverlayLocation);
   const { viewSettings, searchConfig } = config;
   config.viewSettings = { ...globalViewSettings, ...viewSettings };
   config.searchConfig = { ...defaultSearchConfig, ...searchConfig };

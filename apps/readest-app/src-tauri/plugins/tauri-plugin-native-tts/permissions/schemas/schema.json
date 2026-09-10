@@ -319,6 +319,18 @@
           "markdownDescription": "Denies the check_permissions command without any pre-configured scope."
         },
         {
+          "description": "Enables the control_audiobook_playback command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-control-audiobook-playback",
+          "markdownDescription": "Enables the control_audiobook_playback command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the control_audiobook_playback command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-control-audiobook-playback",
+          "markdownDescription": "Denies the control_audiobook_playback command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_all_voices command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-all-voices",
@@ -329,6 +341,30 @@
           "type": "string",
           "const": "deny-get-all-voices",
           "markdownDescription": "Denies the get_all_voices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_audiobook_playback_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-audiobook-playback-location",
+          "markdownDescription": "Enables the get_audiobook_playback_location command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_audiobook_playback_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-audiobook-playback-location",
+          "markdownDescription": "Denies the get_audiobook_playback_location command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_audiobook_playback_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-audiobook-playback-snapshot",
+          "markdownDescription": "Enables the get_audiobook_playback_snapshot command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_audiobook_playback_snapshot command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-audiobook-playback-snapshot",
+          "markdownDescription": "Denies the get_audiobook_playback_snapshot command without any pre-configured scope."
         },
         {
           "description": "Enables the init command without any pre-configured scope.",
@@ -499,6 +535,18 @@
           "markdownDescription": "Denies the stop command without any pre-configured scope."
         },
         {
+          "description": "Enables the take_audiobook_pending_bookmarks command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-take-audiobook-pending-bookmarks",
+          "markdownDescription": "Enables the take_audiobook_pending_bookmarks command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the take_audiobook_pending_bookmarks command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-take-audiobook-pending-bookmarks",
+          "markdownDescription": "Denies the take_audiobook_pending_bookmarks command without any pre-configured scope."
+        },
+        {
           "description": "Enables the update_audiobook_chapters command without any pre-configured scope.",
           "type": "string",
           "const": "allow-update-audiobook-chapters",
@@ -521,6 +569,18 @@
           "type": "string",
           "const": "deny-update-audiobook-library",
           "markdownDescription": "Denies the update_audiobook_library command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the update_audiobook_playback_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-audiobook-playback-location",
+          "markdownDescription": "Enables the update_audiobook_playback_location command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_audiobook_playback_location command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-audiobook-playback-location",
+          "markdownDescription": "Denies the update_audiobook_playback_location command without any pre-configured scope."
         },
         {
           "description": "Enables the update_audiobook_playback_manifest command without any pre-configured scope.",
@@ -559,10 +619,10 @@
           "markdownDescription": "Denies the update_media_session_state command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-update-audiobook-playback-manifest`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-update-audiobook-playback-manifest`\n- `allow-update-audiobook-playback-location`\n- `allow-get-audiobook-playback-location`\n- `allow-take-audiobook-pending-bookmarks`\n- `allow-control-audiobook-playback`\n- `allow-get-audiobook-playback-snapshot`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-update-audiobook-playback-manifest`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-init`\n- `allow-speak`\n- `allow-stop`\n- `allow-pause`\n- `allow-resume`\n- `allow-set-rate`\n- `allow-set-pitch`\n- `allow-set-voice`\n- `allow-get-all-voices`\n- `allow-set-media-session-active`\n- `allow-update-media-session-state`\n- `allow-update-media-session-metadata`\n- `allow-update-audiobook-library`\n- `allow-update-audiobook-chapters`\n- `allow-update-audiobook-playback-manifest`\n- `allow-update-audiobook-playback-location`\n- `allow-get-audiobook-playback-location`\n- `allow-take-audiobook-pending-bookmarks`\n- `allow-control-audiobook-playback`\n- `allow-get-audiobook-playback-snapshot`\n- `allow-show-audio-route-picker`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-check-permissions`\n- `allow-request-permissions`\n- `allow-checkPermissions`\n- `allow-requestPermissions`"
         }
       ]
     }

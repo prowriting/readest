@@ -79,6 +79,7 @@ pub struct UpdateMediaSessionStateRequest {
     pub playing: bool,
     pub position: Option<f64>,
     pub duration: Option<f64>,
+    pub playback_rate: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -130,9 +131,13 @@ pub struct CarPlaybackCue {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CarPlaybackSegment {
+    pub href: String,
+    #[serde(rename = "type")]
+    pub media_type: String,
     pub path: String,
     pub clip_begin_ms: u64,
     pub clip_end_ms: u64,
+    pub source_duration_ms: u64,
     pub cues: Vec<CarPlaybackCue>,
 }
 
@@ -152,8 +157,96 @@ pub struct UpdateAudiobookPlaybackManifestRequest {
     pub title: String,
     pub author: String,
     pub cover_path: Option<String>,
-    pub current_section_index: Option<u32>,
     pub sections: Vec<CarPlaybackSection>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadiumLocatorLocations {
+    pub fragments: Vec<String>,
+    pub progression: Option<f64>,
+    pub total_progression: Option<f64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadiumLocator {
+    pub href: String,
+    #[serde(rename = "type")]
+    pub media_type: String,
+    pub title: Option<String>,
+    pub locations: ReadiumLocatorLocations,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AudiobookPlaybackLocation {
+    pub schema_version: u32,
+    pub edition_id: String,
+    pub locator: ReadiumLocator,
+    pub text_locator: Option<ReadiumLocator>,
+    pub updated_at: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateAudiobookPlaybackLocationRequest {
+    pub location: AudiobookPlaybackLocation,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetAudiobookPlaybackLocationRequest {
+    pub book_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetAudiobookPlaybackLocationResponse {
+    pub location: Option<AudiobookPlaybackLocation>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TakeAudiobookPendingBookmarksRequest {
+    pub book_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TakeAudiobookPendingBookmarksResponse {
+    pub locations: Vec<AudiobookPlaybackLocation>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AudiobookPlaybackCommandRequest {
+    pub action: String,
+    pub book_id: Option<String>,
+    pub location: Option<AudiobookPlaybackLocation>,
+    pub chapter_index: Option<u32>,
+    pub offset_ms: Option<i64>,
+    pub rate: Option<f64>,
+    pub volume: Option<f64>,
+    pub mode: Option<String>,
+    pub ends_at: Option<u64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AudiobookPlaybackSnapshot {
+    pub session_id: String,
+    pub sequence: u64,
+    pub book_id: String,
+    pub state: String,
+    pub location: Option<AudiobookPlaybackLocation>,
+    pub chapter_index: i32,
+    pub chapter_position_ms: u64,
+    pub chapter_duration_ms: u64,
+    pub playback_rate: f64,
+    pub is_bookmarked: bool,
+    pub sleep_timer_ends_at: Option<u64>,
+    pub error: Option<String>,
 }
 
 #[cfg(test)]
@@ -202,14 +295,53 @@ mod bridge_contract_tests {
     #[test]
     fn deserializes_the_shared_car_playback_manifest() {
         let json = r#"{
-            "bookId":"abc123","title":"Book","author":"Author","currentSectionIndex":4,
+            "bookId":"abc123","title":"Book","author":"Author",
             "sections":[{"sectionIndex":4,"label":"One","durationMs":12000,
-              "segments":[{"path":"/data/audio.mp3","clipBeginMs":1250,"clipEndMs":5500,
+              "segments":[{"href":"audio/ch1.mp3","type":"audio/mpeg","path":"/data/audio.mp3",
+                "clipBeginMs":1250,"clipEndMs":5500,"sourceDurationMs":10000,
                 "cues":[{"offsetMs":500,"text":"text/c1.xhtml#p1"}]}]}]
         }"#;
         let payload: UpdateAudiobookPlaybackManifestRequest = serde_json::from_str(json).unwrap();
-        assert_eq!(payload.current_section_index, Some(4));
+        assert_eq!(payload.sections[0].segments[0].href, "audio/ch1.mp3");
         assert_eq!(payload.sections[0].segments[0].clip_begin_ms, 1250);
         assert_eq!(payload.sections[0].segments[0].cues[0].offset_ms, 500);
+    }
+
+    #[test]
+    fn deserializes_native_audiobook_commands_from_typescript() {
+        let seek: AudiobookPlaybackCommandRequest = serde_json::from_str(
+            r#"{"action":"seekRelative","offsetMs":30000}"#,
+        )
+        .unwrap();
+        assert_eq!(seek.action, "seekRelative");
+        assert_eq!(seek.offset_ms, Some(30_000));
+
+        let play: AudiobookPlaybackCommandRequest = serde_json::from_str(
+            r#"{"action":"play","bookId":"abc123"}"#,
+        )
+        .unwrap();
+        assert_eq!(play.book_id.as_deref(), Some("abc123"));
+    }
+
+    #[test]
+    fn serializes_the_authoritative_native_snapshot_for_typescript() {
+        let snapshot = AudiobookPlaybackSnapshot {
+            session_id: "session-1".into(),
+            sequence: 7,
+            book_id: "abc123".into(),
+            state: "playing".into(),
+            location: None,
+            chapter_index: 2,
+            chapter_position_ms: 12_000,
+            chapter_duration_ms: 60_000,
+            playback_rate: 1.25,
+            is_bookmarked: false,
+            sleep_timer_ends_at: None,
+            error: None,
+        };
+        let json = serde_json::to_value(snapshot).unwrap();
+        assert_eq!(json["sessionId"], "session-1");
+        assert_eq!(json["chapterPositionMs"], 12_000);
+        assert_eq!(json["playbackRate"], 1.25);
     }
 }

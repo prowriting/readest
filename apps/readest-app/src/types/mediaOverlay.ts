@@ -22,8 +22,11 @@ export interface MediaOverlayPlaybackCue {
 export interface MediaOverlayPlaybackSegment {
   /** Resolved EPUB entry path. */
   source: string;
+  type: string;
   clipBegin: number;
   clipEnd: number;
+  /** Effective duration of the referenced audio resource. */
+  sourceDuration: number;
   cues: MediaOverlayPlaybackCue[];
 }
 
@@ -42,6 +45,8 @@ export interface MediaOverlayEngine extends EventTarget {
   start(sectionIndex: number): Promise<void>;
   /** Start playback at an offset (seconds) into a section's audio timeline. */
   startAtOffset(sectionIndex: number, offset: number): Promise<void>;
+  /** Select and highlight a cue without creating or controlling browser audio. */
+  synchronizeAtOffset(sectionIndex: number, offset: number): Promise<boolean>;
   /** Seek by a signed number of seconds, crossing files and sections. */
   seekRelative(seconds: number): Promise<void>;
   /**
@@ -63,8 +68,6 @@ export interface MediaOverlayEngine extends EventTarget {
   stop(): void;
   prev(): void;
   next(): void;
-  prevSection(): void;
-  nextSection(): void;
   setVolume(volume: number): void;
   setRate(rate: number): void;
   /** Spine index of the playing section, or -1 when inactive. */
@@ -73,6 +76,10 @@ export interface MediaOverlayEngine extends EventTarget {
   readonly sectionOffset: number;
   /** Total seconds of the current section's concatenated audio timeline. */
   readonly sectionDuration: number;
-  /** Live currentTime of the underlying audio element (file-local clock). */
+  /** Publication-relative path of the active audio resource. */
+  readonly activeAudioSource: string | null;
+  /** Current time on the active audio resource's own clock. */
   readonly audioTime: number;
+  /** Duration of the active audio resource, when its metadata is available. */
+  readonly audioDuration: number;
 }

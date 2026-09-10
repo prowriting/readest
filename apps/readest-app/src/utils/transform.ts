@@ -10,6 +10,7 @@ import {
 } from '@/types/book';
 import { DBBookConfig, DBBook, DBBookNote } from '@/types/records';
 import { sanitizeString } from './sanitize';
+import { parseMediaOverlayLocation } from '@/services/audiobook/mediaOverlayLocation';
 
 export const transformBookConfigToDB = (bookConfig: unknown, userId: string): DBBookConfig => {
   const {
@@ -40,6 +41,15 @@ export const transformBookConfigToDB = (bookConfig: unknown, userId: string): DB
   };
 };
 
+const parseStoredMediaOverlayLocation = (value: string | undefined) => {
+  if (!value) return undefined;
+  try {
+    return parseMediaOverlayLocation(JSON.parse(value));
+  } catch {
+    return undefined;
+  }
+};
+
 export const transformBookConfigFromDB = (dbBookConfig: DBBookConfig): BookConfig => {
   const {
     book_hash,
@@ -60,7 +70,7 @@ export const transformBookConfigFromDB = (dbBookConfig: DBBookConfig): BookConfi
     xpointer,
     progress: progress && JSON.parse(progress),
     rsvpPosition: rsvp_position && JSON.parse(rsvp_position),
-    mediaOverlayLocation: media_overlay_location && JSON.parse(media_overlay_location),
+    mediaOverlayLocation: parseStoredMediaOverlayLocation(media_overlay_location),
     searchConfig: search_config && JSON.parse(search_config),
     viewSettings: view_settings && JSON.parse(view_settings),
     updatedAt: new Date(updated_at!).getTime(),

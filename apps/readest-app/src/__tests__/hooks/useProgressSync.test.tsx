@@ -169,6 +169,41 @@ describe('useProgressSync', () => {
     expect(h.syncBooksMock).not.toHaveBeenCalled();
   });
 
+  test('auto-syncs a locator-only audiobook without an ebook page location', async () => {
+    h.state.progress = null;
+    const audioConfig = h.config as typeof h.config & {
+      mediaOverlayLocation?: {
+        schemaVersion: 2;
+        editionId: string;
+        locator: {
+          href: string;
+          type: string;
+          locations: { fragments: string[]; progression: number };
+        };
+        updatedAt: number;
+      };
+    };
+    const oldLocation = audioConfig.location;
+    audioConfig.location = undefined as unknown as string;
+    audioConfig.mediaOverlayLocation = {
+      schemaVersion: 2,
+      editionId: 'h1',
+      locator: {
+        href: 'audio/chapter.mp3',
+        type: 'audio/mpeg',
+        locations: { fragments: ['t=12.5'], progression: 0.25 },
+      },
+      updatedAt: 2000,
+    };
+
+    renderHook(() => useProgressSync('h1-view1'));
+    await flushAutoSync();
+
+    expect(h.syncConfigsMock).toHaveBeenCalledWith(expect.any(Array), 'h1', 'm1', 'push');
+    audioConfig.location = oldLocation;
+    delete audioConfig.mediaOverlayLocation;
+  });
+
   test('retries the first pull on failure with backoff, then releases the gate', async () => {
     // Pull failure is simulated by a mock that resolves without ever flipping
     // h.state.syncedConfigs to a non-null array — the same observable state

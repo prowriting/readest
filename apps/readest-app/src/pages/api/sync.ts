@@ -10,6 +10,7 @@ import { runMiddleware, corsAllMethods } from '@/utils/cors';
 import { SyncData, SyncRecord, SyncResult, SyncType } from '@/libs/sync';
 import { validateUserAndToken } from '@/utils/access';
 import { DBBook, DBBookConfig } from '@/types/records';
+import { mergeDBBookConfig } from '@/utils/configMerge';
 
 const transformsToDB = {
   books: transformBookToDB,
@@ -244,6 +245,18 @@ export async function POST(req: NextRequest) {
           dbRec.updated_at = new Date().toISOString();
           toInsert.push(dbRec);
         } else {
+          if (table === 'book_configs') {
+            const merged = mergeDBBookConfig(
+              dbRec as DBBookConfig,
+              serverData as unknown as DBBookConfig,
+            );
+            if (merged.shouldUpdate) {
+              toUpdate.push(merged.record);
+            } else {
+              batchAuthoritativeRecords.push(serverData);
+            }
+            continue;
+          }
           const clientUpdatedAt = dbRec.updated_at ? new Date(dbRec.updated_at).getTime() : 0;
           const serverUpdatedAt = serverData.updated_at
             ? new Date(serverData.updated_at).getTime()

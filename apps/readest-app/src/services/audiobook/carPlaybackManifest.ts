@@ -7,9 +7,12 @@ export interface CarPlaybackCue {
 }
 
 export interface CarPlaybackSegment {
+  href: string;
+  type: string;
   path: string;
   clipBeginMs: number;
   clipEndMs: number;
+  sourceDurationMs: number;
   cues: CarPlaybackCue[];
 }
 
@@ -26,7 +29,6 @@ export interface CarPlaybackManifest {
   title: string;
   author: string;
   coverPath?: string;
-  currentSectionIndex?: number;
   sections: CarPlaybackSection[];
 }
 
@@ -44,9 +46,25 @@ interface CarPlaybackFileStore {
 
 const milliseconds = (seconds: number): number => Math.max(0, Math.round(seconds * 1000));
 
-const sourceExtension = (source: string): string => {
+const MIME_EXTENSIONS: Record<string, string> = {
+  'audio/aac': 'aac',
+  'audio/mp4': 'm4a',
+  'audio/mpeg': 'mp3',
+  'audio/ogg': 'ogg',
+  'audio/opus': 'opus',
+  'audio/vnd.wave': 'wav',
+  'audio/wav': 'wav',
+  'audio/wave': 'wav',
+  'audio/x-wav': 'wav',
+};
+const KNOWN_AUDIO_EXTENSIONS = new Set(['aac', 'm4a', 'mp3', 'mp4', 'oga', 'ogg', 'opus', 'wav']);
+
+const sourceExtension = (source: string, type: string): string => {
   const match = source.match(/\.([a-z0-9]{1,5})(?:[?#]|$)/i);
-  return match?.[1]?.toLowerCase() ?? 'audio';
+  const extension = match?.[1]?.toLowerCase();
+  return extension && KNOWN_AUDIO_EXTENSIONS.has(extension)
+    ? extension
+    : (MIME_EXTENSIONS[type.toLowerCase()] ?? 'audio');
 };
 
 const safeDirectoryName = (value: string): string => value.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -56,7 +74,6 @@ export async function prepareCarPlaybackManifest(
   book: Book,
   engine: MediaOverlayEngine,
   chapters: CarPlaybackChapter[],
-  currentSectionIndex: number,
   coverPath?: string,
 ): Promise<CarPlaybackManifest> {
   const parsed = await engine.exportPlaybackManifest();
@@ -64,13 +81,12 @@ export async function prepareCarPlaybackManifest(
   await store.createDir(directory, 'Data', true);
 
   const sourcePaths = new Map<string, string>();
-  const sources = [
-    ...new Set(
-      parsed.sections.flatMap((section) => section.segments.map((segment) => segment.source)),
-    ),
-  ];
-  for (const [index, source] of sources.entries()) {
-    const relativePath = `${directory}/audio-${index.toString().padStart(4, '0')}.${sourceExtension(source)}`;
+  const sources = new Map<string, string>();
+  for (const section of parsed.sections) {
+    for (const segment of section.segments) sources.set(segment.source, segment.type);
+  }
+  for (const [index, [source, type]] of [...sources.entries()].entries()) {
+    const relativePath = `${directory}/audio-${index.toString().padStart(4, '0')}.${sourceExtension(source, type)}`;
     if (!(await store.exists(relativePath, 'Data'))) {
       const audio = await engine.loadAudioSource(source);
       await store.writeFile(relativePath, 'Data', await audio.arrayBuffer());
@@ -84,15 +100,17 @@ export async function prepareCarPlaybackManifest(
     title: book.title,
     author: book.author,
     ...(coverPath ? { coverPath } : {}),
-    ...(currentSectionIndex >= 0 ? { currentSectionIndex } : {}),
     sections: parsed.sections.map((section) => ({
       sectionIndex: section.sectionIndex,
       label: labels.get(section.sectionIndex) ?? `Chapter ${section.sectionIndex + 1}`,
       durationMs: milliseconds(section.duration),
       segments: section.segments.map((segment) => ({
+        href: segment.source,
+        type: segment.type,
         path: sourcePaths.get(segment.source)!,
         clipBeginMs: milliseconds(segment.clipBegin),
         clipEndMs: milliseconds(segment.clipEnd),
+        sourceDurationMs: milliseconds(segment.sourceDuration),
         cues: segment.cues.map((cue) => ({
           offsetMs: milliseconds(cue.offset),
           text: cue.text,

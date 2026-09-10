@@ -24,8 +24,13 @@ describe('media overlay config', () => {
 
   it('listening locations survive a config JSON round-trip', () => {
     const location: MediaOverlayLocation = {
-      sectionIndex: 2,
-      offset: 7.25,
+      schemaVersion: 2,
+      editionId: 'book-hash',
+      locator: {
+        href: 'audio/chapter-03.mp3',
+        type: 'audio/mpeg',
+        locations: { fragments: ['t=125.5'], progression: 0.5, totalProgression: 0.24 },
+      },
       updatedAt: 1751500000000,
     };
     const roundTripped = JSON.parse(JSON.stringify({ mediaOverlayLocation: location })) as {

@@ -44,11 +44,11 @@ const renderMiniBar = () =>
   );
 
 describe('AudiobookMiniBar', () => {
-  it('exposes a named region and explains that hiding controls keeps audio playing', () => {
+  it('exposes a named region and explains that closing pauses audio', () => {
     renderMiniBar();
 
     expect(screen.getByRole('region', { name: 'Audiobook Mini Player' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Hide Player, audio keeps playing' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Close Player and Pause Audio' })).toBeTruthy();
   });
 
   it('uses real 44px targets and reports the configured skip interval', () => {

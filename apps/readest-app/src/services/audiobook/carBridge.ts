@@ -1,6 +1,6 @@
 import { invoke, addPluginListener, type PluginListener } from '@tauri-apps/api/core';
 import { isTauriAppPlatform } from '@/services/environment';
-import type { Book } from '@/types/book';
+import type { Book, MediaOverlayLocation } from '@/types/book';
 import { getOSPlatform } from '@/utils/misc';
 import type { AudiobookChapter } from '@/app/reader/hooks/useAudiobookControl';
 import type { AppService } from '@/types/system';
@@ -67,11 +67,11 @@ export const buildBridgeChapters = (
   ...(currentSectionIndex >= 0 ? { currentIndex: currentSectionIndex } : {}),
 });
 
-const carBridgeAvailable = () =>
+export const isCarBridgeAvailable = () =>
   isTauriAppPlatform() && ['ios', 'android'].includes(getOSPlatform());
 
 export const pushLibraryToCar = async (books: Book[]): Promise<void> => {
-  if (!carBridgeAvailable()) return;
+  if (!isCarBridgeAvailable()) return;
   try {
     await invoke('plugin:native-tts|update_audiobook_library', {
       payload: { books: buildBridgeLibrary(books) },
@@ -82,7 +82,7 @@ export const pushLibraryToCar = async (books: Book[]): Promise<void> => {
 };
 
 export const pushChaptersToCar = async (payload: BridgeChaptersPayload): Promise<void> => {
-  if (!carBridgeAvailable()) return;
+  if (!isCarBridgeAvailable()) return;
   try {
     await invoke('plugin:native-tts|update_audiobook_chapters', { payload });
   } catch (error) {
@@ -91,8 +91,62 @@ export const pushChaptersToCar = async (payload: BridgeChaptersPayload): Promise
 };
 
 export const pushPlaybackManifestToCar = async (manifest: CarPlaybackManifest): Promise<void> => {
-  if (!carBridgeAvailable()) return;
+  if (!isCarBridgeAvailable()) return;
   await invoke('plugin:native-tts|update_audiobook_playback_manifest', { payload: manifest });
+};
+
+export const pushPlaybackLocationToCar = async (location: MediaOverlayLocation): Promise<void> => {
+  if (!isCarBridgeAvailable()) return;
+  try {
+    await invoke('plugin:native-tts|update_audiobook_playback_location', {
+      payload: { location },
+    });
+  } catch (error) {
+    console.warn('car bridge playback location push failed', error);
+  }
+};
+
+export const getPlaybackLocationFromCar = async (
+  bookId: string,
+): Promise<MediaOverlayLocation | undefined> => {
+  if (!isCarBridgeAvailable()) return undefined;
+  try {
+    const result = await invoke<{ location?: MediaOverlayLocation }>(
+      'plugin:native-tts|get_audiobook_playback_location',
+      { payload: { bookId } },
+    );
+    return result.location;
+  } catch (error) {
+    console.warn('car bridge playback location read failed', error);
+    return undefined;
+  }
+};
+
+export const takePendingBookmarksFromCar = async (
+  bookId: string,
+): Promise<MediaOverlayLocation[]> => {
+  if (!isCarBridgeAvailable()) return [];
+  try {
+    const result = await invoke<{ locations?: MediaOverlayLocation[] }>(
+      'plugin:native-tts|take_audiobook_pending_bookmarks',
+      { payload: { bookId } },
+    );
+    return result.locations ?? [];
+  } catch (error) {
+    console.warn('car bridge pending bookmark read failed', error);
+    return [];
+  }
+};
+
+export const listenCarControlIntents = async (handlers: {
+  cycleRate: () => void;
+  bookmark: () => void;
+}): Promise<PluginListener[]> => {
+  if (!isCarBridgeAvailable() || getOSPlatform() !== 'ios') return [];
+  return Promise.all([
+    addPluginListener('native-tts', 'media-session-cycle-rate', handlers.cycleRate),
+    addPluginListener('native-tts', 'media-session-bookmark', handlers.bookmark),
+  ]);
 };
 
 export const prepareAndPushCarPlayback = async (
@@ -100,9 +154,8 @@ export const prepareAndPushCarPlayback = async (
   book: Book,
   engine: MediaOverlayEngine,
   chapters: BridgeChapter[],
-  currentSectionIndex: number,
-): Promise<void> => {
-  if (!carBridgeAvailable()) return;
+): Promise<boolean> => {
+  if (!isCarBridgeAvailable()) return false;
   try {
     const coverFilename = getCoverFilename(book);
     const coverPath = (await appService.exists(coverFilename, 'Books'))
@@ -113,12 +166,13 @@ export const prepareAndPushCarPlayback = async (
       book,
       engine,
       chapters,
-      currentSectionIndex,
       coverPath,
     );
     await pushPlaybackManifestToCar(manifest);
+    return true;
   } catch (error) {
     console.warn('car bridge playback preparation failed', error);
+    return false;
   }
 };
 
@@ -126,7 +180,7 @@ export const prepareAndPushCarPlayback = async (
 export const listenCarPlayIntents = async (
   onPlay: (intent: CarPlayIntent) => void,
 ): Promise<PluginListener | null> => {
-  if (!carBridgeAvailable()) return null;
+  if (!isCarBridgeAvailable()) return null;
   return addPluginListener(
     'native-tts',
     'audiobook-play',
