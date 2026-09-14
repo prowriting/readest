@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, rmSy
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   amazonManifest,
   amazonGradle,
@@ -159,6 +160,7 @@ describe('Amazon upload protocol', () => {
     await uploadAmazonRelease(options);
     const replacement = requests.find((r) => r.path.endsWith('/replace'));
     expect(replacement?.method).toBe('PUT');
+    expect(replacement?.headers.get('content-type')).toBe('application/octet-stream');
     expect(replacement?.headers.get('if-match')).toBe('"current-etag"');
     expect(requests.some((r) => r.path.endsWith('/commit'))).toBe(false);
     const listing = requests.find((r) => r.path.endsWith('/listings/en-US') && r.method === 'PUT');
@@ -195,5 +197,80 @@ describe('Amazon upload protocol', () => {
     const requests = mockAmazon('', 12006);
     await expect(uploadAmazonRelease(options)).rejects.toThrow(/versionCode/);
     expect(requests.some((r) => r.path.endsWith('/replace'))).toBe(false);
+  });
+
+  it.each([
+    undefined,
+    '',
+    42,
+  ])('rejects an invalid access token before creating an edit', async (token) => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ access_token: token }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(uploadAmazonRelease(options)).rejects.toThrow(/access token/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses replacement without an ETag and never submits', async () => {
+    const requests = mockAmazon();
+    const originalFetch = globalThis.fetch;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const response = await originalFetch(url, init);
+        if (url.endsWith('/apks/apk-1')) response.headers.delete('etag');
+        return response;
+      }),
+    );
+    await expect(uploadAmazonRelease({ ...options, submit: true })).rejects.toThrow(/ETag/);
+    expect(requests.some((r) => r.path.endsWith('/replace') || r.path.endsWith('/commit'))).toBe(
+      false,
+    );
+  });
+
+  it('makes connection checks mutually exclusive with uploads before any credential lookup', () => {
+    const execution = spawnSync(
+      process.execPath,
+      ['scripts/upload-amazon-appstore.mjs', '--check-access', '--submit'],
+      { encoding: 'utf8' },
+    );
+    expect(execution.status).toBe(1);
+    expect(execution.stderr).toContain('--check-access cannot be combined');
+  });
+
+  it('verifies a local artifact in dry-run without needing credentials or contacting Amazon', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bookarc-amazon-dry-run-'));
+    try {
+      writeFileSync(join(dir, 'bookarc.apk'), 'apk');
+      writeFileSync(
+        join(dir, 'release.json'),
+        JSON.stringify({
+          channel: 'amazon',
+          packageName: 'com.bookarc.app',
+          versionName: '1.0.0',
+          versionCode: 1,
+          sha256: createHash('sha256').update('apk').digest('hex'),
+        }),
+      );
+      const execution = spawnSync(
+        process.execPath,
+        ['scripts/upload-amazon-appstore.mjs', '--artifact', dir, '--dry-run'],
+        {
+          encoding: 'utf8',
+          env: { ...process.env, AMAZON_CLIENT_ID: 'incomplete', AMAZON_CLIENT_SECRET: '' },
+        },
+      );
+      expect(execution.status, execution.stderr).toBe(0);
+      expect(execution.stdout).toContain('No network requests made');
+      writeFileSync(join(dir, 'bookarc.apk'), 'changed');
+      const corrupted = spawnSync(
+        process.execPath,
+        ['scripts/upload-amazon-appstore.mjs', '--artifact', dir, '--dry-run'],
+        { encoding: 'utf8' },
+      );
+      expect(corrupted.status).toBe(1);
+      expect(corrupted.stderr).toContain('does not match');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -40,7 +40,12 @@ vi.mock('@/utils/misc', () => ({
 }));
 
 // These are transitive imports needed by readerStore
-vi.mock('@/services/nav', () => ({ updateToc: vi.fn() }));
+vi.mock('@/services/nav', () => ({
+  updateToc: vi.fn(),
+  computeBookNav: vi.fn().mockResolvedValue({}),
+  hydrateBookNav: vi.fn(),
+  BOOK_NAV_VERSION: 1,
+}));
 vi.mock('@/utils/book', () => ({
   formatTitle: vi.fn((t: string) => t),
   getMetadataHash: vi.fn(() => 'hash'),
@@ -63,6 +68,69 @@ vi.mock('@/services/opds/pseStream', () => ({
 
 import { useReaderStore } from '@/store/readerStore';
 import { useBookDataStore } from '@/store/bookDataStore';
+import { useLibraryStore } from '@/store/libraryStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { DocumentLoader } from '@/libs/document';
+import type { Book } from '@/types/book';
+import type { EnvConfigType } from '@/services/environment';
+
+describe('opening cloud-restored audiobooks', () => {
+  test.each([
+    { overlay: true, prose: true, audioOnly: false },
+    { overlay: true, prose: false, audioOnly: true },
+    { overlay: false, prose: true, audioOnly: false },
+  ])('recovers audio capabilities from the EPUB: %j', async ({ overlay, prose, audioOnly }) => {
+    const book: Book = {
+      hash: 'restored',
+      format: 'EPUB',
+      title: 'Restored',
+      author: 'Author',
+      createdAt: 1,
+      updatedAt: 2,
+      uploadedAt: 3,
+    };
+    const doc = {
+      metadata: { title: 'Restored', language: 'en' },
+      media: { duration: 96 },
+      sections: [
+        {
+          mediaOverlay: overlay ? { href: 'chapter.smil' } : undefined,
+          createDocument: async () =>
+            new DOMParser().parseFromString(
+              prose ? `<p>${'A sentence of prose. '.repeat(50)}</p>` : '<h1>Chapter 1</h1>',
+              'text/html',
+            ),
+        },
+      ],
+    };
+    vi.mocked(DocumentLoader).mockImplementation(function () {
+      return { open: async () => ({ book: doc, format: 'EPUB' }) } as unknown as DocumentLoader;
+    });
+    const appService = {
+      loadBookContent: vi.fn().mockResolvedValue({ file: new File(['epub'], 'restored.epub') }),
+      loadBookConfig: vi.fn().mockResolvedValue({ viewSettings: {}, booknotes: [] }),
+      loadBookNav: vi.fn().mockResolvedValue(null),
+      saveBookNav: vi.fn().mockResolvedValue(undefined),
+    };
+    useBookDataStore.setState({ booksData: {} });
+    useSettingsStore.setState({ settings: { ...useSettingsStore.getState().settings } });
+    vi.mocked(useLibraryStore.getState().getBookByHash).mockReturnValue(book);
+    await useReaderStore
+      .getState()
+      .initViewState(
+        { getAppService: async () => appService } as unknown as EnvConfigType,
+        'restored',
+        'restored-view',
+      );
+    const restored = useBookDataStore.getState().booksData['restored']!.book;
+    expect(restored).not.toBeNull();
+    if (!restored) throw new Error('Restored book was not loaded');
+    expect(Boolean(restored.hasAudio)).toBe(overlay);
+    expect(Boolean(restored.isAudioOnly)).toBe(audioOnly);
+    expect(restored.audioDuration).toBe(overlay ? 96 : undefined);
+    expect(restored.updatedAt).toBe(2);
+  });
+});
 
 /**
  * Helper to seed a minimal ViewState in the store for a given key.

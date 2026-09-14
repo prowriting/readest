@@ -5,7 +5,9 @@
       "notes": [
         "Fixed the Android Auto issue reported in the previous review: BookArc now appears in Android Auto and supports audiobook browsing and playback.",
         "Fixed play/pause state and sentence highlighting when switching between the car and phone.",
-        "Closing the mini-player now pauses audio; the full-screen down arrow minimizes the player."
+        "Closing the mini-player now pauses audio; the full-screen down arrow minimizes the player.",
+        "Fixed account session renewal so reading progress and library sync continue after extended use.",
+        "Restored audiobook controls for books downloaded from your cloud library and improved sync after clock changes."
       ]
     },
     "0.12.6": {

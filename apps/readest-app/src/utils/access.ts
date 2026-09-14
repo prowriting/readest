@@ -3,6 +3,7 @@ import { UserPlan } from '@/types/quota';
 import { DEFAULT_DAILY_TRANSLATION_QUOTA, DEFAULT_STORAGE_QUOTA } from '@/services/constants';
 import { getDailyUsage } from '@/services/translators/utils';
 import { getRuntimeConfig } from '@/services/runtimeConfig';
+import { getSessionAccessToken } from './authSession';
 
 interface Token {
   plan: UserPlan;
@@ -96,8 +97,7 @@ export const getDailyTranslationPlanData = (token: string) => {
   };
 };
 
-export const getAccessToken = async (): Promise<string | null> =>
-  typeof localStorage !== 'undefined' ? (localStorage.getItem('token') ?? null) : null;
+export const getAccessToken = getSessionAccessToken;
 
 export const getUserID = async (): Promise<string | null> => {
   if (typeof localStorage === 'undefined') return null;

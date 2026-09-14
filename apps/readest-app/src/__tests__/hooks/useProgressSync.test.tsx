@@ -59,7 +59,7 @@ vi.mock('@/store/bookDataStore', () => ({
   useBookDataStore: h.makeStore({
     getConfig: () => h.config,
     setConfig: vi.fn(),
-    getBookData: () => ({ book: h.book }),
+    getBookData: () => ({ book: h.book, bookDoc: {} }),
   }),
 }));
 
@@ -156,6 +156,38 @@ const pushCallCount = () =>
   h.syncConfigsMock.mock.calls.filter((c) => (c as unknown[])[3] === 'push').length;
 
 describe('useProgressSync', () => {
+  test('restores the audio locator even when ebook XPointer conversion fails', async () => {
+    const { getCFIFromXPointer } = await import('@/utils/xcfi');
+    const { useBookDataStore } = await import('@/store/bookDataStore');
+    const setConfig = vi.mocked(useBookDataStore.getState().setConfig);
+    setConfig.mockClear();
+    vi.mocked(getCFIFromXPointer).mockRejectedValueOnce(new Error('Unresolvable ebook position'));
+    const audio = {
+      schemaVersion: 2,
+      editionId: 'h1',
+      updatedAt: 1500,
+      locator: {
+        href: 'audio/chapter.mp3',
+        type: 'audio/mpeg',
+        locations: { fragments: ['t=22'] },
+      },
+    };
+    h.state.syncedConfigs = [
+      {
+        bookHash: 'h1',
+        updatedAt: 2000,
+        location: 'remote-cfi',
+        xpointer: 'unresolvable',
+        mediaOverlayLocation: audio,
+      },
+    ];
+    renderHook(() => useProgressSync('h1-view1'));
+    await advance(0);
+    expect(setConfig).toHaveBeenCalledWith(
+      'h1-view1',
+      expect.objectContaining({ mediaOverlayLocation: audio }),
+    );
+  });
   test('auto-sync push only hits the configs lane; the server piggybacks books.progress', async () => {
     // Issue #4198 used to be fixed by a second syncBooks call from the
     // reader so that other devices' library pull-to-refresh would see fresh

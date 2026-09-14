@@ -26,6 +26,7 @@ import { useSettingsStore } from './settingsStore';
 import { BookData, useBookDataStore } from './bookDataStore';
 import { useLibraryStore } from './libraryStore';
 import { uniqueId } from '@/utils/misc';
+import { detectAudioOnly, hasMediaOverlay } from '@/utils/audiobook';
 
 interface ViewState {
   /* Unique key for each book view */
@@ -185,6 +186,12 @@ export const useReaderStore = create<ReaderStore>((set, get) => ({
           bookDoc = doc.book;
         }
       }
+      // Cloud records and older libraries do not carry import-time audio flags.
+      // Recover them from the downloaded EPUB before choosing player controls.
+      const hasAudio = hasMediaOverlay(bookDoc);
+      book.hasAudio = hasAudio || undefined;
+      book.isAudioOnly = (hasAudio && (await detectAudioOnly(bookDoc))) || undefined;
+      book.audioDuration = (hasAudio && bookDoc.media?.duration) || undefined;
       const config = await appService.loadBookConfig(book, settings);
       // Import annotations from third-party readers on first open
       if (bookDoc.metadata.identifier) {

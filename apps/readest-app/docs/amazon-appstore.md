@@ -46,19 +46,37 @@ certification. The first app cannot be created with the submission API.
 
 ## Subsequent uploads
 
-Create an App Submission API security profile and store `AMAZON_CLIENT_ID`,
-`AMAZON_CLIENT_SECRET` and `AMAZON_APP_ID` in the ignored local env file or CI secrets.
-The API uses the `appstore::apps:readwrite` scope; Play service-account credentials do not work.
+The **BookArc Release Automation** security profile is attached to Amazon's App Submission API.
+On Chris's Mac, its client ID and secret are stored together in the login Keychain under service
+`bookarc.amazon-appstore`, account `com.bookarc.app`. The uploader reads them automatically;
+Chrome and interactive Amazon sign-in are not needed for subsequent releases.
+
+To configure another Mac, create or retrieve credentials under **My Settings → API Access**
+in the Amazon Developer Console and attach the profile to **App Submission API**. Use
+`saveAmazonCredentials({ clientId, clientSecret })` from `scripts/lib/amazon-credentials.mjs`
+with values supplied securely by your credential manager. It passes the secret through stdin
+to macOS Keychain and verifies it was saved. Never put real credentials in source, command
+arguments or shell history. To rotate credentials, save the new pair with the same helper.
+
+For CI, supply **both** `AMAZON_CLIENT_ID` and `AMAZON_CLIENT_SECRET` through CI secrets.
+A complete environment pair takes precedence over Keychain; a partial pair is rejected.
+`AMAZON_APP_ID` defaults to `com.bookarc.app`. The API uses `appstore::apps:readwrite`;
+Play service-account credentials do not work. Keychain is local to this Mac, not the repository.
 
 ```sh
-pnpm upload-amazon-appstore --artifact dist/amazon/0.12.5-12005 --dry-run
-pnpm upload-amazon-appstore --artifact dist/amazon/0.12.5-12005
+pnpm amazon:check
+pnpm upload-amazon-appstore --artifact dist/amazon/<version>-<code> --dry-run
+pnpm upload-amazon-appstore --artifact dist/amazon/<version>-<code>
 # Explicitly submit after upload and validation:
-pnpm upload-amazon-appstore --artifact dist/amazon/0.12.5-12005 --submit
+pnpm upload-amazon-appstore --artifact dist/amazon/<version>-<code> --submit
 ```
 
-Use the actual artifact directory printed by your build. Dry-run verifies local artifact integrity
-without network access. Default upload creates and validates a draft; it does not commit it.
+Replace `<version>-<code>` with the actual artifact directory printed by your build.
+`amazon:check` authenticates and reads the active edit without creating, changing or submitting
+a release. A successful check does not mean the first app is published or ready to upload.
+An app API 404 is reported separately from authentication failure. The first release must still
+be completed in the console. Dry-run verifies local artifact integrity without network access
+or Keychain access. Default upload creates and validates a draft; it does not commit it.
 After reviewing that draft, submit it through the console. Do not rerun the upload command to
 submit the same already-uploaded version. `--submit` is for a fresh upload that should be submitted
 immediately after validation.
@@ -89,5 +107,6 @@ Fire OS 6 and earlier are excluded by the existing minimum SDK 26. This work doe
 that every Fire OS 7/8 model passes: exclude any failing model until its compatibility issue is fixed.
 
 References: [API overview](https://developer.amazon.com/docs/app-submission-api/overview.html),
+[API authentication](https://developer.amazon.com/docs/app-submission-api/auth.html),
 [API reference](https://developer.amazon.com/docs/app-submission-api/appsub-api-ref.html),
 [presubmission checklist](https://developer.amazon.com/docs/app-submission/presubmission-checklist.html).
