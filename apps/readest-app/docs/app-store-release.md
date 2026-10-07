@@ -24,6 +24,12 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
   trademarks), categories (Books / Entertainment), copyright, age rating (`rating_config.json`,
   all NONE → 4+), review notes template. Upload with `bundle exec fastlane ios upload_metadata`.
 
+- **Build 0.12.7 uploaded to App Store Connect** on 2026-10-07 (delivery
+  d00ba756-2207-4e36-b908-5b968e5f5b79) via `pnpm release-ios-appstore`, signed with the
+  CarPlay-enabled distribution profile; `PrivacyInfo.xcprivacy` verified at the bundle root of the
+  exported IPA. `.env.ios-appstore.local` (gitignored) holds `APPLE_API_KEY`, `APPLE_API_ISSUER`
+  and `APPLE_API_KEY_PATH`.
+
 ## Account holder actions (cannot be scripted)
 
 1. ~~Accept the updated Apple Developer Program License Agreement~~ — done: the agreement
