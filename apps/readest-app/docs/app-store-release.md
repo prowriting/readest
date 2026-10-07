@@ -35,8 +35,8 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
    Sign in with Apple. Demo credential files stay empty. Regenerate codes from
    Dashboard → Gift codes if they get used up; a batch test code is the only way to deliver an
    audiobook without the author's audiobook add-on.
-3. **App privacy labels** (App Store Connect → App Privacy; not settable via fastlane). Answers
-   consistent with `PrivacyInfo.xcprivacy`:
+3. ~~App privacy labels~~ — done 2026-10-07 in App Store Connect. The answers entered, kept here
+   so `PrivacyInfo.xcprivacy` and the labels stay in sync:
    - Data collected, linked to the user, not used for tracking:
      - Contact info → Email address (app functionality)
      - Contact info → Name (app functionality; from Sign in with Apple / Google when provided)
