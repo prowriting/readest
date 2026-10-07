@@ -26,8 +26,9 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
 
 ## Account holder actions (cannot be scripted)
 
-1. **Accept the updated Apple Developer Program License Agreement** in App Store Connect →
-   Agreements. Uploads are refused until the Account Holder accepts it.
+1. ~~Accept the updated Apple Developer Program License Agreement~~ — done: the agreement
+   issued 2026-08-18 shows as accepted on 2026-10-01 (developer.apple.com/account → Agreements).
+   Any future update appears as a banner on that page and under App Store Connect → Agreements.
 2. **Create the App Review demo account** on prod (`reader.bookarc.app`) with one claimed book and
    one claimed audiobook, generate three single-use claim codes from the author dashboard, then
    fill `fastlane/metadata/ios/review_information/demo_user.txt`, `demo_password.txt` and the
