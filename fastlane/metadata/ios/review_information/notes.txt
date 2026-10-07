@@ -1,15 +1,17 @@
 BookArc is a free reading app. Readers receive books and audiobooks directly from authors using claim codes, and can also read public-domain classics from the built-in Discover catalog. There are no in-app purchases, subscriptions, or ads.
 
+No sign-in is required to review the app. Every feature below works without an account. If you want to try Sign in with Apple, any Apple account works; it creates a BookArc account on the spot (no demo credentials are needed).
+
 How to test:
-1. Sign in with the demo account above, or tap "Sign in with Apple" (the app supports Sign in with Apple natively).
-2. Library tab: the demo account already has "Pride and Prejudice" (ebook) and "Moby-Dick" (audiobook) claimed.
-3. Claim tab: enter the claim code below to receive an additional book from an author. Each code is single-use; several are provided.
-4. Discover tab: browse and open any free classic without an account.
-5. Open "Moby-Dick" from the Library tab to test audiobook playback: background audio, the lock screen, and CarPlay (audio app). In the CarPlay simulator the app lists the account's audiobooks and plays them.
+1. Claim tab: enter one of the claim codes below. Each code is single-use; several are provided. The book is added to your library on this device.
+2. Library tab: open the claimed book to read it.
+3. Discover tab: browse and open any free classic.
+4. Audiobook: claim the audiobook code below, then open "Moby-Dick" from the Library tab to test playback: background audio, the lock screen, and CarPlay (audio app). In the CarPlay simulator the app lists the audiobook and plays it.
+5. Optional: Sign in with Apple from Library > "Sign in to sync your library". Account deletion is under Library > menu > Account > Delete Account; it removes the account and all cloud data and revokes the Sign in with Apple token.
 
-Demo claim codes (single use, each delivers "Pride and Prejudice"): 3QF7ZHZ, SJE7EPT, 36D7KY6
-
-Account deletion: Library > menu > Account > Delete Account. This removes the account and all cloud data and revokes the Sign in with Apple token.
+Claim codes (single use):
+- "Pride and Prejudice" (ebook): 3QF7ZHZ, SJE7EPT, 36D7KY6
+- "Moby-Dick" (audiobook): 9R8EBWR
 
 Privacy policy: https://bookarc.app/reader-privacy
 Terms: https://bookarc.app/reader-terms
