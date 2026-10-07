@@ -30,6 +30,12 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
   exported IPA. `.env.ios-appstore.local` (gitignored) holds `APPLE_API_KEY`, `APPLE_API_ISSUER`
   and `APPLE_API_KEY_PATH`.
 
+- **Listing pushed** 2026-10-07 with `fastlane ios upload_metadata`: text, keywords, categories,
+  review notes, age rating (full current declaration schema in `rating_config.json`; the API
+  rejects retired keys such as `seventeenPlus`) and the 10 screenshots. Build 0.12.7 processed
+  (VALID). Note: the App Store Connect version record is still "1.0" with no build attached; the
+  version string must match the build's `CFBundleShortVersionString` before it can be attached.
+
 ## Account holder actions (cannot be scripted)
 
 1. ~~Accept the updated Apple Developer Program License Agreement~~ — done: the agreement
