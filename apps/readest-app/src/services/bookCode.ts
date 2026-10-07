@@ -43,6 +43,10 @@ export async function fetchBookByCode(code: string): Promise<BookCodeResult> {
     const text = await res.text().catch(() => '');
     throw new BookCodeError(res.status, text || `HTTP ${res.status}`);
   }
+  // 202: the author's watermarked copy is still being prepared; the caller should retry.
+  if (res.status === 202) {
+    throw new BookCodeError(202, 'Book is still being prepared.');
+  }
   const result = (await res.json()) as BookCodeResult;
   if (result.book.coverImageUrl) {
     result.book.coverImageUrl = new URL(result.book.coverImageUrl, getAuthorBaseUrl()).toString();

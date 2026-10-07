@@ -14,6 +14,7 @@ const INVALID_CLAIM_CODE_CHARACTER = /[^a-hj-km-np-zA-HJ-KM-NP-Z2-9]/g;
 // Mirrors the deep-link claim error mapping in useOpenWithCode so manual and
 // link-driven claims surface the same messages.
 const ERROR_MESSAGES: Record<number, string> = {
+  202: 'Your copy is being prepared — try again in a moment.',
   404: "That code wasn't found — check for typos",
   409: 'This gift has already been claimed',
   410: 'This gift has expired',

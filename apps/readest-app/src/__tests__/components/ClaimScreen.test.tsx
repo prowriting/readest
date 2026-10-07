@@ -83,6 +83,17 @@ describe('ClaimScreen', () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  it('tells the reader to retry shortly while the gift copy is still being prepared', async () => {
+    fetchBookByCode.mockRejectedValueOnce(new FakeBookCodeError(202, 'preparing'));
+
+    render(<ClaimScreen />);
+    fireEvent.change(codeInput(), { target: { value: 'ABCDEFG' } });
+    fireEvent.click(claimButton());
+
+    expect(await screen.findByText(/being prepared/i)).toBeTruthy();
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
   it('shows an "already claimed" error for a used code', async () => {
     fetchBookByCode.mockRejectedValueOnce(new FakeBookCodeError(409, 'used'));
 

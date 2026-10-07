@@ -41,6 +41,22 @@ describe('book code service', () => {
     expect(result.book.coverImageUrl).toBe('https://author.bookarc.test/covers/books/cover.png');
   });
 
+  it('reports a 202 "still being prepared" response as a retryable BookCodeError', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({ retryAfterSeconds: 30, message: 'Book is still being prepared.' }),
+      } as Response),
+    );
+
+    await expect(fetchBookByCode('FBC83A2')).rejects.toMatchObject({
+      name: 'BookCodeError',
+      statusCode: 202,
+    });
+  });
+
   it('preserves an absolute claim cover URL', async () => {
     vi.stubGlobal(
       'fetch',
