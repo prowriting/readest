@@ -29,11 +29,12 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
 1. ~~Accept the updated Apple Developer Program License Agreement~~ — done: the agreement
    issued 2026-08-18 shows as accepted on 2026-10-01 (developer.apple.com/account → Agreements).
    Any future update appears as a banner on that page and under App Store Connect → Agreements.
-2. **Create the App Review demo account** on prod (`reader.bookarc.app`) with one claimed book and
-   one claimed audiobook, generate three single-use claim codes from the author dashboard, then
-   fill `fastlane/metadata/ios/review_information/demo_user.txt`, `demo_password.txt` and the
-   `<CODE-n>` placeholders in `notes.txt`. Do not commit the password; deliver reads the files
-   locally. Add a phone number to `phone_number.txt` (App Review requires one).
+2. ~~Create the App Review demo account~~ — decided 2026-10-07: review runs without sign-in.
+   The notes carry single-use claim codes (Pride and Prejudice ebook ×3, Moby-Dick audiobook
+   test code) from the "BookArc for Readers" pen name; reviewers may use any Apple account for
+   Sign in with Apple. Demo credential files stay empty. Regenerate codes from
+   Dashboard → Gift codes if they get used up; a batch test code is the only way to deliver an
+   audiobook without the author's audiobook add-on.
 3. **App privacy labels** (App Store Connect → App Privacy; not settable via fastlane). Answers
    consistent with `PrivacyInfo.xcprivacy`:
    - Data collected, linked to the user, not used for tracking:
