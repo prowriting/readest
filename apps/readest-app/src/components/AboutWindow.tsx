@@ -7,7 +7,6 @@ import { parseWebViewInfo } from '@/utils/ua';
 import { getAppVersion } from '@/utils/version';
 import LegalLinks from './LegalLinks';
 import Dialog from './Dialog';
-import Link from './Link';
 
 export const setAboutDialogVisible = (visible: boolean) => {
   const dialog = document.getElementById('about_window');
@@ -128,28 +127,6 @@ export const AboutWindow = () => {
           >
             <p className='text-neutral-content text-sm'>
               © {new Date().getFullYear()} Orpheus Technology Ltd. All rights reserved.
-            </p>
-
-            <p className='text-neutral-content text-xs'>
-              This software is licensed under the{' '}
-              <Link
-                href='https://www.gnu.org/licenses/agpl-3.0.html'
-                className='text-blue-500 underline'
-              >
-                GNU Affero General Public License v3.0
-              </Link>
-              . You are free to use, modify, and distribute this software under the terms of the
-              AGPL v3 license. Please see the license for more details.
-            </p>
-            <p className='text-neutral-content text-xs'>
-              Source code is available at{' '}
-              <Link
-                href='https://github.com/prowriting/readest'
-                className='text-blue-500 underline'
-              >
-                GitHub
-              </Link>
-              .
             </p>
 
             <LegalLinks />

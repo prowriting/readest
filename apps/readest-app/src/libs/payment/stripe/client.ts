@@ -1,85 +1,19 @@
-import posthog from 'posthog-js';
 import { isAmazonDistribution } from '@/services/distribution';
 import Stripe from 'stripe';
-import { loadStripe, Stripe as StripeClient } from '@stripe/stripe-js';
 import { getAPIBaseUrl, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { getAccessToken } from '@/utils/access';
 import { StripeProductMetadata } from '@/types/payment';
-import { AvailablePlan, PlanType } from '@/types/quota';
+import { AvailablePlan } from '@/types/quota';
 
-let stripePromise: Promise<StripeClient | null>;
-
-export const getStripe = () => {
-  if (isAmazonDistribution()) return Promise.resolve(null);
-  if (!stripePromise) {
-    const publishableKey =
-      process.env.NODE_ENV === 'production'
-        ? process.env['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_BASE64']
-        : process.env['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_DEV_BASE64'];
-    stripePromise = loadStripe(atob(publishableKey!));
-  }
-  return stripePromise;
-};
-
-const WEB_STRIPE_PLANS_URL = `${getAPIBaseUrl()}/stripe/plans`;
-const WEB_STRIPE_CHECKOUT_URL = `${getAPIBaseUrl()}/stripe/checkout`;
+// Checkout was removed: the reader apps sell nothing. What remains is the billing portal for
+// accounts that already hold a plan, and the success page used by the legacy webhook flow.
 const WEB_STRIPE_PORTAL_URL = `${getAPIBaseUrl()}/stripe/portal`;
 const SUBSCRIPTION_SUCCESS_PATH = '/user/subscription/success';
-
-export interface StripeCheckoutResponse {
-  sessionId?: string;
-  clientSecret?: string;
-  url?: string;
-}
 
 export type StripeAvailablePlan = AvailablePlan & {
   metadata?: StripeProductMetadata;
   product?: Stripe.Product;
-};
-
-export const fetchStripePlans = async () => {
-  if (isAmazonDistribution()) return [];
-  const response = await fetch(WEB_STRIPE_PLANS_URL);
-  const data = await response.json();
-  return data && Array.isArray(data) ? data : [];
-};
-
-export const createStripeCheckoutSession = async (
-  productId: string,
-  planType: PlanType = 'subscription',
-): Promise<StripeCheckoutResponse> => {
-  if (isAmazonDistribution()) throw new Error('Purchases are disabled in the Amazon edition.');
-  const token = await getAccessToken();
-  const isEmbeddedCheckout = isTauriAppPlatform();
-
-  const response = await fetch(WEB_STRIPE_CHECKOUT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ priceId: productId, planType, embedded: isEmbeddedCheckout }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create Stripe checkout session');
-  }
-
-  return response.json();
-};
-
-export const redirectToStripeCheckout = async (url?: string): Promise<void> => {
-  if (isAmazonDistribution()) return;
-  if (url) {
-    if (isWebAppPlatform()) {
-      window.location.href = url;
-    } else if (isTauriAppPlatform()) {
-      await openUrl(url);
-    }
-  } else {
-    throw new Error('No checkout URL returned from the Stripe API');
-  }
 };
 
 export const createStripePortalSession = async () => {
@@ -110,11 +44,6 @@ export const redirectToStripePortal = async (url: string): Promise<void> => {
   } else if (isTauriAppPlatform()) {
     await openUrl(url);
   }
-};
-
-export const handleStripeCheckoutError = (error: string) => {
-  console.error(error);
-  posthog.capture('checkout_error', { error });
 };
 
 export const getSubscriptionSuccessUrl = (sessionId: string) => {

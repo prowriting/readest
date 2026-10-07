@@ -8,17 +8,27 @@
     <array>
       <string>audio</string>
     </array>
-    <!-- CarPlay audio app: only the CarPlay template scene adopts the scene
-         lifecycle; the iPhone app keeps its AppDelegate flow. The delegate
-         class lives in the native-tts plugin package so all CarPlay code is
-         tracked (the generated Xcode project is not). Requires the CarPlay
-         audio entitlement (com.apple.developer.carplay-audio) to activate. -->
+    <!-- Declaring CarPlay opts the entire app into the scene lifecycle.
+         The device delegate attaches Tauri's existing reader window and
+         forwards lifecycle/link events to its AppDelegate. Both delegates
+         live in the tracked native plugin, not the generated Xcode project. -->
     <key>UIApplicationSceneManifest</key>
     <dict>
       <key>UIApplicationSupportsMultipleScenes</key>
       <true/>
       <key>UISceneConfigurations</key>
       <dict>
+        <key>UIWindowSceneSessionRoleApplication</key>
+        <array>
+          <dict>
+            <key>UISceneClassName</key>
+            <string>UIWindowScene</string>
+            <key>UISceneConfigurationName</key>
+            <string>Bookarc Reader</string>
+            <key>UISceneDelegateClassName</key>
+            <string>tauri_plugin_native_tts.ReaderWindowSceneDelegate</string>
+          </dict>
+        </array>
         <key>CPTemplateApplicationSceneSessionRoleApplication</key>
         <array>
           <dict>
@@ -77,7 +87,7 @@
         <string>Viewer</string>
         <key>LSItemContentTypes</key>
         <array>
-          <string>com.readest.fb2</string>
+          <string>com.bookarc.fb2</string>
         </array>
       </dict>
 
@@ -90,7 +100,7 @@
         <string>Viewer</string>
         <key>LSItemContentTypes</key>
         <array>
-          <string>com.readest.cbz</string>
+          <string>com.bookarc.cbz</string>
         </array>
       </dict>
 
@@ -181,7 +191,7 @@
 
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.readest.fb2</string>
+        <string>com.bookarc.fb2</string>
         <key>UTTypeDescription</key>
         <string>FB2 Document</string>
         <key>UTTypeConformsTo</key>
@@ -201,7 +211,7 @@
 
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.readest.cbz</string>
+        <string>com.bookarc.cbz</string>
         <key>UTTypeDescription</key>
         <string>CBZ Archive</string>
         <key>UTTypeConformsTo</key>
@@ -307,7 +317,7 @@
 
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.readest.fb2</string>
+        <string>com.bookarc.fb2</string>
         <key>UTTypeDescription</key>
         <string>FB2 Document</string>
         <key>UTTypeConformsTo</key>
@@ -327,7 +337,7 @@
 
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.readest.cbz</string>
+        <string>com.bookarc.cbz</string>
         <key>UTTypeDescription</key>
         <string>CBZ Archive</string>
         <key>UTTypeConformsTo</key>
