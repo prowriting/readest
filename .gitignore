@@ -54,3 +54,6 @@ result*
 .claude/worktrees
 .claude/settings.local.json
 
+
+# App Review demo credentials are filled locally, never committed
+fastlane/metadata/ios/review_information/demo_password.txt

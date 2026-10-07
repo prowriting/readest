@@ -1,0 +1,16 @@
+BookArc is a free reading app. Readers receive books and audiobooks directly from authors using claim codes, and can also read public-domain classics from the built-in Discover catalog. There are no in-app purchases, subscriptions, or ads.
+
+How to test:
+1. Sign in with the demo account above, or tap "Sign in with Apple" (the app supports Sign in with Apple natively).
+2. Library tab: the demo account already has a book and an audiobook claimed.
+3. Claim tab: enter the claim code below to receive an additional book from an author. Each code is single-use; several are provided.
+4. Discover tab: browse and open any free classic without an account.
+5. Audiobook playback supports background audio, the lock screen and CarPlay (audio app). In the CarPlay simulator the app shows the account's audiobooks and plays them.
+
+Demo claim codes (single use): <CODE-1>, <CODE-2>, <CODE-3>
+
+Account deletion: Library > menu > Account > Delete Account. This removes the account and all cloud data and revokes the Sign in with Apple token.
+
+Privacy policy: https://bookarc.app/reader-privacy
+Terms: https://bookarc.app/reader-terms
+Support: support@bookarc.app

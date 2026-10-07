@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Prepare the generated iOS project for a valid App Store build:
 #   1. Re-apply the Sign in with Apple, universal-links, and CarPlay audio entitlements.
-#   2. Strip the alpha channel from the app icons (App Store rejects icons with alpha).
+#   2. Install the privacy manifest (src-tauri/PrivacyInfo.xcprivacy) into the iOS target.
+#   3. Strip the alpha channel from the app icons (App Store rejects icons with alpha).
 #
 # `src-tauri/gen` is gitignored and regenerated per machine, and `tauri ios init` writes
 # an EMPTY entitlements file (and `tauri icon` generates RGBA icons). So this must run AFTER
@@ -43,6 +44,11 @@ PLIST
 
 echo "Applied Sign in with Apple + associated-domains + CarPlay audio entitlements to:"
 echo "  $ENTITLEMENTS"
+
+# App Store uploads need a privacy manifest for the required-reason APIs the binary uses
+# (ITMS-91053). The tracked source is src-tauri/PrivacyInfo.xcprivacy; this copies it into the
+# generated project and registers it as a resource of the iOS target.
+node "$APP_ROOT/scripts/ios/add-privacy-manifest.mjs"
 
 # App Store Connect rejects app icons that carry an alpha channel, but `tauri icon` /
 # `tauri ios init` generate them from an RGBA source. The BookArc icon is fully opaque, so

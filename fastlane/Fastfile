@@ -65,6 +65,7 @@ platform :ios do
       app_identifier: "com.bookarc.app",
       metadata_path: "./fastlane/metadata/ios",
       screenshots_path: "./fastlane/screenshots",
+      app_rating_config_path: "./fastlane/metadata/ios/rating_config.json",
       skip_binary_upload: true,
       overwrite_screenshots: true,
       submit_for_review: false,
