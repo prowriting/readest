@@ -2,12 +2,12 @@ BookArc is a free reading app. Readers receive books and audiobooks directly fro
 
 How to test:
 1. Sign in with the demo account above, or tap "Sign in with Apple" (the app supports Sign in with Apple natively).
-2. Library tab: the demo account already has a book and an audiobook claimed.
+2. Library tab: the demo account already has "Pride and Prejudice" claimed.
 3. Claim tab: enter the claim code below to receive an additional book from an author. Each code is single-use; several are provided.
 4. Discover tab: browse and open any free classic without an account.
-5. Audiobook playback supports background audio, the lock screen and CarPlay (audio app). In the CarPlay simulator the app shows the account's audiobooks and plays them.
+5. Audiobook playback supports background audio, the lock screen and CarPlay (audio app). Audiobook delivery is in a limited rollout; the demo account's audiobook ("Moby-Dick") is available if it appears in the Library tab, and CarPlay then lists it.
 
-Demo claim codes (single use): <CODE-1>, <CODE-2>, <CODE-3>
+Demo claim codes (single use, each delivers "Pride and Prejudice"): 3QF7ZHZ, SJE7EPT, 36D7KY6
 
 Account deletion: Library > menu > Account > Delete Account. This removes the account and all cloud data and revokes the Sign in with Apple token.
 
