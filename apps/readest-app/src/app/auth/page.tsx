@@ -21,6 +21,7 @@ import { start, cancel, onUrl, onInvalidUrl } from '@fabianlars/tauri-plugin-oau
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core';
 import { handleAuthCallback } from '@/helpers/auth';
+import { exchangeAppleCredential } from '@/helpers/appleTokenExchange';
 import { getUserProfilePlan } from '@/utils/access';
 import { eventDispatcher } from '@/utils/event';
 import { getAppleIdAuth, Scope } from './utils/appleIdAuth';
@@ -122,33 +123,33 @@ export default function AuthPage() {
   // Tauri: Apple native token exchange
   const tauriSignInApple = async () => {
     const request = { scope: ['fullName', 'email'] as Scope[] };
-    if (appService?.isIOSApp || USE_APPLE_SIGN_IN) {
-      const appleAuthResponse = await getAppleIdAuth(request);
-      if (appleAuthResponse.identityToken) {
-        const resp = await fetch(`${API_BASE}/auth/apple/token`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idToken: appleAuthResponse.identityToken,
-            authorizationCode: appleAuthResponse.authorizationCode,
-            marketingOptIn: isSignUp && marketingOptIn,
-            marketingPolicyVersion: marketingPolicy?.policyVersion,
-            marketingWordingVersion: marketingPolicy?.wordingVersion,
-          }),
-        });
-        if (resp.ok) {
-          const data = (await resp.json()) as {
-            accessToken: string;
-            refreshToken: string;
-            user: AuthUser;
-          };
-          localStorage.setItem('refresh_token', data.refreshToken);
-          login(data.accessToken, data.user);
-          router.push('/library');
-        }
-      }
-    } else {
+    if (!(appService?.isIOSApp || USE_APPLE_SIGN_IN)) {
       tauriSignIn('apple');
+      return;
+    }
+    setFormError(null);
+    setFormBusy(true);
+    try {
+      const appleAuthResponse = await getAppleIdAuth(request);
+      const result = await exchangeAppleCredential(API_BASE, appleAuthResponse, {
+        marketingOptIn: isSignUp && marketingOptIn,
+        marketingPolicyVersion: marketingPolicy?.policyVersion,
+        marketingWordingVersion: marketingPolicy?.wordingVersion,
+      });
+      if (!result.ok) {
+        console.error('Apple sign-in exchange failed', result);
+        setFormError(result.error);
+        return;
+      }
+      localStorage.setItem('refresh_token', result.session.refreshToken);
+      login(result.session.accessToken, result.session.user);
+      router.push('/library');
+    } catch (err) {
+      // Native sheet dismissed or failed (e.g. ASAuthorizationError), or network failure.
+      console.error('Apple sign-in failed', err);
+      setFormError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setFormBusy(false);
     }
   };
 
