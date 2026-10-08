@@ -138,7 +138,7 @@ export const BookCodeDialog = () => {
         book.analyticsStatus = 'ask';
       }
       setLibrary(library);
-      void appService!.saveLibraryBooks(library);
+      await appService!.saveLibraryBooks(library);
       void confirmGiftRedemption(result!.downloadRef);
     }
     return book;

@@ -1,7 +1,16 @@
 'use client';
 
-import { createContext, useState, useContext, useCallback, useMemo, ReactNode } from 'react';
+import {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+  useMemo,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { getAPIBaseUrl } from '@/services/environment';
+import { AUTH_SESSION_CHANGED, clearAuthSession, refreshAuthSession } from '@/utils/authSession';
 
 export interface AuthUser {
   id: string;
@@ -34,6 +43,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return null;
   });
 
+  useEffect(() => {
+    const updateSession = () => {
+      setToken(localStorage.getItem('token'));
+      const raw = localStorage.getItem('user');
+      setUser(raw ? (JSON.parse(raw) as AuthUser) : null);
+    };
+    window.addEventListener(AUTH_SESSION_CHANGED, updateSession);
+    window.addEventListener('storage', updateSession);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_CHANGED, updateSession);
+      window.removeEventListener('storage', updateSession);
+    };
+  }, []);
+
   const login = useCallback((newToken: string, newUser: AuthUser) => {
     setToken(newToken);
     setUser(newUser);
@@ -43,13 +66,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     const storedRefresh = localStorage.getItem('refresh_token');
-    const currentToken = token;
+    const currentToken = localStorage.getItem('token');
     // Clear the local session first so logout always takes effect, even if the
     // server call hangs or is unreachable (e.g. a cold-starting API). Otherwise the
     // user gets navigated away while still signed in locally.
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    clearAuthSession();
     setToken(null);
     setUser(null);
     // Best-effort server-side token revocation — must not block or reverse logout.
@@ -65,35 +86,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       /* best-effort */
     }
-  }, [token]);
+  }, []);
 
   const refresh = useCallback(async () => {
-    const storedRefresh = localStorage.getItem('refresh_token');
-    if (!storedRefresh) return;
     try {
-      const resp = await fetch(`${getAPIBaseUrl()}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: storedRefresh }),
-      });
-      if (!resp.ok) {
-        await logout();
-        return;
-      }
-      const data = (await resp.json()) as {
-        accessToken: string;
-        refreshToken: string;
-        user: AuthUser;
-      };
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('refresh_token', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setToken(data.accessToken);
-      setUser(data.user);
+      await refreshAuthSession();
     } catch {
       /* silent */
     }
-  }, [logout]);
+  }, []);
 
   const value = useMemo(
     () => ({ token, user, login, logout, refresh }),

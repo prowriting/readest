@@ -20,7 +20,7 @@ import SeeAllOverlay from './components/SeeAllOverlay';
 const DiscoverPage = () => {
   const _ = useTranslation();
   const { appService } = useEnv();
-  const { safeAreaInsets: insets } = useThemeStore();
+  const { safeAreaInsets: insets, statusBarHeight } = useThemeStore();
   useTheme({ systemUIVisible: true, appThemeColor: 'base-200' });
   useLibrary();
   const { pullLibrary } = useBooksSync();
@@ -39,7 +39,12 @@ const DiscoverPage = () => {
     >
       {/* DiscoverScreen stays mounted under the overlay so its scroll position is
           preserved when the See-all overlay is dismissed (SA-1). */}
-      <div className='min-h-0 flex-1 overflow-y-auto' style={{ paddingTop: `${insets.top}px` }}>
+      <div
+        className='min-h-0 flex-1 overflow-y-auto'
+        style={{
+          paddingTop: `${appService.hasSafeAreaInset ? Math.max(insets.top, statusBarHeight) : insets.top}px`,
+        }}
+      >
         <DiscoverScreen onOpenBook={setSelectedBook} onSeeAll={setSeeAllRow} />
       </div>
       {/* The See-all overlay is a clean drill-in: the tab bar is hidden while it

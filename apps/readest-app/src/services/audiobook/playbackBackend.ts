@@ -1,4 +1,5 @@
 import { addPluginListener, invoke, type PluginListener } from '@tauri-apps/api/core';
+import { type as osType } from '@tauri-apps/plugin-os';
 import {
   createMediaOverlayLocation,
   resolveMediaOverlayLocation,
@@ -6,7 +7,6 @@ import {
 import { isTauriAppPlatform } from '@/services/environment';
 import type { MediaOverlayLocation } from '@/types/book';
 import type { MediaOverlayEngine } from '@/types/mediaOverlay';
-import { getOSPlatform } from '@/utils/misc';
 
 export type AudiobookPlaybackState =
   | 'loading'
@@ -353,6 +353,8 @@ export const createWebAudiobookPlaybackBackend = (
 export const createAudiobookPlaybackBackend = (
   webOptions?: WebAudiobookPlaybackBackendOptions,
 ): AudiobookPlaybackBackend =>
-  isTauriAppPlatform() && ['android', 'ios'].includes(getOSPlatform())
+  // iPadOS can advertise a Macintosh user agent. Playback ownership must use
+  // the native platform, otherwise the web and system players can disagree.
+  isTauriAppPlatform() && ['android', 'ios'].includes(osType())
     ? nativeBackend
     : new WebAudiobookPlaybackBackend(webOptions);

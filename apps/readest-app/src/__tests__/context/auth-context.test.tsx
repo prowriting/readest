@@ -152,3 +152,67 @@ describe('AuthContext logout', () => {
     expect(auth.user).toBeNull();
   });
 });
+
+describe('AuthContext automatic session refresh', () => {
+  beforeEach(() => window.localStorage.clear());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  test('updates the signed-in context when a sync request rotates the token', async () => {
+    const expired = `header.${btoa(JSON.stringify({ exp: 1 }))}.signature`;
+    const next = `header.${btoa(JSON.stringify({ exp: Date.now() / 1000 + 3600 }))}.signature`;
+    const user = { id: 'u1', email: 'a@b.co', plan: 'free', createdAt: '2026-01-01' };
+    localStorage.setItem('token', expired);
+    localStorage.setItem('refresh_token', 'refresh-before');
+    localStorage.setItem('user', JSON.stringify(user));
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json({ accessToken: next, refreshToken: 'refresh-after', user }),
+        ),
+    );
+    let auth!: ReturnType<typeof useAuth>;
+    function Probe() {
+      auth = useAuth();
+      return null;
+    }
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    const { getAccessToken } = await import('@/utils/access');
+    await act(async () => {
+      expect(await getAccessToken()).toBe(next);
+    });
+    expect(auth.token).toBe(next);
+    expect(auth.user?.id).toBe('u1');
+  });
+
+  test('a rejected automatic refresh also removes the misleading signed-in UI state', async () => {
+    localStorage.setItem('token', `header.${btoa(JSON.stringify({ exp: 1 }))}.signature`);
+    localStorage.setItem('refresh_token', 'revoked');
+    localStorage.setItem('user', JSON.stringify({ id: 'u1', email: 'a@b.co' }));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 401 })));
+    let auth!: ReturnType<typeof useAuth>;
+    function Probe() {
+      auth = useAuth();
+      return null;
+    }
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    const { getAccessToken } = await import('@/utils/access');
+    await act(async () => {
+      expect(await getAccessToken()).toBeNull();
+    });
+    expect(auth.token).toBeNull();
+    expect(auth.user).toBeNull();
+  });
+});

@@ -1,8 +1,81 @@
 import XCTest
 import AVFoundation
 import MediaPlayer
+import UIKit
+import WebKit
 
 @testable import tauri_plugin_native_tts
+
+final class ReaderWindowSceneRegistrationTests: XCTestCase {
+  func testReaderFillsItsContainerAndResizesWithoutFlexibleMargins() {
+    let container = UIView(frame: CGRect(x: 0, y: 0, width: 820, height: 1180))
+    let webView = WKWebView(frame: .zero)
+    // Wry's legacy mask distributes growth into margins when a scene starts
+    // with zero bounds. This produced a tiny, offset reader on the iPad.
+    webView.autoresizingMask = UIView.AutoresizingMask(rawValue: 31)
+    container.addSubview(webView)
+    NativeTTSPlugin().load(webview: webView)
+    XCTAssertEqual(webView.frame, container.bounds)
+    XCTAssertEqual(webView.autoresizingMask, [.flexibleWidth, .flexibleHeight])
+    container.frame = CGRect(x: 0, y: 0, width: 1180, height: 820)
+    container.layoutIfNeeded()
+    XCTAssertEqual(webView.frame, container.bounds)
+  }
+
+  func testWebViewRegistrationBeforeWindowAttachmentDoesNotLoseTheReader() {
+    let webView = WKWebView()
+    NativeTTSPlugin().load(webview: webView)
+    XCTAssertNil(ReaderWindowSceneDelegate.findReaderWindow(in: []))
+
+    let reader = UIWindow()
+    reader.addSubview(webView)
+    XCTAssertTrue(ReaderWindowSceneDelegate.findReaderWindow(in: []) === reader)
+    webView.removeFromSuperview()
+    XCTAssertNil(ReaderWindowSceneDelegate.findReaderWindow(in: []))
+  }
+
+  func testPluginHandsOffTheReaderWindowEvenWhenUIKitDoesNotEnumerateIt() {
+    let reader = UIWindow()
+    let controller = UIViewController()
+    controller.loadViewIfNeeded()
+    let webView = WKWebView()
+    controller.view.addSubview(webView)
+    reader.rootViewController = controller
+    reader.addSubview(controller.view)
+    let plugin = NativeTTSPlugin()
+    plugin.load(webview: webView)
+
+    // Scene-based UIApplication.windows excludes Tao's unattached window.
+    XCTAssertTrue(ReaderWindowSceneDelegate.findReaderWindow(in: []) === reader)
+  }
+
+  func testFindsTheExistingReaderWithoutChoosingAnOverlayWindowOrCreatingAWebView() {
+    let overlay = UIWindow()
+    overlay.rootViewController = UIViewController()
+    overlay.rootViewController?.loadViewIfNeeded()
+    let reader = UIWindow()
+    let controller = UIViewController()
+    controller.loadViewIfNeeded()
+    let container = UIView()
+    let webView = WKWebView()
+    container.addSubview(webView)
+    controller.view.addSubview(container)
+    reader.rootViewController = controller
+
+    XCTAssertTrue(ReaderWindowSceneDelegate.findReaderWindow(in: [overlay, reader]) === reader)
+    XCTAssertTrue(reader.rootViewController === controller)
+    XCTAssertTrue(webView.superview === container)
+    XCTAssertNil(ReaderWindowSceneDelegate.findReaderWindow(in: [overlay]))
+    XCTAssertNil(ReaderWindowSceneDelegate.findReaderWindow(in: []))
+  }
+
+  func testDeviceSceneDelegateCanBeInstantiatedByUIKitFromThePlistName() throws {
+    let delegateClass = try XCTUnwrap(
+      NSClassFromString("tauri_plugin_native_tts.ReaderWindowSceneDelegate") as? UIResponder.Type,
+      "The device scene must have a linked delegate, not just a plist entry")
+    XCTAssertNotNil(delegateClass.init() as? UIWindowSceneDelegate)
+  }
+}
 
 @available(iOS 14.0, *)
 private final class FakeAudiobookAVPlayer: AudiobookAVPlayer {
@@ -46,6 +119,31 @@ private final class FakeAudiobookAVPlayer: AudiobookAVPlayer {
 
 @available(iOS 14.0, *)
 final class AudiobookCarPlayerCommandTests: XCTestCase {
+  func testNativeRelativeSeekingPreservesPauseAndCanResumeAtTheNewPosition() throws {
+    let fixture = try makePlayer(bookId: "paused-seek", durationMs: 60_000)
+    defer { fixture.cleanup() }
+    _ = fixture.player.control(
+      action: "play", bookId: "paused-seek", location: nil, chapterIndex: nil,
+      offsetMs: nil, rate: nil, volume: nil, mode: nil, endsAt: nil)
+    fixture.adapter.advanceClock(to: 12_000)
+    _ = fixture.player.control(
+      action: "pause", bookId: nil, location: nil, chapterIndex: nil,
+      offsetMs: nil, rate: nil, volume: nil, mode: nil, endsAt: nil)
+    for (offset, expectedPosition) in [(Int64(30_000), Int64(42_000)), (-15_000, 27_000)] {
+      let snapshot = fixture.player.control(
+        action: "seekRelative", bookId: nil, location: nil, chapterIndex: nil,
+        offsetMs: offset, rate: nil, volume: nil, mode: nil, endsAt: nil)
+      XCTAssertEqual(snapshot["state"] as? String, "paused")
+      XCTAssertEqual(snapshot["chapterPositionMs"] as? Int64, expectedPosition)
+      XCTAssertEqual(fixture.adapter.rate, 0)
+    }
+    let resumed = fixture.player.control(
+      action: "play", bookId: "paused-seek", location: nil, chapterIndex: nil,
+      offsetMs: nil, rate: nil, volume: nil, mode: nil, endsAt: nil)
+    XCTAssertEqual(resumed["state"] as? String, "playing")
+    XCTAssertEqual(resumed["chapterPositionMs"] as? Int64, 27_000)
+    XCTAssertEqual(fixture.adapter.rate, 1)
+  }
   func testSharedAudiobookPlaybackContract() throws {
     let contract = try loadPlaybackContract()
     let availableBookId = try XCTUnwrap(contract["availableBookId"] as? String)

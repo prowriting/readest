@@ -198,6 +198,9 @@ export const useProgressSync = (bookKey: string) => {
       (c) => c.bookHash === bookHash || c.metaHash === metaHash,
     )[0];
     if (syncedConfig) {
+      // Audio progress is independent of ebook locator conversion. A missing
+      // or incompatible XPointer must not discard a valid listening position.
+      setConfig(bookKey, mergeSyncedConfig(config, syncedConfig, book.hash));
       const configCFI = config?.location;
       let remoteCFILocation = syncedConfig.location;
       const xpointer = syncedConfig.xpointer;
@@ -207,17 +210,20 @@ export const useProgressSync = (bookKey: string) => {
         const pContents = view.renderer.getContents();
         const pIdx = view.renderer.primaryIndex;
         const content = pContents.find((x) => x.index === pIdx) ?? pContents[0];
-        const candidateCFI = await getCFIFromXPointer(
-          xpointer,
-          content?.doc,
-          content?.index,
-          bookData.bookDoc,
-        );
-        if (!remoteCFILocation || CFI.compare(remoteCFILocation, candidateCFI) < 0) {
-          remoteCFILocation = candidateCFI;
+        try {
+          const candidateCFI = await getCFIFromXPointer(
+            xpointer,
+            content?.doc,
+            content?.index,
+            bookData.bookDoc,
+          );
+          if (!remoteCFILocation || CFI.compare(remoteCFILocation, candidateCFI) < 0) {
+            remoteCFILocation = candidateCFI;
+          }
+        } catch (error) {
+          console.warn('Could not convert remote XPointer; using the saved CFI', error);
         }
       }
-      setConfig(bookKey, mergeSyncedConfig(config, syncedConfig, book.hash));
       if (remoteCFILocation && configCFI) {
         if (CFI.compare(configCFI, remoteCFILocation) < 0) {
           // While previewing a deep-link target, do NOT yank the view to the

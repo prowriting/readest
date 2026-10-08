@@ -1,14 +1,18 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
   const handlers = new Map<string, Set<(event: CustomEvent) => void>>();
   return {
-    router: { push: vi.fn() },
+    router: { push: vi.fn(), replace: vi.fn() },
+    searchParams: new URLSearchParams('code=fbc83a2'),
+    fetchBookByCode: vi.fn(),
+    libraryLoaded: true,
     downloadGiftBook: vi.fn(),
     confirmGiftRedemption: vi.fn(),
     ingestFile: vi.fn(),
+    importBook: vi.fn(),
     navigateToReader: vi.fn(),
     saveLibraryBooks: vi.fn(),
     handlers,
@@ -18,16 +22,28 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('next/navigation', () => ({ useRouter: () => mocks.router }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => mocks.router,
+  useSearchParams: () => mocks.searchParams,
+}));
 vi.mock('next/image', () => ({
   default: () => null,
 }));
 vi.mock('@/context/EnvContext', () => ({
   useEnv: () => ({
-    appService: { isAndroidApp: false, saveLibraryBooks: mocks.saveLibraryBooks },
+    appService: {
+      isAndroidApp: false,
+      saveLibraryBooks: mocks.saveLibraryBooks,
+      importBook: mocks.importBook,
+    },
   }),
 }));
-vi.mock('@/context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'reader-1' } }) }));
+vi.mock('@/context/AuthContext', () => ({
+  useAuth: () => ({ token: 'qa-token', user: { id: 'reader-1' } }),
+}));
+vi.mock('@/hooks/useLibrary', () => ({
+  useLibrary: () => ({ libraryLoaded: mocks.libraryLoaded }),
+}));
 vi.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => (value: string, options?: Record<string, unknown>) =>
     options?.['percent'] === undefined
@@ -38,7 +54,10 @@ vi.mock('@/store/settingsStore', () => ({ useSettingsStore: () => ({ settings: {
 vi.mock('@/store/libraryStore', () => {
   const libraryState = { library: [], visibleLibrary: [], setLibrary: vi.fn() };
   return {
-    useLibraryStore: (selector: (state: typeof libraryState) => unknown) => selector(libraryState),
+    useLibraryStore: Object.assign(
+      (selector: (state: typeof libraryState) => unknown) => selector(libraryState),
+      { getState: () => libraryState },
+    ),
   };
 });
 vi.mock('@/services/environment', () => ({
@@ -49,6 +68,7 @@ vi.mock('@/services/environment', () => ({
 vi.mock('@/services/ingestService', () => ({ ingestFile: mocks.ingestFile }));
 vi.mock('@/services/bookCode', () => ({
   BookCodeError: class extends Error {},
+  fetchBookByCode: mocks.fetchBookByCode,
   downloadGiftBook: mocks.downloadGiftBook,
   confirmGiftRedemption: mocks.confirmGiftRedemption,
 }));
@@ -73,6 +93,7 @@ vi.mock('@/components/Dialog', () => ({
 }));
 
 import { BookCodeDialog } from '@/components/BookCodeDialog';
+import ReadPage from '@/app/read/page';
 
 const result = {
   giftId: 'gift-1',
@@ -89,9 +110,12 @@ const result = {
 };
 
 describe('BookCodeDialog', () => {
+  afterEach(() => vi.unstubAllGlobals());
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.handlers.clear();
+    mocks.searchParams = new URLSearchParams('code=fbc83a2');
+    mocks.libraryLoaded = true;
   });
 
   it('shows download progress and opens the saved book when import completes', async () => {
@@ -123,5 +147,83 @@ describe('BookCodeDialog', () => {
     await waitFor(() =>
       expect(mocks.navigateToReader).toHaveBeenCalledWith(mocks.router, [importedBook.hash]),
     );
+  });
+
+  it('uses the claim dialog from a browser read link and persists analytics consent before opening', async () => {
+    const feedbackResult = {
+      ...result,
+      book: { ...result.book, format: 'epub', requestAnalytics: true },
+    };
+    mocks.fetchBookByCode.mockResolvedValue(feedbackResult);
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    const importedBook = {
+      hash: 'feedback-hash',
+      analyticsStatus: undefined as string | undefined,
+    };
+    mocks.ingestFile.mockResolvedValue(importedBook);
+    mocks.importBook.mockResolvedValue(importedBook);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(feedbackResult))));
+    render(<ReadPage />);
+
+    const start = await screen.findByRole('button', { name: 'Start Reading' });
+    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
+    fireEvent.click(start);
+
+    await waitFor(() =>
+      expect(mocks.navigateToReader).toHaveBeenCalledWith(mocks.router, ['feedback-hash']),
+    );
+    expect(importedBook.analyticsStatus).toBe('ask');
+    expect(mocks.saveLibraryBooks).toHaveBeenCalled();
+    expect(mocks.saveLibraryBooks.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.navigateToReader.mock.invocationCallOrder[0]!,
+    );
+    expect(mocks.confirmGiftRedemption).toHaveBeenCalledWith('download-1');
+  });
+
+  it('persists a direct EPUB URL import before navigating to the reader', async () => {
+    mocks.searchParams = new URLSearchParams('url=https://example.test/preview.epub');
+    mocks.importBook.mockResolvedValue({ hash: 'preview-hash' });
+    render(<ReadPage />);
+    await waitFor(() =>
+      expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=preview-hash'),
+    );
+    expect(mocks.saveLibraryBooks).toHaveBeenCalled();
+    expect(mocks.saveLibraryBooks.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.router.replace.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it('waits for durable library storage before consuming the claim or opening the book', async () => {
+    let finishSave: (() => void) | undefined;
+    mocks.saveLibraryBooks.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    mocks.ingestFile.mockResolvedValue({ hash: 'persisted-hash' });
+    render(<BookCodeDialog />);
+    act(() => mocks.dispatch('book-code-found', { result }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Start Reading' }));
+    await waitFor(() => expect(mocks.saveLibraryBooks).toHaveBeenCalled());
+    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
+    expect(mocks.navigateToReader).not.toHaveBeenCalled();
+    await act(async () => finishSave?.());
+    await waitFor(() =>
+      expect(mocks.navigateToReader).toHaveBeenCalledWith(mocks.router, ['persisted-hash']),
+    );
+  });
+
+  it('loads the existing library before offering to import a browser claim', async () => {
+    mocks.libraryLoaded = false;
+    mocks.fetchBookByCode.mockResolvedValue(result);
+    const { rerender } = render(<ReadPage />);
+    await act(async () => {});
+    expect(mocks.fetchBookByCode).not.toHaveBeenCalled();
+    expect(mocks.importBook).not.toHaveBeenCalled();
+    mocks.libraryLoaded = true;
+    rerender(<ReadPage />);
+    expect(await screen.findByRole('button', { name: 'Start Reading' })).toBeTruthy();
   });
 });

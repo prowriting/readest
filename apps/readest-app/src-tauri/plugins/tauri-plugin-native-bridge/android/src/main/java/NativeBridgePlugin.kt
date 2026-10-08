@@ -135,6 +135,7 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
     private val implementation = NativeBridge()
     private var redirectScheme = "bookarc"
     private var redirectHost = "auth-callback"
+    private val pendingFileUrls = mutableListOf<String>()
     private val billingManager by lazy {
         BillingManager(activity)
     }
@@ -161,9 +162,21 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
         handleIntent(intent)
     }
 
+    @Command
+    override fun registerListener(invoke: Invoke) {
+        super.registerListener(invoke)
+        deliverPendingFiles()
+    }
+
+    private fun deliverPendingFiles() {
+        if (pendingFileUrls.isEmpty() || !hasListener("shared-intent")) return
+        val payload = JSObject().apply { put("urls", JSArray(pendingFileUrls.toTypedArray())) }
+        pendingFileUrls.clear()
+        trigger("shared-intent", payload)
+    }
+
     private fun handleIntent(intent: Intent?) {
         val uri = intent?.data ?: return
-        Log.e("NativeBridgePlugin", "Received intent: $uri")
         when {
           uri.scheme == "bookarc" && uri.host == "auth-callback" -> {
               val result = JSObject().apply {
@@ -173,15 +186,18 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
               pendingInvoke = null
           }
 
-          intent.action == Intent.ACTION_VIEW -> {
+          (intent.action == Intent.ACTION_VIEW || intent.action == "org.chromium.arc.intent.action.VIEW")
+              && (uri.scheme == "content" || uri.scheme == "file") -> {
               try {
                 activity.contentResolver.takePersistableUriPermission(
                       uri,
                       Intent.FLAG_GRANT_READ_URI_PERMISSION
                   )
               } catch (e: SecurityException) {
-                Log.e("NativeBridgePlugin", "Failed to take persistable URI permission: ${e.message}")
+                // Chrome grants temporary read access; a persistable grant is optional.
               }
+              pendingFileUrls.add(uri.toString())
+              deliverPendingFiles()
           }
         }
     }

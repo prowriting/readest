@@ -1,8 +1,16 @@
 # Amazon submission packet
 
-Status: listing copy and icon assets prepared; console entry, reviewer credentials,
-content-rating questionnaire, Fire-device screenshots and certification are pending.
-This file is a preparation worksheet, not a declaration that Amazon has approved the app.
+Status: **0.12.7 (12011) submitted to Amazon for review on 11 September 2026**
+(console timestamp: 10 September, 10:31 pm GMT-7). Amazon confirms “App Submission
+Successful”; approval is pending. Its estimated Appstore date is 15 September,
+11:00 pm PDT. Submission receipt: `dist/amazon/0.12.7-12011/amazon-submission.json`.
+
+The submission includes the dedicated Fire reviewer credentials, completed declarations,
+and three actual 1200×1920 Fire captures (library, PDF reader and audiobook player),
+replacing the web previews. The owner confirmed file-picker touch works and certified
+export compliance. Existing targeting remains 12 compatible Fire tablets, no Fire TV or
+automotive; physical testing was on Fire HD 10 (2023), not all 12 models. The preparation
+worksheet below records the original setup guidance; pending wording is historical.
 
 ## Listing settings
 

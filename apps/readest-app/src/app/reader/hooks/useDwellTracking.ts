@@ -180,9 +180,16 @@ export function useDwellTracking(bookHash: string, analyticsStatus: AnalyticsSta
     [bookHash, analyticsStatus, startTimer],
   );
 
-  const flushDwells = useCallback((): DwellRecord[] => {
-    return accRef.current.flush();
-  }, []);
+  const flushDwells = useCallback(
+    (includeCurrent = false): DwellRecord[] => {
+      if (includeCurrent) {
+        clearTimer();
+        accRef.current.onBlur(Date.now());
+      }
+      return accRef.current.flush();
+    },
+    [clearTimer],
+  );
 
   return { onRelocate, flushDwells };
 }

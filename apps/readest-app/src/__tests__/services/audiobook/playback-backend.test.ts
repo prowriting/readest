@@ -3,11 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   addPluginListener: vi.fn(),
+  nativeOS: vi.fn(() => 'android'),
+  browserOS: vi.fn(() => 'android'),
+  isTauri: vi.fn(() => true),
 }));
 
 vi.mock('@tauri-apps/api/core', () => mocks);
-vi.mock('@/services/environment', () => ({ isTauriAppPlatform: () => true }));
-vi.mock('@/utils/misc', () => ({ getOSPlatform: () => 'android' }));
+vi.mock('@/services/environment', () => ({ isTauriAppPlatform: mocks.isTauri }));
+vi.mock('@/utils/misc', () => ({ getOSPlatform: mocks.browserOS }));
+vi.mock('@tauri-apps/plugin-os', () => ({ type: mocks.nativeOS }));
 
 import {
   createAudiobookPlaybackBackend,
@@ -116,6 +120,9 @@ describe('native audiobook playback backend', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.nativeOS.mockReturnValue('android');
+    mocks.browserOS.mockReturnValue('android');
+    mocks.isTauri.mockReturnValue(true);
     mocks.invoke.mockResolvedValue({
       sessionId: 'native-1',
       sequence: 4,
@@ -132,6 +139,33 @@ describe('native audiobook playback backend', () => {
 
   it('uses the native backend on a Tauri mobile platform', () => {
     expect(createAudiobookPlaybackBackend()).toMatchObject({ kind: 'native' });
+  });
+
+  it('uses native iPad playback even when its desktop user agent reports macOS', async () => {
+    mocks.nativeOS.mockReturnValue('ios');
+    mocks.browserOS.mockReturnValue('macos');
+    const backend = createAudiobookPlaybackBackend();
+    expect(backend.kind).toBe('native');
+    expect(await backend.control({ action: 'seekRelative', offsetMs: 30_000 })).toMatchObject({
+      state: 'paused',
+      chapterPositionMs: 12_000,
+    });
+    expect(mocks.invoke).toHaveBeenCalledWith('plugin:native-tts|control_audiobook_playback', {
+      payload: { action: 'seekRelative', offsetMs: 30_000 },
+    });
+  });
+
+  it.each(['macos', 'windows', 'linux'])('keeps %s desktop playback on the web backend', (os) => {
+    mocks.nativeOS.mockReturnValue(os);
+    mocks.browserOS.mockReturnValue('ios');
+    expect(createAudiobookPlaybackBackend().kind).toBe('web');
+  });
+
+  it('does not call the native OS plugin from a browser', () => {
+    mocks.isTauri.mockReturnValue(false);
+    mocks.browserOS.mockReturnValue('ios');
+    expect(createAudiobookPlaybackBackend().kind).toBe('web');
+    expect(mocks.nativeOS).not.toHaveBeenCalled();
   });
 
   it('sends typed commands to the native player and returns its authoritative snapshot', async () => {

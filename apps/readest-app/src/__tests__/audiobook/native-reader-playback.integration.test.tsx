@@ -179,6 +179,7 @@ import { eventDispatcher } from '@/utils/event';
 import { Channel } from '@tauri-apps/api/core';
 import { clearMocks, mockIPC } from '@tauri-apps/api/mocks';
 vi.mock('@/services/environment', () => ({ isTauriAppPlatform: () => true }));
+vi.mock('@tauri-apps/plugin-os', () => ({ type: () => 'ios' }));
 vi.mock('@/utils/misc', async (original) => ({
   ...(await original<typeof import('@/utils/misc')>()),
   getOSPlatform: () => 'android',
@@ -636,6 +637,18 @@ describe('native playback ordering, failures and teardown', () => {
 });
 
 describe('native Play preparation and automatic page navigation', () => {
+  it('shows a cloud locator received after the idle native reader has mounted', async () => {
+    nativeSnapshot = snapshot(1, 'stopped', -1, { bookId: '', location: undefined });
+    const { result, rerender } = await mountReader();
+    await waitFor(() => expect(result.current.sectionIndex).toBe(0));
+    const saved = snapshot(2, 'paused').location!;
+    act(() => {
+      config.mediaOverlayLocation = saved;
+      rerender();
+    });
+    await waitFor(() => expect(result.current.chapterElapsed).toBe(5));
+    expect(control).not.toHaveBeenCalled();
+  });
   it('does not start audio if the reader unmounts while waiting for TTS teardown', async () => {
     nativeSnapshot = snapshot(1, 'paused');
     const pending = deferred<void>();

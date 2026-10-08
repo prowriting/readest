@@ -107,7 +107,13 @@ class AudiobookPlaybackCommandArgs: Decodable {
 
 class NativeTTSPlugin: Plugin {
   public override func load(webview: WKWebView) {
+    ReaderWindowSceneDelegate.register(webView: webview)
     if #available(iOS 14.0, *) {
+      // Plist-only references are stripped from the static Swift library in
+      // release builds. Keep both UIKit entry points linked and diagnosable.
+      NSLog("BookArc scene delegates: %@, %@",
+        NSStringFromClass(ReaderWindowSceneDelegate.self),
+        NSStringFromClass(AudiobookCarPlaySceneDelegate.self))
       AudiobookCarPlayer.shared.stateHandler = { [weak self] snapshot in
         self?.trigger(
           "audiobook-playback-state",

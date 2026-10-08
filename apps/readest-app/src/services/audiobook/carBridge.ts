@@ -1,7 +1,7 @@
 import { invoke, addPluginListener, type PluginListener } from '@tauri-apps/api/core';
+import { type as osType } from '@tauri-apps/plugin-os';
 import { isTauriAppPlatform } from '@/services/environment';
 import type { Book, MediaOverlayLocation } from '@/types/book';
-import { getOSPlatform } from '@/utils/misc';
 import type { AudiobookChapter } from '@/app/reader/hooks/useAudiobookControl';
 import type { AppService } from '@/types/system';
 import type { MediaOverlayEngine } from '@/types/mediaOverlay';
@@ -68,7 +68,7 @@ export const buildBridgeChapters = (
 });
 
 export const isCarBridgeAvailable = () =>
-  isTauriAppPlatform() && ['ios', 'android'].includes(getOSPlatform());
+  isTauriAppPlatform() && ['ios', 'android'].includes(osType());
 
 export const pushLibraryToCar = async (books: Book[]): Promise<void> => {
   if (!isCarBridgeAvailable()) return;
@@ -142,7 +142,7 @@ export const listenCarControlIntents = async (handlers: {
   cycleRate: () => void;
   bookmark: () => void;
 }): Promise<PluginListener[]> => {
-  if (!isCarBridgeAvailable() || getOSPlatform() !== 'ios') return [];
+  if (!isCarBridgeAvailable() || osType() !== 'ios') return [];
   return Promise.all([
     addPluginListener('native-tts', 'media-session-cycle-rate', handlers.cycleRate),
     addPluginListener('native-tts', 'media-session-bookmark', handlers.bookmark),

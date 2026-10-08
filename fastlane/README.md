@@ -41,6 +41,19 @@ Upload AAB to Google Play Beta
 
 ----
 
+
+## iOS
+
+### ios upload_metadata
+
+```sh
+[bundle exec] fastlane ios upload_metadata
+```
+
+Upload App Store metadata + screenshots for com.bookarc.app (no binary)
+
+----
+
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
 
 More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).

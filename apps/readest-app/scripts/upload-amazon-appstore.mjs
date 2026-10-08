@@ -4,8 +4,34 @@ import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { loadAmazonCredentials } from './lib/amazon-credentials.mjs';
 
 const API = 'https://developer.amazon.com/api/appstore/v1/applications';
+
+async function authenticate({ appId, clientId, clientSecret }) {
+  if (!appId || !clientId || !clientSecret) throw new Error('Set AMAZON_APP_ID, AMAZON_CLIENT_ID and AMAZON_CLIENT_SECRET.');
+  const auth = await fetch('https://api.amazon.com/auth/o2/token', {
+    method: 'POST', body: new URLSearchParams({ grant_type: 'client_credentials',
+      scope: 'appstore::apps:readwrite', client_id: clientId, client_secret: clientSecret }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!auth.ok) throw new Error(`Amazon authentication failed (HTTP ${auth.status}).`);
+  const { access_token: token } = await auth.json();
+  if (typeof token !== 'string' || !token.trim()) throw new Error('Amazon did not return an access token.');
+  return token;
+}
+
+export async function checkAmazonAccess(credentials) {
+  const token = await authenticate(credentials);
+  const response = await fetch(`${API}/${encodeURIComponent(credentials.appId)}/edits`, {
+    method: 'GET', headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (response.status === 404) return { appAccessible: false, editId: null };
+  if (!response.ok) throw new Error(`Amazon app access check failed (HTTP ${response.status}).`);
+  const body = await response.text();
+  return { appAccessible: true, editId: body.trim() ? JSON.parse(body)?.id ?? null : null };
+}
 
 /**
  * @param {{appId: string, clientId: string, clientSecret: string,
@@ -14,18 +40,10 @@ const API = 'https://developer.amazon.com/api/appstore/v1/applications';
  */
 export async function uploadAmazonRelease({ appId, clientId, clientSecret, release, apk,
   submit = false, editId, apkId }) {
-  if (!appId || !clientId || !clientSecret) throw new Error('Set AMAZON_APP_ID, AMAZON_CLIENT_ID and AMAZON_CLIENT_SECRET.');
   if (!Number.isSafeInteger(release.versionCode) || release.versionCode <= 0 || !release.releaseNotes?.trim()) {
     throw new Error('Release requires a positive versionCode and release notes.');
   }
-  const auth = await fetch('https://api.amazon.com/auth/o2/token', {
-    method: 'POST', body: new URLSearchParams({ grant_type: 'client_credentials',
-      scope: 'appstore::apps:readwrite', client_id: clientId, client_secret: clientSecret }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!auth.ok) throw new Error(`Amazon authentication failed (HTTP ${auth.status}).`);
-  const { access_token: token } = await auth.json();
-  if (!token) throw new Error('Amazon did not return an access token.');
+  const token = await authenticate({ appId, clientId, clientSecret });
   const root = `${API}/${encodeURIComponent(appId)}/edits`;
   async function request(url, method = 'GET', body, headers = {}) {
     const response = await fetch(url, { method, body,
@@ -64,7 +82,7 @@ export async function uploadAmazonRelease({ appId, clientId, clientSecret, relea
   const apkUrl = `${editUrl}/apks/${encodeURIComponent(current.id)}`;
   const existingApk = await request(apkUrl);
   await request(`${apkUrl}/replace`, 'PUT', apk, {
-    ...etag(existingApk), 'Content-Type': 'application/vnd.android.package-archive',
+    ...etag(existingApk), 'Content-Type': 'application/octet-stream',
   });
   // Replace preserves the manually tested device targeting from the published APK.
   const listingUrl = `${editUrl}/listings/en-US`;
@@ -89,9 +107,20 @@ async function main() {
     artifact: { type: 'string' }, submit: { type: 'boolean', default: false },
     'edit-id': { type: 'string' }, 'apk-id': { type: 'string' },
     'dry-run': { type: 'boolean', default: false }, help: { type: 'boolean' },
+    'check-access': { type: 'boolean', default: false },
   } });
   if (values.help) {
-    console.log('upload-amazon-appstore --artifact dist/amazon/<version>-<code> [--dry-run] [--submit] [--edit-id ID] [--apk-id ID]');
+    console.log('upload-amazon-appstore --check-access\nupload-amazon-appstore --artifact dist/amazon/<version>-<code> [--dry-run] [--submit] [--edit-id ID] [--apk-id ID]');
+    return;
+  }
+  if (values['check-access']) {
+    if (values.artifact || values.submit || values['dry-run'] || values['edit-id'] || values['apk-id']) {
+      throw new Error('--check-access cannot be combined with upload options.');
+    }
+    const access = await checkAmazonAccess(loadAmazonCredentials());
+    console.log(access.appAccessible
+      ? `Amazon authentication and app access verified. ${access.editId ? `Existing draft: ${access.editId}.` : 'No open draft.'} No changes made.`
+      : 'Amazon authentication verified, but the app is not available via the API (HTTP 404). Check AMAZON_APP_ID and finish the first release in the Developer Console. No changes made.');
     return;
   }
   if (!values.artifact) throw new Error('Provide --artifact with the directory printed by release-amazon-appstore.');
@@ -106,8 +135,7 @@ async function main() {
     console.log(`Verified local Amazon artifact: ${release.versionName} (${release.versionCode}). No network requests made.`);
     return;
   }
-  await uploadAmazonRelease({ appId: process.env.AMAZON_APP_ID,
-    clientId: process.env.AMAZON_CLIENT_ID, clientSecret: process.env.AMAZON_CLIENT_SECRET,
+  await uploadAmazonRelease({ ...loadAmazonCredentials(),
     release, apk: await openAsBlob(apkFile), submit: values.submit,
     editId: values['edit-id'], apkId: values['apk-id'],
   });

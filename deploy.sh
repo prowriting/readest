@@ -8,7 +8,7 @@
 #   az   (brew install azure-cli)
 #   jq   (brew install jq)
 #   git submodules initialised:
-#     git submodule update --init packages/foliate-js packages/simplecc-wasm
+#     git submodule update --init packages/foliate-js packages/simplecc-wasm apps/readest-app/src-tauri/plugins/tauri-plugin-turso
 #
 # Required environment variables:
 #   ACR_NAME          - Shared ACR name (from BookArcWeb deployment)
@@ -61,7 +61,8 @@ az account show >/dev/null 2>&1 || { info "Not logged in — running az login"; 
 # Submodule check
 test -f packages/foliate-js/vendor/pdfjs/annotation_layer_builder.css \
     && test -d packages/simplecc-wasm/dist/web \
-    || err "Git submodules not initialised. Run: git submodule update --init packages/foliate-js packages/simplecc-wasm"
+    && test -f apps/readest-app/src-tauri/plugins/tauri-plugin-turso/guest-js/index.ts \
+    || err "Git submodules not initialised. Run: git submodule update --init packages/foliate-js packages/simplecc-wasm apps/readest-app/src-tauri/plugins/tauri-plugin-turso"
 
 success "Prerequisites OK"
 
@@ -101,9 +102,26 @@ success "Image built: ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
 
 # ── 4. Create or update Container App ────────────────────────────────────────
 FULL_IMAGE="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
+ACR_SERVER="${ACR_NAME}.azurecr.io"
+PULL_IDENTITY=$(az identity create --name "${CONTAINER_APP_NAME}-pull" \
+    --resource-group "$RG" --location "$LOCATION" --output json)
+PULL_IDENTITY_ID=$(jq -r '.id' <<< "$PULL_IDENTITY")
+PULL_PRINCIPAL_ID=$(jq -r '.principalId' <<< "$PULL_IDENTITY")
+ACR_ID=$(az acr show --name "$ACR_NAME" --query id -o tsv)
+PULL_ROLE_COUNT=$(az role assignment list --assignee "$PULL_PRINCIPAL_ID" \
+    --scope "$ACR_ID" --role AcrPull --query 'length(@)' -o tsv)
+if [[ "$PULL_ROLE_COUNT" == "0" ]]; then
+    az role assignment create --assignee-object-id "$PULL_PRINCIPAL_ID" \
+        --assignee-principal-type ServicePrincipal --scope "$ACR_ID" \
+        --role AcrPull --output none
+fi
 
 if az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RG" >/dev/null 2>&1; then
     info "Updating existing Container App '${CONTAINER_APP_NAME}'..."
+    az containerapp identity assign --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+        --user-assigned "$PULL_IDENTITY_ID" --output none
+    az containerapp registry set --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+        --server "$ACR_SERVER" --identity "$PULL_IDENTITY_ID" --output none
     az containerapp update \
         --name "$CONTAINER_APP_NAME" \
         --resource-group "$RG" \
@@ -112,23 +130,14 @@ if az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RG" >/de
 else
     info "Creating Container App '${CONTAINER_APP_NAME}'..."
 
-    # Pull the ACR login server and admin credentials for pull access
-    ACR_SERVER="${ACR_NAME}.azurecr.io"
-    ACR_PASS=$(az acr credential show --name "$ACR_NAME" --resource-group "$RG" \
-        --query "passwords[0].value" -o tsv 2>/dev/null || echo "")
-
-    REGISTRY_ARGS=""
-    if [[ -n "$ACR_PASS" ]]; then
-        REGISTRY_ARGS="--registry-server ${ACR_SERVER} --registry-username ${ACR_NAME} --registry-password ${ACR_PASS}"
-    fi
-
-    # shellcheck disable=SC2086
     az containerapp create \
         --name "$CONTAINER_APP_NAME" \
         --resource-group "$RG" \
         --environment "$CONTAINER_ENV_ID" \
         --image "$FULL_IMAGE" \
-        $REGISTRY_ARGS \
+        --user-assigned "$PULL_IDENTITY_ID" \
+        --registry-server "$ACR_SERVER" \
+        --registry-identity "$PULL_IDENTITY_ID" \
         --target-port 3000 \
         --ingress external \
         --min-replicas 1 \
@@ -169,15 +178,18 @@ fi
 # ── 6. Health check ───────────────────────────────────────────────────────────
 HEALTH_URL="${APP_URL}/"
 info "Waiting for app to start (up to 2 min)..."
+APP_HEALTHY=false
 for i in $(seq 1 12); do
     sleep 10
-    STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" 2>/dev/null || echo 000)
+    STATUS=$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' "$HEALTH_URL" 2>/dev/null || echo 000)
     if [[ "$STATUS" =~ ^[23] ]]; then
         success "App is live at ${APP_URL}"
+        APP_HEALTHY=true
         break
     fi
     echo "  ... waiting (${STATUS}) $((i * 10))s elapsed"
 done
+[[ "$APP_HEALTHY" == true ]] || err "Reader app failed its production health check at ${HEALTH_URL}"
 
 echo ""
 echo "==========================================="

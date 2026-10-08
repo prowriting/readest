@@ -3,6 +3,14 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 describe('iOS CarPlay configuration', () => {
+  test('provides a device scene alongside CarPlay so UIKit can present the reader window', () => {
+    const infoPlist = readFileSync(join(process.cwd(), 'src-tauri/Info.plist'), 'utf8');
+    expect(infoPlist).toContain('<key>UIWindowSceneSessionRoleApplication</key>');
+    expect(infoPlist).toContain('<string>UIWindowScene</string>');
+    expect(infoPlist).toContain(
+      '<string>tauri_plugin_native_tts.ReaderWindowSceneDelegate</string>',
+    );
+  });
   test('keeps the CarPlay scene, background audio mode, and release entitlement', () => {
     const infoPlist = readFileSync(join(process.cwd(), 'src-tauri/Info.plist'), 'utf8');
     const entitlementScript = readFileSync(

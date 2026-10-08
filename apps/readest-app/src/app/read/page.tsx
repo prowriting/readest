@@ -6,44 +6,21 @@ import { useAuth } from '@/context/AuthContext';
 import { useEnv } from '@/context/EnvContext';
 import { useLibraryStore } from '@/store/libraryStore';
 import Spinner from '@/components/Spinner';
-
-const AUTHOR_BASE_URL = process.env['NEXT_PUBLIC_AUTHOR_BASE_URL'] ?? 'https://author.bookarc.app';
-
-interface RedeemResponse {
-  downloadRef: string;
-}
-
-async function redeemClaimCode(code: string): Promise<string> {
-  const res = await fetch(`${AUTHOR_BASE_URL}/v1/claim/redeem`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
-  });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { title?: string };
-    throw new Error(err.title ?? `Claim failed (${res.status})`);
-  }
-  const data = (await res.json()) as RedeemResponse;
-  return data.downloadRef;
-}
-
-async function confirmClaim(downloadRef: string): Promise<void> {
-  await fetch(`${AUTHOR_BASE_URL}/v1/claim/confirm`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ downloadRef }),
-  });
-}
+import { BookCodeDialog } from '@/components/BookCodeDialog';
+import { fetchBookByCode } from '@/services/bookCode';
+import { eventDispatcher } from '@/utils/event';
+import { useLibrary } from '@/hooks/useLibrary';
 
 function ReadLoader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { appService } = useEnv();
   const { token } = useAuth();
+  const { libraryLoaded } = useLibrary();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!appService) return;
+    if (!appService || !libraryLoaded) return;
 
     const code = searchParams?.get('code');
     const url = searchParams?.get('url');
@@ -55,26 +32,19 @@ function ReadLoader() {
     }
 
     if (code) {
-      const { library } = useLibraryStore.getState();
-      redeemClaimCode(code)
-        .then(async (downloadRef) => {
-          const downloadUrl = `${AUTHOR_BASE_URL}/v1/claim/download?ref=${encodeURIComponent(downloadRef)}`;
-          const epubRes = await fetch(downloadUrl);
-          if (!epubRes.ok) throw new Error(`Download failed (${epubRes.status})`);
-          const blob = await epubRes.blob();
-          const file = new File([blob], 'book.epub', { type: 'application/epub+zip' });
-          const book = await appService.importBook(file, library, {
-            saveBook: true,
-            saveCover: true,
-          });
-          if (!book) throw new Error('Could not open this file');
-          confirmClaim(downloadRef).catch(console.error);
-          router.replace(`/reader?ids=${book.hash}`);
+      // Use the normal claim flow so library persistence and analytics consent
+      // are identical for browser links and manually entered claim codes.
+      let active = true;
+      fetchBookByCode(code)
+        .then((result) => {
+          if (active) eventDispatcher.dispatch('book-code-found', { result });
         })
         .catch((err: unknown) => {
-          setError(err instanceof Error ? err.message : 'Failed to load book');
+          if (active) setError(err instanceof Error ? err.message : 'Failed to load book');
         });
-      return;
+      return () => {
+        active = false;
+      };
     }
 
     if (!url) {
@@ -97,17 +67,20 @@ function ReadLoader() {
     const { library } = useLibraryStore.getState();
     appService
       .importBook(url, library, { saveBook: true, saveCover: true })
-      .then((book) => {
+      .then(async (book) => {
         if (!book) {
           setError('Could not open this file');
           return;
         }
+        useLibraryStore.getState().setLibrary(library);
+        await appService.saveLibraryBooks(library);
         router.replace(`/reader?ids=${book.hash}`);
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Failed to load book');
       });
-  }, [appService, router, searchParams, token]);
+    return undefined;
+  }, [appService, libraryLoaded, router, searchParams, token]);
 
   if (error) {
     return (
@@ -121,9 +94,12 @@ function ReadLoader() {
   }
 
   return (
-    <div className='flex min-h-screen items-center justify-center'>
-      <Spinner loading />
-    </div>
+    <>
+      <div className='flex min-h-screen items-center justify-center'>
+        <Spinner loading />
+      </div>
+      <BookCodeDialog />
+    </>
   );
 }
 

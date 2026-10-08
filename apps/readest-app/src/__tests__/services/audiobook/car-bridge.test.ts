@@ -5,17 +5,27 @@ import {
   getPlaybackLocationFromCar,
   pushPlaybackLocationToCar,
   takePendingBookmarksFromCar,
+  pushPlaybackManifestToCar,
+  listenCarControlIntents,
+  isCarBridgeAvailable,
 } from '@/services/audiobook/carBridge';
 import type { Book, MediaOverlayLocation } from '@/types/book';
 
-const mocks = vi.hoisted(() => ({ invoke: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  invoke: vi.fn(),
+  addPluginListener: vi.fn(),
+  nativeOS: vi.fn(() => 'android'),
+  browserOS: vi.fn(() => 'android'),
+  isTauri: vi.fn(() => true),
+}));
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: mocks.invoke,
-  addPluginListener: vi.fn(),
+  addPluginListener: mocks.addPluginListener,
 }));
-vi.mock('@/services/environment', () => ({ isTauriAppPlatform: () => true }));
+vi.mock('@/services/environment', () => ({ isTauriAppPlatform: mocks.isTauri }));
+vi.mock('@tauri-apps/plugin-os', () => ({ type: mocks.nativeOS }));
 vi.mock('@/utils/misc', () => ({
-  getOSPlatform: () => 'android',
+  getOSPlatform: mocks.browserOS,
   stubTranslation: (value: string) => value,
 }));
 
@@ -32,6 +42,45 @@ const book = (over: Partial<Book>): Book =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.nativeOS.mockReturnValue('android');
+  mocks.browserOS.mockReturnValue('android');
+  mocks.isTauri.mockReturnValue(true);
+});
+
+describe('native iPad audio preparation', () => {
+  it('delivers the playback manifest and system controls despite a Macintosh user agent', async () => {
+    mocks.nativeOS.mockReturnValue('ios');
+    mocks.browserOS.mockReturnValue('macos');
+    const manifest = { bookId: 'ipad-book', title: 'Sample', author: 'Author', sections: [] };
+    await pushPlaybackManifestToCar(manifest);
+    expect(mocks.invoke).toHaveBeenCalledWith(
+      'plugin:native-tts|update_audiobook_playback_manifest',
+      {
+        payload: manifest,
+      },
+    );
+    const handlers = { cycleRate: vi.fn(), bookmark: vi.fn() };
+    await listenCarControlIntents(handlers);
+    expect(mocks.addPluginListener).toHaveBeenCalledWith(
+      'native-tts',
+      'media-session-cycle-rate',
+      handlers.cycleRate,
+    );
+    expect(mocks.addPluginListener).toHaveBeenCalledWith(
+      'native-tts',
+      'media-session-bookmark',
+      handlers.bookmark,
+    );
+  });
+
+  it('keeps native bridging disabled in the browser and on desktop', () => {
+    mocks.isTauri.mockReturnValue(false);
+    expect(isCarBridgeAvailable()).toBe(false);
+    expect(mocks.nativeOS).not.toHaveBeenCalled();
+    mocks.isTauri.mockReturnValue(true);
+    mocks.nativeOS.mockReturnValue('macos');
+    expect(isCarBridgeAvailable()).toBe(false);
+  });
 });
 
 describe('buildBridgeLibrary', () => {

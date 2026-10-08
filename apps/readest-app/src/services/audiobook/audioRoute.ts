@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
+import { type as osType } from '@tauri-apps/plugin-os';
 import { isTauriAppPlatform } from '@/services/environment';
-import { getOSPlatform } from '@/utils/misc';
 
 /**
  * AirPlay / audio-output routing. iOS gets an explicit system route picker
@@ -12,7 +12,7 @@ export const canShowAudioRoutePicker = (tauriApp: boolean, platform: string): bo
   tauriApp && platform === 'ios';
 
 export const audioRoutePickerAvailable = (): boolean =>
-  canShowAudioRoutePicker(isTauriAppPlatform(), getOSPlatform());
+  isTauriAppPlatform() && canShowAudioRoutePicker(true, osType());
 
 export const showAudioRoutePicker = async (): Promise<void> => {
   if (!audioRoutePickerAvailable()) return;

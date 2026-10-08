@@ -1,9 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, renderHook } from '@testing-library/react';
+vi.mock('@/context/EnvContext', () => ({ useEnv: () => ({ appService: null }) }));
 import {
   DwellAccumulator,
   MAX_DWELL_MS,
   getSectionCharRange,
+  useDwellTracking,
 } from '@/app/reader/hooks/useDwellTracking';
+
+describe('final reading page', () => {
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+  it('includes time on the current page exactly once when closing the book', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useDwellTracking('book-hash', 'collect'));
+    act(() => result.current.onRelocate(3, 0, 100));
+    act(() => vi.advanceTimersByTime(2000));
+    expect(result.current.flushDwells(true)).toMatchObject([
+      { startSection: 3, startChar: 0, endChar: 100, timeMilliseconds: 2000 },
+    ]);
+    act(() => vi.advanceTimersByTime(5000));
+    expect(result.current.flushDwells(true)).toEqual([]);
+  });
+});
 
 describe('DwellAccumulator', () => {
   it('returns empty dwells before any relocate', () => {

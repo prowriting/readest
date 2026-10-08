@@ -729,7 +729,8 @@ export const useAudiobookControl = (bookKey: string) => {
   // engine state, update the visible timeline, and make the next Play perform
   // an exact start rather than blindly resuming the old element.
   useEffect(() => {
-    if (isNativePlayback || !engine || !view || !initialLocationHydratedRef.current) return;
+    if (!engine || !view || !initialLocationHydratedRef.current) return;
+    if (isNativePlayback && isActive(stateRef.current)) return;
     const book = getBookData(bookKey)?.book;
     const location = parseMediaOverlayLocation(configuredMediaOverlayLocation);
     if (!book || !location || location.editionId !== book.hash) return;
@@ -755,6 +756,14 @@ export const useAudiobookControl = (bookKey: string) => {
       if (location.updatedAt <= observedLocationUpdatedAtRef.current) return;
 
       observedLocationUpdatedAtRef.current = location.updatedAt;
+      if (isNativePlayback) {
+        // A clean device can receive cloud progress after its initial empty
+        // timeline. Show that position while idle; Play consumes the locator.
+        setSectionIndex(resolved.sectionIndex);
+        setChapterElapsed(resolved.sectionOffset);
+        setElapsed(timeline.elapsed(resolved.sectionIndex, resolved.sectionOffset));
+        return;
+      }
       pendingExternalLocationRef.current = {
         sectionIndex: resolved.sectionIndex,
         sectionOffset: resolved.sectionOffset,

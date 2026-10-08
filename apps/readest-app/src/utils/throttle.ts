@@ -21,7 +21,8 @@ export const throttle = <T extends (...args: Parameters<T>) => void | Promise<vo
       func(...args);
     };
 
-    if (remaining <= 0) {
+    // A clock correction must not defer sync until the old wall time returns.
+    if (remaining <= 0 || remaining > delay) {
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;

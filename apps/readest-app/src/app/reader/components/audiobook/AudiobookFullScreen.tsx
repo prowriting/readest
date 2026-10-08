@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Insets } from '@/types/misc';
+import { useThemeStore } from '@/store/themeStore';
 
 interface AudiobookFullScreenProps {
   gridInsets: Insets;
@@ -17,13 +18,15 @@ interface AudiobookFullScreenProps {
  */
 const AudiobookFullScreen: React.FC<AudiobookFullScreenProps> = ({ gridInsets, children }) => {
   const _ = useTranslation();
+  const { systemUIVisible, statusBarHeight } = useThemeStore();
+  const topInset = Math.max(gridInsets.top, systemUIVisible ? statusBarHeight : 0);
 
   return (
     <div
       aria-label={_('Audiobook Screen')}
       className='bg-base-100 absolute inset-0 z-50 flex flex-col overflow-y-auto px-6'
       style={{
-        paddingTop: `${gridInsets.top + 12}px`,
+        paddingTop: `${topInset + 12}px`,
         paddingBottom: `${gridInsets.bottom + 12}px`,
       }}
     >
