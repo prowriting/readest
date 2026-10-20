@@ -50,6 +50,26 @@ describe('catalog service', () => {
     expect(result).toEqual({ rows: [], etag: 'e', generatedAt: '', notModified: true });
   });
 
+  it('shares an in-flight Discover request and allows a later refresh', async () => {
+    const payload = { version: 1, generated_at: 'x', etag: 'e', rows: [] };
+    const globalFetch = vi.fn().mockResolvedValue(jsonResponse(payload));
+    vi.stubGlobal('fetch', globalFetch);
+    await Promise.all([fetchDiscoverFeed(), fetchDiscoverFeed()]);
+    expect(globalFetch).toHaveBeenCalledTimes(1);
+    await fetchDiscoverFeed();
+    expect(globalFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('allows retry after a shared Discover request fails', async () => {
+    const globalFetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(jsonResponse({ rows: [], etag: 'e' }));
+    vi.stubGlobal('fetch', globalFetch);
+    await expect(fetchDiscoverFeed()).rejects.toThrow('offline');
+    await expect(fetchDiscoverFeed()).resolves.toMatchObject({ etag: 'e' });
+  });
+
   it('fetchCatalogBook resolves a book by source/sourceId via the by-id endpoint', async () => {
     const payload = { source: 'gutenberg', sourceId: '1661', title: 'Sherlock', author: 'Doyle' };
     const globalFetch = vi.fn().mockResolvedValueOnce(jsonResponse(payload));

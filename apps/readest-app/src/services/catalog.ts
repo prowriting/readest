@@ -98,11 +98,23 @@ export interface DiscoverFeedResult {
  * unchanged feed comes back as a bodyless 304. The server quotes its ETag, so we
  * quote the stored hash to match its comparison.
  */
-export async function fetchDiscoverFeed(etag?: string): Promise<DiscoverFeedResult> {
+const pendingDiscoverFeeds = new Map<string, Promise<DiscoverFeedResult>>();
+
+export function fetchDiscoverFeed(etag?: string): Promise<DiscoverFeedResult> {
+  const url = `${getBaseUrl()}/v1/discover/feed`;
+  const key = `${url}|${etag ?? ''}`;
+  const pending = pendingDiscoverFeeds.get(key);
+  if (pending) return pending;
+  const request = requestDiscoverFeed(url, etag).finally(() => pendingDiscoverFeeds.delete(key));
+  pendingDiscoverFeeds.set(key, request);
+  return request;
+}
+
+async function requestDiscoverFeed(url: string, etag?: string): Promise<DiscoverFeedResult> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (etag) headers['If-None-Match'] = `"${etag}"`;
 
-  const res = await fetch(`${getBaseUrl()}/v1/discover/feed`, { method: 'GET', headers });
+  const res = await fetch(url, { method: 'GET', headers });
 
   if (res.status === 304) {
     return { rows: [], etag: etag ?? '', generatedAt: '', notModified: true };

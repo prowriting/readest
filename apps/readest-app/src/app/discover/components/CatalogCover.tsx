@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import { useState } from 'react';
 
-import { getProxiedURL, needsProxy } from '@/app/opds/utils/opdsReq';
+import { needsProxy } from '@/app/opds/utils/opdsReq';
 
 interface CatalogCoverProps {
   coverUrl?: string | null;
@@ -35,7 +35,9 @@ const CatalogCover: React.FC<CatalogCoverProps> = ({ coverUrl, title, className 
   // The app runs under COEP `require-corp`, which blocks cross-origin images that
   // lack CORP headers (e.g. gutenberg.org covers). On web, route them through the
   // same-origin OPDS proxy so they load; on Tauri the URL is used directly.
-  const src = needsProxy(coverUrl) ? getProxiedURL(coverUrl, '', true) : coverUrl;
+  const src = needsProxy(coverUrl)
+    ? `/api/opds/proxy?${new URLSearchParams({ url: coverUrl, stream: 'true' })}`
+    : coverUrl;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

@@ -1,12 +1,14 @@
 'use client';
 
 import clsx from 'clsx';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PiBooks, PiCompass, PiGift, PiList } from 'react-icons/pi';
 
 import { useThemeStore } from '@/store/themeStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { navigateToClaim, navigateToDiscover, navigateToLibrary } from '@/utils/nav';
+import { prefetchDiscoverFeed } from '@/services/discoverCache';
 import Dropdown from '@/components/Dropdown';
 import SettingsMenu from '@/app/library/components/SettingsMenu';
 import ContinueReadingStrip from './ContinueReadingStrip';
@@ -38,6 +40,13 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ active, onPullLibrary }) =>
   const router = useRouter();
   const insets = useThemeStore((s) => s.safeAreaInsets);
   const iconSize = 19;
+
+  useEffect(() => {
+    if (active !== 'library') return;
+    // Let the library paint before starting the optional network request.
+    const timer = window.setTimeout(() => void prefetchDiscoverFeed(), 0);
+    return () => window.clearTimeout(timer);
+  }, [active]);
 
   return (
     <div

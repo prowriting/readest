@@ -1,4 +1,4 @@
-import type { DiscoverRow } from '@/services/catalog';
+import { fetchDiscoverFeed, type DiscoverRow } from '@/services/catalog';
 
 const DISCOVER_CACHE_KEY = 'bookarc:discover-cache';
 
@@ -37,5 +37,16 @@ export function writeDiscoverCache(rows: DiscoverRow[], etag?: string, generated
     localStorage.setItem(DISCOVER_CACHE_KEY, JSON.stringify({ rows, etag, generatedAt }));
   } catch {
     // Best-effort; a full/unavailable localStorage just means no offline cache.
+  }
+}
+
+/** Warm a first-time visitor's feed while the library is on screen. */
+export async function prefetchDiscoverFeed(): Promise<void> {
+  if (readDiscoverCache()?.rows.length) return;
+  try {
+    const feed = await fetchDiscoverFeed();
+    if (!feed.notModified) writeDiscoverCache(feed.rows, feed.etag, feed.generatedAt);
+  } catch {
+    // Best-effort: opening Discover will retry through its usual loading flow.
   }
 }

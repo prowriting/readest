@@ -1,5 +1,10 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const prefetchDiscoverFeed = vi.fn();
+vi.mock('@/services/discoverCache', () => ({
+  prefetchDiscoverFeed: () => prefetchDiscoverFeed(),
+}));
 
 vi.mock('@/hooks/useTranslation', () => ({
   useTranslation: () => (key: string) => key,
@@ -59,6 +64,16 @@ describe('BottomTabBar', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+  });
+
+  it('prefetches Discover in the background while the library is open', async () => {
+    render(<BottomTabBar active='library' onPullLibrary={vi.fn()} />);
+    await waitFor(() => expect(prefetchDiscoverFeed).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not schedule a prefetch from Discover itself', () => {
+    render(<BottomTabBar active='discover' onPullLibrary={vi.fn()} />);
+    expect(prefetchDiscoverFeed).not.toHaveBeenCalled();
   });
 
   it('renders the four destinations and the continue-reading strip', () => {
