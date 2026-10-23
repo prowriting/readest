@@ -23,6 +23,8 @@
 #   LOCATION                 - Azure region (default: uksouth)
 #   RG                       - Resource group (default: rg-bookarcweb-prod)
 #   IMAGE_TAG                - Image tag (default: git short hash)
+#   CONTAINER_APP_NAME       - Existing app name when it differs from APP_NAME-ENV
+#   PREBUILT_IMAGE           - Immutable image digest to deploy without rebuilding
 #
 # Tip: pull shared infra values from your existing BookArcWeb deployment:
 #   ACR_NAME=$(az acr list -g rg-bookarcweb-prod --query "[0].name" -o tsv)
@@ -44,8 +46,9 @@ API_BASE_URL="${API_BASE_URL:-https://reader.bookarc.app}"
 AUTHOR_BASE_URL="${AUTHOR_BASE_URL:-https://author.bookarc.app}"
 USE_APPLE_SIGN_IN="${USE_APPLE_SIGN_IN:-true}"
 
-CONTAINER_APP_NAME="${APP_NAME}-${ENV}"
+CONTAINER_APP_NAME="${CONTAINER_APP_NAME:-${APP_NAME}-${ENV}}"
 IMAGE_NAME="${CONTAINER_APP_NAME}"
+PREBUILT_IMAGE="${PREBUILT_IMAGE:-}"
 
 info()    { echo ">> $*"; }
 success() { echo "OK $*"; }
@@ -58,11 +61,17 @@ command -v az >/dev/null || err "Azure CLI not found. Install: brew install azur
 command -v jq >/dev/null || err "jq not found. Install: brew install jq"
 az account show >/dev/null 2>&1 || { info "Not logged in — running az login"; az login; }
 
-# Submodule check
+# Source prerequisites are only needed when building a new image.
+if [[ -z "$PREBUILT_IMAGE" ]]; then
 test -f packages/foliate-js/vendor/pdfjs/annotation_layer_builder.css \
     && test -d packages/simplecc-wasm/dist/web \
     && test -f apps/readest-app/src-tauri/plugins/tauri-plugin-turso/guest-js/index.ts \
     || err "Git submodules not initialised. Run: git submodule update --init packages/foliate-js packages/simplecc-wasm apps/readest-app/src-tauri/plugins/tauri-plugin-turso"
+else
+    [[ "$PREBUILT_IMAGE" == "${ACR_NAME}.azurecr.io/${IMAGE_NAME}@sha256:"* \
+        && "${PREBUILT_IMAGE##*@sha256:}" =~ ^[0-9a-f]{64}$ ]] \
+        || err "PREBUILT_IMAGE must pin this app's registry image by SHA-256 digest"
+fi
 
 success "Prerequisites OK"
 
@@ -73,6 +82,7 @@ success "Environment domain: ${CONTAINER_ENV_DOMAIN}"
 
 # ── 3. Build image in Azure (no local Docker needed) ─────────────────────────
 info "Building image '${IMAGE_NAME}:${IMAGE_TAG}' in ACR '${ACR_NAME}'..."
+if [[ -z "$PREBUILT_IMAGE" ]]; then
 az acr build \
     --registry "$ACR_NAME" \
     --resource-group "$RG" \
@@ -99,9 +109,10 @@ az acr build \
     --build-arg "NEXT_PUBLIC_USE_APPLE_SIGN_IN=${USE_APPLE_SIGN_IN}" \
     .
 success "Image built: ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
+fi
 
 # ── 4. Create or update Container App ────────────────────────────────────────
-FULL_IMAGE="${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
+FULL_IMAGE="${PREBUILT_IMAGE:-${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}}"
 ACR_SERVER="${ACR_NAME}.azurecr.io"
 PULL_IDENTITY=$(az identity create --name "${CONTAINER_APP_NAME}-pull" \
     --resource-group "$RG" --location "$LOCATION" --output json)
@@ -176,7 +187,13 @@ if [[ -n "$CUSTOM_HOSTNAME" ]]; then
 fi
 
 # ── 6. Health check ───────────────────────────────────────────────────────────
-HEALTH_URL="${APP_URL}/"
+CANDIDATE_REVISION=$(az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+    --query properties.latestRevisionName -o tsv)
+[[ -n "$CANDIDATE_REVISION" ]] || err "Azure did not return the deployed revision"
+CANDIDATE_FQDN=$(az containerapp revision show --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+    --revision "$CANDIDATE_REVISION" --query properties.fqdn -o tsv)
+[[ -n "$CANDIDATE_FQDN" ]] || err "Azure did not return the deployed revision hostname"
+HEALTH_URL="https://${CANDIDATE_FQDN}/"
 info "Waiting for app to start (up to 2 min)..."
 APP_HEALTHY=false
 for i in $(seq 1 12); do
@@ -190,6 +207,17 @@ for i in $(seq 1 12); do
     echo "  ... waiting (${STATUS}) $((i * 10))s elapsed"
 done
 [[ "$APP_HEALTHY" == true ]] || err "Reader app failed its production health check at ${HEALTH_URL}"
+REVISION_MODE=$(az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+    --query properties.configuration.activeRevisionsMode -o tsv)
+if [[ "$REVISION_MODE" == "Multiple" ]]; then
+    az containerapp ingress traffic set --name "$CONTAINER_APP_NAME" --resource-group "$RG" \
+        --revision-weight "${CANDIDATE_REVISION}=100" --output none
+    # Verify the routed hostname before retiring old replicas. Keep revisions for rollback.
+    curl --fail --silent --show-error --retry 3 --max-time 20 "$APP_URL/" >/dev/null \
+        || err "Promoted reader failed its routed health check; old revisions retained"
+    RG="$RG" CONTAINER_APP_NAME="$CONTAINER_APP_NAME" CANDIDATE_REVISION="$CANDIDATE_REVISION" \
+        bash "$(dirname "${BASH_SOURCE[0]}")/scripts/retire-unused-revisions.sh"
+fi
 
 echo ""
 echo "==========================================="

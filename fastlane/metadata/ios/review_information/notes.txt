@@ -1,18 +1,30 @@
+Demo video attached: RPReplay_Final1792510158.MP4 (2 minutes 59 seconds), recorded on an iPad. It shows the guest library, claiming Moby-Dick, reading with audiobook playback, Discover, successful Sign in with Apple, reader settings, and the Account screen with Delete Account available. The recording demonstrates these flows; lock-screen controls and completion of account deletion are not shown.
+
 BookArc is a free reading app. Readers receive books and audiobooks directly from authors using claim codes, and can also read public-domain classics from the built-in Discover catalog. There are no in-app purchases, subscriptions, or ads.
 
-No sign-in is required to review the app. Every feature below works without an account. If you want to try Sign in with Apple, any Apple account works; it creates a BookArc account on the spot (no demo credentials are needed).
+No sign-in is required to review the app. Claiming, reading, listening and Discover work without an account. Cloud sync and account management require optional sign-in. If you want to try Sign in with Apple, any Apple account works; it creates a BookArc account on the spot (no demo credentials are needed).
 
 How to test:
-1. Claim tab: enter one of the claim codes below. Each code is single-use; several are provided. The book is added to your library on this device.
+1. Claim tab: enter one of the claim codes below. These review codes are reusable and do not expire. The book is added to your library on this device.
 2. Library tab: open the claimed book to read it.
 3. Discover tab: browse and open any free classic.
 4. Audiobook: claim the audiobook code below, then open "Moby-Dick" from the Library tab to test playback: background audio, the lock screen, and CarPlay (audio app). In the CarPlay simulator the app lists the audiobook and plays it.
 5. Optional: Sign in with Apple from Library > "Sign in to sync your library". Account deletion is under Library > menu > Account > Delete Account; it removes the account and all cloud data and revokes the Sign in with Apple token.
 
-Claim codes (single use):
+Claim codes (reusable; no expiry):
 - "Pride and Prejudice" (ebook): 3QF7ZHZ, SJE7EPT, 36D7KY6
 - "Moby-Dick" (audiobook): 9R8EBWR
 
 Privacy policy: https://bookarc.app/reader-privacy
 Terms: https://bookarc.app/reader-terms
 Support: support@bookarc.app
+
+Purpose, audience and business model: BookArc lets independent authors deliver ebooks and audiobooks directly to readers through claim codes, including gifts, advance review copies and newsletter bonuses. It is for general adult readers of fiction and non-fiction. The reader app is free; authors use the separate BookArc author platform to upload and distribute their own content.
+
+Core external services: our BookArc Reader API and author platform on Microsoft Azure; Azure Blob Storage and Azure SQL for files and account data; optional Sign in with Apple and Google Sign-In; SendGrid for account emails; opt-in PostHog analytics and crash reports. Optional reader integrations include Readwise, Hardcover, KOReader sync and WebDAV.
+
+Regional differences: the app functions consistently across regions; claimed content depends on the codes supplied to the reader. Discover offers public-domain classics.
+
+Content rights: authors or publishers upload claim-code books and confirm they hold the rights when uploading. Each delivered copy is watermarked for its recipient. Discover contains public-domain works, including Project Gutenberg and Standard Ebooks titles.
+
+Build 0.12.7.12017 includes a fix preserving the CarPlay Now Playing/chapter navigation when playback refreshes the library. The attached video demonstrates the iPad app; CarPlay is not shown.

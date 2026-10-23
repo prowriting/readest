@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => {
     searchParams: new URLSearchParams('code=fbc83a2'),
     fetchBookByCode: vi.fn(),
     libraryLoaded: true,
+    signedIn: true,
     downloadGiftBook: vi.fn(),
     confirmGiftRedemption: vi.fn(),
     ingestFile: vi.fn(),
@@ -39,7 +40,10 @@ vi.mock('@/context/EnvContext', () => ({
   }),
 }));
 vi.mock('@/context/AuthContext', () => ({
-  useAuth: () => ({ token: 'qa-token', user: { id: 'reader-1' } }),
+  useAuth: () => ({
+    token: mocks.signedIn ? 'qa-token' : null,
+    user: mocks.signedIn ? { id: 'reader-1' } : null,
+  }),
 }));
 vi.mock('@/hooks/useLibrary', () => ({
   useLibrary: () => ({ libraryLoaded: mocks.libraryLoaded }),
@@ -67,7 +71,14 @@ vi.mock('@/services/environment', () => ({
 }));
 vi.mock('@/services/ingestService', () => ({ ingestFile: mocks.ingestFile }));
 vi.mock('@/services/bookCode', () => ({
-  BookCodeError: class extends Error {},
+  BookCodeError: class extends Error {
+    constructor(
+      public readonly statusCode: number,
+      message: string,
+    ) {
+      super(message);
+    }
+  },
   fetchBookByCode: mocks.fetchBookByCode,
   downloadGiftBook: mocks.downloadGiftBook,
   confirmGiftRedemption: mocks.confirmGiftRedemption,
@@ -116,6 +127,7 @@ describe('BookCodeDialog', () => {
     mocks.handlers.clear();
     mocks.searchParams = new URLSearchParams('code=fbc83a2');
     mocks.libraryLoaded = true;
+    mocks.signedIn = true;
   });
 
   it('shows download progress and opens the saved book when import completes', async () => {
@@ -149,7 +161,8 @@ describe('BookCodeDialog', () => {
     );
   });
 
-  it('uses the claim dialog from a browser read link and persists analytics consent before opening', async () => {
+  it('opens a signed-out browser read link directly and persists analytics consent before opening', async () => {
+    mocks.signedIn = false;
     const feedbackResult = {
       ...result,
       book: { ...result.book, format: 'epub', requestAnalytics: true },
@@ -165,17 +178,15 @@ describe('BookCodeDialog', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(feedbackResult))));
     render(<ReadPage />);
 
-    const start = await screen.findByRole('button', { name: 'Start Reading' });
-    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
-    fireEvent.click(start);
-
     await waitFor(() =>
-      expect(mocks.navigateToReader).toHaveBeenCalledWith(mocks.router, ['feedback-hash']),
+      expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=feedback-hash'),
     );
+    expect(screen.queryByRole('button', { name: 'Start Reading' })).toBeNull();
+    expect(mocks.ingestFile.mock.calls[0]?.[1]).toMatchObject({ isLoggedIn: false });
     expect(importedBook.analyticsStatus).toBe('ask');
     expect(mocks.saveLibraryBooks).toHaveBeenCalled();
     expect(mocks.saveLibraryBooks.mock.invocationCallOrder[0]).toBeLessThan(
-      mocks.navigateToReader.mock.invocationCallOrder[0]!,
+      mocks.router.replace.mock.invocationCallOrder[0]!,
     );
     expect(mocks.confirmGiftRedemption).toHaveBeenCalledWith('download-1');
   });
@@ -215,15 +226,48 @@ describe('BookCodeDialog', () => {
     );
   });
 
-  it('loads the existing library before offering to import a browser claim', async () => {
+  it('loads the existing library before importing a browser claim', async () => {
     mocks.libraryLoaded = false;
     mocks.fetchBookByCode.mockResolvedValue(result);
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    mocks.ingestFile.mockResolvedValue({ hash: 'loaded-library-hash' });
     const { rerender } = render(<ReadPage />);
     await act(async () => {});
     expect(mocks.fetchBookByCode).not.toHaveBeenCalled();
     expect(mocks.importBook).not.toHaveBeenCalled();
     mocks.libraryLoaded = true;
     rerender(<ReadPage />);
-    expect(await screen.findByRole('button', { name: 'Start Reading' })).toBeTruthy();
+    await waitFor(() =>
+      expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=loaded-library-hash'),
+    );
+  });
+
+  it('does not consume a browser claim when durable library storage fails', async () => {
+    mocks.signedIn = false;
+    mocks.fetchBookByCode.mockResolvedValue(result);
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    mocks.ingestFile.mockResolvedValue({ hash: 'unsaved-hash' });
+    mocks.saveLibraryBooks.mockRejectedValueOnce(new Error('Local storage is unavailable'));
+    render(<ReadPage />);
+    expect(await screen.findByText('Local storage is unavailable')).toBeTruthy();
+    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
+    expect(mocks.router.replace).not.toHaveBeenCalled();
+  });
+
+  it('opens a browser claim only once when React replays its mount effects', async () => {
+    mocks.fetchBookByCode.mockResolvedValue(result);
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    mocks.ingestFile.mockResolvedValue({ hash: 'one-import-hash' });
+    render(
+      <React.StrictMode>
+        <ReadPage />
+      </React.StrictMode>,
+    );
+    await waitFor(() =>
+      expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=one-import-hash'),
+    );
+    expect(mocks.fetchBookByCode).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestFile).toHaveBeenCalledTimes(1);
+    expect(mocks.confirmGiftRedemption).toHaveBeenCalledTimes(1);
   });
 });

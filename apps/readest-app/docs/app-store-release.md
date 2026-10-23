@@ -1,7 +1,80 @@
 # App Store release checklist (iOS)
 
-Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
+Status as of 2026-10-20. Supersedes the "Store follow-up" notes in
 [ios-device-test-2026-09-11.md](ios-device-test-2026-09-11.md).
+
+## Released to the App Store 2026-10-23
+
+- Apple approved version **0.12.7**, build **0.12.7.12017**; verified status
+  **PENDING_DEVELOPER_RELEASE** before acting.
+- At the user's request, created the manual release request through App Store Connect.
+- Verified the resulting status as **READY_FOR_SALE / READY_FOR_DISTRIBUTION**.
+- Release receipt and before/after records are retained at
+  `/Users/chrisbanks/bookarc/output/app-store-release-2026-10-23/`.
+
+## Metadata correction and resubmission 2026-10-21
+
+- Apple rejected build 0.12.7.12017 under **2.3.10 — Accurate Metadata**, asking
+  us to remove Google Play references from the app description.
+- Removed “Google Play Books” from the live en-US iOS description and synced
+  `fastlane/metadata/ios/en-US/description.txt`.
+- Resubmitted the same build at **12:16 CEST**. Verified version and submission
+  state as **WAITING_FOR_REVIEW**, release mode **MANUAL**.
+- Receipts and before/after metadata are retained at
+  `/Users/chrisbanks/bookarc/output/app-store-metadata-fix-2026-10-21/`.
+
+## Resubmitted for App Review 2026-10-20
+
+- Version **0.12.7**, build **0.12.7.12017**, resubmitted at **18:33 CEST**.
+- Review submission `d36af17b-7d89-4c63-bd72-54d8600e90a4` is verified as
+  **WAITING_FOR_REVIEW**. Release remains **MANUAL**.
+- Attached the user-provided iPad recording `RPReplay_Final1792510158.MP4`
+  (2m59s, 114,858,866 bytes). Apple verified attachment delivery as **COMPLETE**,
+  with no errors; attachment ID `25715a18-e1b1-47a1-a324-1cd082764c39`.
+- Updated review notes to describe the recording accurately, retain reusable review
+  codes, and include purpose, audience, business model, external services, regional
+  behavior and content rights. Synced the local review notes to the submitted text.
+- Submission receipts and verification are retained at
+  `/Users/chrisbanks/bookarc/output/app-store-submission-2026-10-20/`.
+
+## CarPlay candidate uploaded 2026-10-20
+
+- Version **0.12.7**, build **0.12.7.12017**, uploaded successfully with no errors.
+  Delivery UUID: `e56ac185-de88-4c1a-aa5b-ae898529a8ff`.
+- Fixes CarPlay returning to the Audiobooks list when playback causes a library refresh:
+  the existing list template is updated in place, preserving Now Playing and chapter navigation.
+- Includes the current working tree based on `ab355c505`. Source snapshots, IPA, checksum,
+  and validation/build/upload logs are retained at `dist/ios/0.12.7-12017-appstore/`.
+- Validation: **5,400 app tests** and **33 native iOS tests** passed, including the new
+  regression test; TypeScript/lint, Rust formatting and Clippy, production frontend build,
+  native archive/export, and strict signature verification passed.
+- Export verified as `com.bookarc.app`, iOS 15 minimum, with the privacy manifest,
+  Sign in with Apple, associated domains, and CarPlay audio distribution entitlements.
+- Apple processing completed: **VALID**, App Store eligible, internal TestFlight state
+  **IN_BETA_TESTING**. Build 12017 is selected on App Store version 0.12.7, whose status is
+  **PREPARE_FOR_SUBMISSION**. Release mode is verified as **MANUAL**. As requested, this
+  candidate is left for the user to submit to Apple review; it has not been publicly released.
+- Fresh physical CarPlay testing remains outstanding. The fixed build was installed in the
+  simulator with Moby-Dick loaded, but automated CarPlay control clicks were unavailable.
+
+## Earlier candidate uploaded 2026-10-20
+
+- Version **0.12.7**, build **0.12.7.12016**, uploaded successfully with no errors.
+  Delivery UUID: `9fce6c01-9552-4d6c-a3f2-023db1691691`.
+- Apple processing completed: `VALID`, internal TestFlight state `READY_FOR_BETA_TESTING`.
+  The existing internal `Alpha Testing` group has automatic access to all builds.
+- Includes the existing guest claim/local reading changes in the working tree based on
+  `b8a05a28b`. Beta participation/sign-in requirements remain a proposed follow-up.
+- Validation: 31 focused unit tests, all three guest browser checks, TypeScript, lint of
+  the changed application files, production frontend build, native archive/export, and
+  strict code-signature verification passed. The first cold browser run timed out compiling
+  the reader; the complete rerun passed.
+- Export verified as `com.bookarc.app`, iOS 15 minimum, with the privacy manifest,
+  Sign in with Apple, associated domains, CarPlay audio and distribution entitlements.
+- Artifacts, build/upload logs, checksum and source changes are retained locally at
+  `dist/ios/0.12.7-12016-appstore/` relative to the app directory.
+- No physical device was available for a fresh smoke test. Public App Store submission
+  and release are separate from this candidate upload.
 
 ## Done
 
@@ -42,11 +115,14 @@ Status as of 2026-10-07. Supersedes the "Store follow-up" notes in
    issued 2026-08-18 shows as accepted on 2026-10-01 (developer.apple.com/account → Agreements).
    Any future update appears as a banner on that page and under App Store Connect → Agreements.
 2. ~~Create the App Review demo account~~ — decided 2026-10-07: review runs without sign-in.
-   The notes carry single-use claim codes (Pride and Prejudice ebook ×3, Moby-Dick audiobook
+   The notes carry reusable, non-expiring review codes (Pride and Prejudice ebook ×3, Moby-Dick audiobook
    test code) from the "BookArc for Readers" pen name; reviewers may use any Apple account for
    Sign in with Apple. Demo credential files stay empty. Regenerate codes from
-   Dashboard → Gift codes if they get used up; a batch test code is the only way to deliver an
-   audiobook without the author's audiobook add-on.
+   Dashboard → Gift codes if replacements are needed. On 2026-10-20 the four existing codes were
+   moved to standalone unlimited download records, keeping the same strings and preserving gift
+   history. Repeated download/confirm/redeem checks passed for every code, including packaged audio.
+   App Store Connect review notes were updated to match. Change evidence is retained under
+   `output/app-review-codes-2026-10-20/` in the workspace root.
 3. ~~App privacy labels~~ — done 2026-10-07 in App Store Connect. The answers entered, kept here
    so `PrivacyInfo.xcprivacy` and the labels stay in sync:
    - Data collected, linked to the user, not used for tracking:

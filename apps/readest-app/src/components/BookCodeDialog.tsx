@@ -12,13 +12,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { isStoreCapture, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
-import { ingestFile } from '@/services/ingestService';
-import {
-  BookCodeResult,
-  BookCodeError,
-  downloadGiftBook,
-  confirmGiftRedemption,
-} from '@/services/bookCode';
+import { importClaimedBook } from '@/services/claimImport';
+import { BookCodeResult, BookCodeError, downloadGiftBook } from '@/services/bookCode';
 import { detectKindle, sendToKindleApp, type DetectKindleResult } from '@/utils/bridge';
 import { eventDispatcher } from '@/utils/event';
 import { navigateToReader } from '@/utils/nav';
@@ -129,19 +124,11 @@ export const BookCodeDialog = () => {
   };
 
   const ingestAndConfirm = async (file: File) => {
-    const book = await ingestFile(
-      { file, books: library, forceUpload: true },
-      { appService: appService!, settings, isLoggedIn: !!user },
-    );
-    if (book) {
-      if (result?.book.requestAnalytics) {
-        book.analyticsStatus = 'ask';
-      }
-      setLibrary(library);
-      await appService!.saveLibraryBooks(library);
-      void confirmGiftRedemption(result!.downloadRef);
-    }
-    return book;
+    return importClaimedBook(result!, file, library, setLibrary, {
+      appService: appService!,
+      settings,
+      isLoggedIn: !!user,
+    });
   };
 
   const handleStartReading = async () => {

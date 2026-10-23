@@ -17,6 +17,7 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
   private var libraryObserver: NSObjectProtocol?
   private var bookmarkObserver: NSObjectProtocol?
   private var displayedBookmarkState: Bool?
+  private(set) var audiobooksTemplate: CPListTemplate?
 
   public func templateApplicationScene(
     _ templateApplicationScene: CPTemplateApplicationScene,
@@ -71,11 +72,11 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
     libraryObserver = nil
     bookmarkObserver = nil
     displayedBookmarkState = nil
+    audiobooksTemplate = nil
     self.interfaceController = nil
   }
 
-  private func refreshRootTemplate() {
-    guard let interfaceController else { return }
+  func refreshRootTemplate() {
     let books = AudiobookCarLibrary.shared.books
     let items = books.map { book -> CPListItem in
       let cover = AudiobookCarLibrary.shared.playbackManifest(for: book.id)?.coverPath
@@ -88,10 +89,17 @@ public class AudiobookCarPlaySceneDelegate: UIResponder, CPTemplateApplicationSc
       return item
     }
     let section = CPListSection(items: items)
+    if let audiobooksTemplate {
+      // Replacing the root clears the stack, dismissing Now Playing or
+      // chapters whenever the phone republishes its library during playback.
+      audiobooksTemplate.updateSections([section])
+      return
+    }
     let template = CPListTemplate(title: "Audiobooks", sections: [section])
     template.emptyViewTitleVariants = ["No audiobooks yet"]
     template.emptyViewSubtitleVariants = ["Audiobooks from your library appear here"]
-    interfaceController.setRootTemplate(template, animated: false, completion: nil)
+    audiobooksTemplate = template
+    interfaceController?.setRootTemplate(template, animated: false, completion: nil)
   }
 
   private func openBook(_ book: AudiobookCarLibrary.Book) {

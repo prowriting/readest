@@ -525,8 +525,6 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
           setSettings(settings);
           saveSettings(envConfig, settings);
         }
-      } else if (settings.keepLogin) {
-        router.push('/auth');
       }
     };
 

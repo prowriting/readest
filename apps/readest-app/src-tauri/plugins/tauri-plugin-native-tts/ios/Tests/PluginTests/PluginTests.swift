@@ -1,10 +1,40 @@
 import XCTest
+import CarPlay
 import AVFoundation
 import MediaPlayer
 import UIKit
 import WebKit
 
 @testable import tauri_plugin_native_tts
+
+final class CarPlayLibraryRefreshTests: XCTestCase {
+  func testLibraryRefreshUpdatesExistingListWithoutReplacingTheNavigationRoot() throws {
+    let library = AudiobookCarLibrary.shared
+    let originalBooks = library.books
+    defer { library.updateBooks(originalBooks) }
+    library.updateBooks([
+      .init(id: "carplay-refresh", title: "Original title", author: "Author", durationSec: 60)
+    ])
+    let delegate = AudiobookCarPlaySceneDelegate()
+    delegate.refreshRootTemplate()
+    let root = try XCTUnwrap(delegate.audiobooksTemplate)
+    XCTAssertEqual(root.sections.first?.items.first?.text, "Original title")
+
+    library.updateBooks([
+      .init(id: "carplay-refresh", title: "Updated title", author: "Author", durationSec: 60)
+    ])
+    delegate.refreshRootTemplate()
+    XCTAssertTrue(delegate.audiobooksTemplate === root,
+      "Library updates must preserve the root so CarPlay keeps Now Playing or chapters on top")
+    XCTAssertEqual(root.sections.first?.items.first?.text, "Updated title")
+
+    library.updateBooks([])
+    delegate.refreshRootTemplate()
+    XCTAssertTrue(delegate.audiobooksTemplate === root)
+    XCTAssertEqual(root.sections.reduce(0) { $0 + $1.items.count }, 0)
+    XCTAssertEqual(root.emptyViewTitleVariants, ["No audiobooks yet"])
+  }
+}
 
 final class ReaderWindowSceneRegistrationTests: XCTestCase {
   func testReaderFillsItsContainerAndResizesWithoutFlexibleMargins() {
