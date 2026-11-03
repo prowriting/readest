@@ -3,6 +3,7 @@ import type { Book } from '@/types/book';
 import { getKindleAvailability, preserveDeliveryRestrictions } from '@/utils/bookDelivery';
 import { loadKindleFile, shareKindleFile } from '@/services/kindle';
 import { transformBookFromDB, transformBookToDB } from '@/utils/transform';
+import { NativeFile } from '@/utils/file';
 
 const { shareFile } = vi.hoisted(() => ({ shareFile: vi.fn() }));
 vi.mock('@choochmeque/tauri-plugin-sharekit-api', () => ({ shareFile }));
@@ -43,6 +44,10 @@ describe('Kindle library delivery', () => {
     const restored: Book = JSON.parse(JSON.stringify(book));
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Claim expired'));
     const file = new File(['Personalized for chrisdbanks@protonmail.com'], 'hash.epub');
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: async () =>
+        new TextEncoder().encode('Personalized for chrisdbanks@protonmail.com').buffer,
+    });
     const appService = { loadBookContent: vi.fn().mockResolvedValue({ book: {}, file }) };
     const exported = await loadKindleFile(appService, restored);
     expect(appService.loadBookContent).toHaveBeenCalledWith(restored);
@@ -56,6 +61,36 @@ describe('Kindle library delivery', () => {
     expect(contents).toBe('Personalized for chrisdbanks@protonmail.com');
     expect(fetchSpy).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
+  });
+
+  it('shares bytes from a native file whose Blob backing is empty, then closes its handle', async () => {
+    const bytes = new TextEncoder().encode('PK personalized EPUB contents');
+    const file = new NativeFile('/library/personalized.epub', 'hash.epub');
+    const read = vi.spyOn(file, 'arrayBuffer').mockResolvedValue(bytes.buffer);
+    const close = vi.spyOn(file, 'close').mockResolvedValue();
+    const exported = await loadKindleFile(
+      { loadBookContent: vi.fn().mockResolvedValue({ file }) },
+      book,
+    );
+    expect(exported.size).toBe(bytes.byteLength);
+    expect(read).toHaveBeenCalledOnce();
+    expect(close).toHaveBeenCalledOnce();
+    const contents = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsText(exported);
+    });
+    expect(contents).toBe('PK personalized EPUB contents');
+  });
+
+  it('closes a native source after a read failure and leaves sharing available to retry', async () => {
+    const file = new NativeFile('/library/personalized.epub', 'hash.epub');
+    vi.spyOn(file, 'arrayBuffer').mockRejectedValue(new Error('Read failed'));
+    const close = vi.spyOn(file, 'close').mockResolvedValue();
+    await expect(
+      loadKindleFile({ loadBookContent: vi.fn().mockResolvedValue({ file }) }, book),
+    ).rejects.toThrow('Read failed');
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it('shares the actual file with its MIME type and never deletes the library copy', async () => {

@@ -2,6 +2,7 @@ import { shareFile } from '@choochmeque/tauri-plugin-sharekit-api';
 import type { AppService } from '@/types/system';
 import type { Book } from '@/types/book';
 import { getKindleAvailability } from '@/utils/bookDelivery';
+import type { ClosableFile } from '@/utils/file';
 
 export const KINDLE_WEB_URL = 'https://www.amazon.com/sendtokindle';
 const MIME_TYPES: Record<string, string> = {
@@ -24,9 +25,14 @@ export async function loadKindleFile(
 ): Promise<File> {
   if (getKindleAvailability(book) !== 'ready') throw new Error('Book is not available for Kindle');
   // Load by the stored hash; no claim reference or remote redemption is needed.
-  // Renaming the File preserves every byte of the recipient's personalized copy.
+  // NativeFile reads lazily and has an empty underlying Blob. Materialize its
+  // bytes before renaming; new File([file]) would otherwise produce an empty file.
   const { file } = await appService.loadBookContent(book);
-  return kindleFile(file, book.title, book.format);
+  try {
+    return kindleFile(await file.arrayBuffer(), book.title, book.format);
+  } finally {
+    await (file as Partial<ClosableFile>).close?.();
+  }
 }
 
 export async function shareKindleFile(
