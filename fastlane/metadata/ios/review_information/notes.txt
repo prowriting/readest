@@ -1,4 +1,4 @@
-Version 0.12.8 (12020) improves claim saving and adds Send to Kindle to the library. For an eligible EPUB, PDF, or TXT, long-press the book in Library and choose Send to Kindle. The iOS share sheet opens; select Kindle if installed. Canceling leaves the book saved. Author-restricted app-only books and audiobooks do not offer Kindle export.
+Version 0.12.8 (12023) improves claim saving and adds Send to Kindle to the library. For an eligible EPUB, PDF, or TXT, long-press the book in Library and choose Send to Kindle. The iOS share sheet opens; select Kindle if installed. Canceling leaves the book saved. Author-restricted app-only books and audiobooks do not offer Kindle export.
 
 BookArc is a free reading app. Readers receive books and audiobooks directly from authors using claim codes, and can also read public-domain classics from the built-in Discover catalog. There are no in-app purchases, subscriptions, or ads.
 
@@ -26,3 +26,5 @@ Core external services: our BookArc Reader API and author platform on Microsoft 
 Regional differences: the app functions consistently across regions; claimed content depends on the codes supplied to the reader. Discover offers public-domain classics.
 
 Content rights: authors or publishers upload claim-code books and confirm they hold the rights when uploading. Each delivered copy is watermarked for its recipient. Discover contains public-domain works, including Project Gutenberg and Standard Ebooks titles.
+
+This build also fixes claim links opened while another book is being read, so the claim dialog remains open.

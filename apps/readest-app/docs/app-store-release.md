@@ -5,26 +5,35 @@ Status as of 2026-11-03. Supersedes the "Store follow-up" notes in
 
 ## Submitted for public App Review 2026-11-03
 
-- Version **0.12.8**, build **12020**, source `438d2f44b`, submitted at **11:16 CET**.
+- Version **0.12.8**, build **12023**, source `0f7a88a84`, submitted at **12:40 CET**.
 - Apple verified the build as `VALID`; version and review submission are both
   **WAITING_FOR_REVIEW**. Release mode is **AFTER_APPROVAL**, as authorized by the user.
   The update is not publicly available until Apple approves it.
-- Submission: `8518b24d-ee0f-427a-81ac-bc79b5277e7d`; build:
-  `4348bf66-07a8-441d-8d8d-23099fa62ee0`.
+- Submission: `f7a8c172-f3df-4b40-a3c8-f5355eb4fd03`; build:
+  `165076a7-119b-4330-9e2b-5416c2810785`.
 - Includes durable Save to My Library navigation and Send to Kindle directly from
   library book actions, with app-only restrictions preserved through storage and sync.
 - Physical iPad testing found and fixed an empty native file handoff before submission.
   The corrected file matched saved bytes exactly, Kindle confirmed sending, and the
   newly delivered gift opened with its watermark intact. Build 12019 was expired.
-- Validation: **5,427 unit tests passed**, 8 skipped; type checking, lint, formatting,
+- Android testing subsequently found a shared bug: the native file-import handler treated
+  `bookarc://` links as files, losing claim dialogs opened over the reader. Added failing
+  regression tests and excluded that scheme from file import. Withdrew the earlier 12020
+  submission and replaced it with 12023. On the physical iPad, verified the dialog stays
+  over the reader, Save returns to Library, and the saved EPUB reaches Kindle's form.
+  Canceling re-enabled the action and retained the book; no duplicate copy was sent.
+- Validation: **5,434 unit tests passed**, 8 skipped; type checking, lint, formatting,
   production frontend, native archive/export, signature and entitlement checks passed.
   See [Kindle validation](kindle-library-validation-2026-11-02.md) for limitations and evidence.
 - Updated release and review notes while retaining the existing listing and reusable
   review codes. Completed Apple's newly required `socialMedia` declaration as false,
   consistent with the app having no social-media functionality; synced local rating metadata.
-- IPA SHA-256: `8c6755f8eb5127966a1cdf8fc73a3bdd37f408c8a7a73d103d25ab73be5be05e`.
+- IPA SHA-256: `69a1e05d42547e0e37625e54b2366bdb4e641ab042bdd1ecbf1698c08f8ac071`.
   Receipts, archive, screenshots and logs remain at
-  `/Users/chrisbanks/bookarc/output/releases/delivery-20261103/`.
+  `/Users/chrisbanks/bookarc/output/releases/delivery-20261103/` and
+  `/Users/chrisbanks/bookarc/output/releases/android-delivery-20261103/`.
+  Android production submission and device-test limits are recorded in
+  [Android validation](android-release-validation-2026-11-03.md).
 
 ## Released to the App Store 2026-10-23
 
