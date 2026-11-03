@@ -1,6 +1,6 @@
 # Save to Library → Send to Kindle validation
 
-Implemented locally on `audiobook2`, November 2, 2026. No release was published.
+Implemented on `audiobook2`, November 2–3, 2026. Version 0.12.8, build 12020, was submitted for public App Store review on November 3; Apple reports `WAITING_FOR_REVIEW`, with automatic release after approval.
 
 ## Behavior
 
@@ -13,7 +13,7 @@ Implemented locally on `audiobook2`, November 2, 2026. No release was published.
 
 ## Automated checks
 
-Regression tests were run failing before the associated fixes. Final `pnpm test --run --maxWorkers=2`: **5,423 passed, 8 skipped**, 349 passing test files and 2 skipped files. `pnpm lint` passed (Lua syntax checking soft-skipped because LuaJIT is not installed; no Lua changed). `pnpm build` passed. No Rust source changed.
+Regression tests were run failing before the associated fixes. After the physical-device file fix, the full pre-push unit suite passed: **5,427 passed, 8 skipped**, 350 passing test files and 2 skipped files. `pnpm lint` and formatting passed (Lua syntax checking soft-skipped because LuaJIT is not installed; no Lua changed). The production frontend and signed iOS archive/export passed. No Rust source changed.
 
 Coverage includes save/read navigation, failed persistence and retry, deferred claim confirmation, metadata restrictions and sync in both timestamp directions, eligibility, cloud guidance, multiple selection, native cancellation, duplicate taps, retry and desktop save cancellation. The saved-file test restores a serialized library book and asserts no fetch call while retaining the recipient text.
 
@@ -31,19 +31,17 @@ Chrome, local app at port 3012:
 
 Screenshots: `/Users/chrisbanks/bookarc/audits/kindle-library-2026-11-02/screenshots/` (`web-narrow-action.jpg`, `web-kindle-steps.jpg`, `web-file-saved.jpg`, `web-eink-action.jpg`).
 
-## iPad validation: pending device reconnection
+## iPad validation: completed November 3
 
-The iPad was initially available and the original four-book library was visible. It disconnected before the updated app could be installed. The new native Kindle action and completed Kindle delivery are **not yet physically verified**.
+Tested on the attached iPad Air 11-inch (M3), iPadOS 26.6.2. Installed the same compiled app from the store archive, re-signed with the existing device-test profile; its local signing copy omits CarPlay because that profile lacks the entitlement. The uploaded distribution IPA retains CarPlay, Sign in with Apple, associated domains and the privacy manifest, and passed strict signature verification.
 
-Local device candidate: `dist/ios/kindle-library-device/Bookarc.app`, bundle `com.bookarc.app`, version `0.12.7.12018`. Native compilation and strict signature verification passed. The existing device-test provisioning profile was used; the local signing copy excludes the unavailable CarPlay entitlement. Generated Xcode signing settings were restored afterward. Automatic store-style provisioning/export still reports an Apple agreement/profile problem; no agreement was accepted and no store upload was attempted.
+- Claimed the prepared throwaway gift code and chose Save to My Library. Returned to Library without opening the reader; the existing four-book library remained intact. The short-lived notice was not captured on device; its behavior is covered by regression tests.
+- Long-pressed the saved book and chose Send to Kindle directly from the action bar. The target measured 84 × 45 points. Canceled the native share sheet, then retried successfully; cancellation did not remove the book or report delivery.
+- Terminated and reopened BookArc and confirmed the saved gift still offered the action after its code was consumed.
+- The first candidate exposed a native lazy-file bug: wrapping `NativeFile` directly in a new `File` created an empty blob. Added failing tests using `NativeFile`, then fixed the handler to read its bytes and close the handle. The focused tests went from 2 failures to all 10 passing. Build 12019 was superseded and expired in TestFlight; only corrected build **12020** was submitted for review.
+- On build 12020, the native sharing file was **byte-for-byte identical** to the saved library EPUB: 2,539,803 bytes, SHA-256 `3f89bb36a90ec9fe2b1cda4178d5ff6caf2655ce1e7d30d746adee0d422c5a7a`. This preserves the existing personalized watermark without another claim download.
+- Kindle accepted the file and displayed its own “File sent” confirmation. Opened the newly arrived copy, distinguished from the older copy by its Kindle document ID, and verified the test gift's watermark in the reader. The test copy uses its claim-code identifier rather than an email address. No consumed code was reopened or extended.
 
-A one-code draft named **Kindle library flow validation — Nov 2** was prepared using the author UI. Its throwaway test code remains unconsumed and is retained in the local audit evidence. The original production code was not reopened or extended. No new campaign email was sent.
+Screenshots and XML for each step, file-integrity evidence, the private test files and release logs remain local under `/Users/chrisbanks/bookarc/output/releases/delivery-20261103/`. They are not committed because they include gift identifiers and book contents.
 
-Remaining physical checks after reconnecting and unlocking:
-
-1. Install the local candidate over the current app, retaining its data.
-2. Claim the throwaway code, Save to My Library, and confirm the return/notice without reader navigation.
-3. Long-press the saved book → Send to Kindle; cancel once and retry.
-4. Choose Kindle, complete its own send UI, and open the delivered personalized copy.
-5. Terminate and reopen BookArc; verify Kindle remains available for the saved gift even after the code is consumed.
-6. Capture each step in the audit screenshot directory and update this record.
+Known polish issue: Kindle's own submission form derives its default title from the unique temporary filename, which includes a random suffix. The title and author were edited in that form before sending. This does not affect file integrity or delivery, but a future native-share improvement should preserve a clean display filename without reusing stale personalized files.
