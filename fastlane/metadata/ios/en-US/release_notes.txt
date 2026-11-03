@@ -1,1 +1,5 @@
-Read and listen to books from your favorite authors, now on iPhone and iPad.
+Save claimed books to your library without opening the reader, or choose Start Reading to begin immediately.
+
+Send compatible EPUB, PDF, and TXT books to Kindle directly from your library, including saved gifts.
+
+Improved claim saving, retry behavior, and preservation of author-set reading restrictions. Updated BookArc app download links.

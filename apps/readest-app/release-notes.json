@@ -1,5 +1,14 @@
 {
   "releases": {
+    "0.12.8": {
+      "date": "2026-11-03",
+      "notes": [
+        "Save claimed books to your library without opening the reader, or choose Start Reading to begin immediately.",
+        "Send compatible EPUB, PDF, and TXT books to Kindle directly from your library, including saved gifts.",
+        "Improved claim saving, retry behavior, and preservation of author-set reading restrictions.",
+        "Updated BookArc app download links."
+      ]
+    },
     "0.12.7": {
       "date": "2026-09-10",
       "notes": [
