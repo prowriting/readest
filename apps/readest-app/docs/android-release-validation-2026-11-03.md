@@ -1,6 +1,6 @@
 # Android 0.12.8 release validation
 
-Submitted **0.12.8 (12022)** to Google Play production review on November 3, 2026, from committed source `0f7a88a849eedafdac80d7549123b6d465def214`. Play Console shows **Changes in review**, with automatic quick checks running. Managed publishing is off; the pending change is **Start full rollout** after approval. Submission does not mean the update is publicly available.
+Submitted **0.12.8 (12022)** to Google Play production review on November 3, 2026, from committed source `0f7a88a849eedafdac80d7549123b6d465def214`. Automatic quick checks completed successfully; Play Console confirms **Your changes are now in review**. Managed publishing is off; the pending change is **Start full rollout** after approval. Submission does not mean the update is publicly available.
 
 [Google Play publishing overview](https://play.google.com/console/u/1/developers/8028954603947203615/app/4973508317603289687/publishing). The existing internal, alpha and beta tracks were preserved. Candidate 12021 was superseded before the production edit was committed.
 
