@@ -13,7 +13,7 @@ import { eventDispatcher } from '@/utils/event';
  * event published by `useAppUrlIngress`, filters URLs that look like a file
  * (file://, content://, or plain path), and routes them to the library.
  *
- * Non-file URL shapes (https, readest://, data:, blob:) are skipped here
+ * Non-file URL shapes (https, bookarc://, readest://, data:, blob:) are skipped here
  * — other consumers (e.g. `useOpenAnnotationLink`) act on those.
  *
  * Mount this hook alongside `useAppUrlIngress` so the ingress dispatcher is
@@ -40,7 +40,7 @@ export function useOpenWithBooks() {
         if (url.startsWith('file://')) {
           url = appService?.isIOSApp ? decodeURI(url) : decodeURI(url.replace('file://', ''));
         }
-        if (!/^(https?:|data:|blob:|readest:)/i.test(url)) {
+        if (!/^(https?:|data:|blob:|readest:|bookarc:)/i.test(url)) {
           filePaths.push(url);
         }
       }
