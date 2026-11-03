@@ -5,11 +5,14 @@ import {
   MdOutlineCancel,
   MdInfoOutline,
   MdCheckCircleOutline,
+  MdSend,
 } from 'react-icons/md';
 import { LuFolderPlus } from 'react-icons/lu';
 import { useKeyDownActions } from '@/hooks/useKeyDownActions';
 import { useTranslation } from '@/hooks/useTranslation';
 import { isMd5 } from '@/utils/md5';
+import type { Book } from '@/types/book';
+import { getKindleAvailability } from '@/utils/bookDelivery';
 
 interface SelectModeActionsProps {
   selectedBooks: string[];
@@ -20,6 +23,9 @@ interface SelectModeActionsProps {
   onStatus: () => void;
   onDelete: () => void;
   onCancel: () => void;
+  kindleBook?: Book;
+  kindlePreparing?: boolean;
+  onSendToKindle?: () => void;
 }
 
 const SelectModeActions: React.FC<SelectModeActionsProps> = ({
@@ -31,6 +37,9 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
   onStatus,
   onDelete,
   onCancel,
+  kindleBook,
+  kindlePreparing = false,
+  onSendToKindle,
 }) => {
   const _ = useTranslation();
 
@@ -38,6 +47,7 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
   const hasValidBooks = selectedBooks.every((id) => isMd5(id));
   const hasSingleSelection = selectedBooks.length === 1;
   const divRef = useKeyDownActions({ onCancel });
+  const kindleAvailability = hasSingleSelection ? getKindleAvailability(kindleBook) : 'hidden';
 
   return (
     <div
@@ -52,8 +62,8 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
           'text-base-content text-xs shadow-lg',
           'not-eink:bg-base-300 eink:bg-base-100 eink:border eink:border-base-content',
           'mx-auto w-fit max-w-[calc(100vw-1rem)] rounded-lg p-4',
-          'flex items-center justify-center gap-x-6',
-          'max-[500px]:grid max-[500px]:grid-cols-4 max-[500px]:gap-x-6 max-[500px]:gap-y-3',
+          'flex flex-wrap items-center justify-center gap-x-4 [&>button]:min-h-11 [&>button]:min-w-11',
+          'max-[640px]:grid max-[640px]:grid-cols-4 max-[640px]:gap-x-3 max-[640px]:gap-y-3',
         )}
       >
         <button
@@ -96,11 +106,29 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
           <MdInfoOutline />
           <div>{_('Details')}</div>
         </button>
+        {kindleAvailability !== 'hidden' && (
+          <button
+            onClick={onSendToKindle}
+            disabled={kindleAvailability === 'download' || kindlePreparing}
+            aria-label={_('Send to Kindle')}
+            aria-describedby={
+              kindleAvailability === 'download' ? 'kindle-download-guidance' : undefined
+            }
+            aria-busy={kindlePreparing}
+            className='flex max-w-24 flex-col items-center justify-center gap-1 disabled:opacity-50'
+          >
+            <MdSend />
+            <span>{kindlePreparing ? _('Preparing…') : _('Send to Kindle')}</span>
+            {kindleAvailability === 'download' && (
+              <span id='kindle-download-guidance'>{_('Download this book first')}</span>
+            )}
+          </button>
+        )}
         <button
           onClick={onDelete}
           className={clsx(
             'flex flex-col items-center justify-center gap-1',
-            'max-[500px]:col-start-2',
+            kindleAvailability === 'hidden' && 'max-[640px]:col-start-2',
             !hasSelection && 'btn-disabled opacity-50',
           )}
         >

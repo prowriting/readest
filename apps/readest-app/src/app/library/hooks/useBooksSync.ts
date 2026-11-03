@@ -1,3 +1,4 @@
+import { preserveDeliveryRestrictions } from '@/utils/bookDelivery';
 import { useCallback, useEffect, useRef } from 'react';
 import { Book } from '@/types/book';
 import { useSync } from '@/hooks/useSync';
@@ -129,6 +130,10 @@ export const useBooksSync = () => {
           matchingBook.updatedAt >= oldBook.updatedAt
             ? { ...oldBook, ...matchingBook, syncedAt: Date.now() }
             : { ...matchingBook, ...oldBook, syncedAt: Date.now() };
+        mergedBook.metadata = preserveDeliveryRestrictions(
+          oldBook.metadata,
+          preserveDeliveryRestrictions(matchingBook.metadata, mergedBook.metadata),
+        );
         return mergedBook;
       }
       return oldBook;

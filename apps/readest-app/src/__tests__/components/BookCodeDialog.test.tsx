@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
@@ -15,7 +15,9 @@ const mocks = vi.hoisted(() => {
     ingestFile: vi.fn(),
     importBook: vi.fn(),
     navigateToReader: vi.fn(),
+    navigateToLibrary: vi.fn(),
     saveLibraryBooks: vi.fn(),
+    setLibraryNotice: vi.fn(),
     handlers,
     dispatch: (name: string, detail: unknown) => {
       handlers.get(name)?.forEach((handler) => handler(new CustomEvent(name, { detail })));
@@ -56,7 +58,12 @@ vi.mock('@/hooks/useTranslation', () => ({
 }));
 vi.mock('@/store/settingsStore', () => ({ useSettingsStore: () => ({ settings: {} }) }));
 vi.mock('@/store/libraryStore', () => {
-  const libraryState = { library: [], visibleLibrary: [], setLibrary: vi.fn() };
+  const libraryState = {
+    library: [],
+    visibleLibrary: [],
+    setLibrary: vi.fn(),
+    setLibraryNotice: mocks.setLibraryNotice,
+  };
   return {
     useLibraryStore: Object.assign(
       (selector: (state: typeof libraryState) => unknown) => selector(libraryState),
@@ -84,7 +91,10 @@ vi.mock('@/services/bookCode', () => ({
   confirmGiftRedemption: mocks.confirmGiftRedemption,
 }));
 vi.mock('@/utils/bridge', () => ({ detectKindle: vi.fn(), sendToKindleApp: vi.fn() }));
-vi.mock('@/utils/nav', () => ({ navigateToReader: mocks.navigateToReader }));
+vi.mock('@/utils/nav', () => ({
+  navigateToReader: mocks.navigateToReader,
+  navigateToLibrary: mocks.navigateToLibrary,
+}));
 vi.mock('@/utils/event', () => ({
   eventDispatcher: {
     on: (name: string, handler: (event: CustomEvent) => void) => {
@@ -121,16 +131,20 @@ const result = {
 };
 
 describe('BookCodeDialog', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.saveLibraryBooks.mockResolvedValue(undefined);
     mocks.handlers.clear();
     mocks.searchParams = new URLSearchParams('code=fbc83a2');
     mocks.libraryLoaded = true;
     mocks.signedIn = true;
   });
 
-  it('shows download progress and opens the saved book when import completes', async () => {
+  it('shows download progress and returns to the library without opening the saved book', async () => {
     let finishDownload: ((bytes: ArrayBuffer) => void) | undefined;
     mocks.downloadGiftBook.mockImplementation(
       async (
@@ -156,9 +170,33 @@ describe('BookCodeDialog', () => {
 
     await act(async () => finishDownload?.(new ArrayBuffer(8)));
 
+    await waitFor(() => expect(mocks.navigateToLibrary).toHaveBeenCalledWith(mocks.router));
+    expect(mocks.navigateToReader).not.toHaveBeenCalled();
+    expect(mocks.confirmGiftRedemption).toHaveBeenCalledWith('download-1');
+    expect(mocks.setLibraryNotice).toHaveBeenCalledWith('added');
+    expect(screen.queryByRole('button', { name: 'Save to My Library' })).toBeNull();
+  });
+
+  it.each([
+    'Save to My Library',
+    'Start Reading',
+  ])('keeps the claim open and unconsumed when persistence fails for %s', async (action) => {
+    mocks.downloadGiftBook.mockResolvedValue(new ArrayBuffer(8));
+    mocks.ingestFile.mockResolvedValue({ hash: 'unsaved-hash' });
+    mocks.saveLibraryBooks.mockRejectedValueOnce(new Error('Disk full'));
+    render(<BookCodeDialog />);
+    act(() => mocks.dispatch('book-code-found', { result }));
+    fireEvent.click(await screen.findByRole('button', { name: action }));
+    await waitFor(() => expect(mocks.saveLibraryBooks).toHaveBeenCalled());
     await waitFor(() =>
-      expect(mocks.navigateToReader).toHaveBeenCalledWith(mocks.router, [importedBook.hash]),
+      expect(
+        screen.getByRole('button', { name: 'Save to My Library' }).hasAttribute('disabled'),
+      ).toBe(false),
     );
+    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
+    expect(mocks.navigateToReader).not.toHaveBeenCalled();
+    expect(mocks.navigateToLibrary).not.toHaveBeenCalled();
+    expect(mocks.setLibraryNotice).not.toHaveBeenCalled();
   });
 
   it('opens a signed-out browser read link directly and persists analytics consent before opening', async () => {

@@ -16,6 +16,8 @@ interface LibraryState {
   groups: Record<string, string>;
   hashIndex: Map<string, number>; // hash -> array index for O(1) lookup
   visibleLibrary: Book[];
+  libraryNotice: 'added' | 'exists' | null;
+  setLibraryNotice: (notice: 'added' | 'exists' | null) => void;
   setIsSyncing: (syncing: boolean) => void;
   setSyncProgress: (progress: number) => void;
   setSelectedBooks: (ids: string[]) => void;
@@ -70,6 +72,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   groups: {},
   hashIndex: new Map(),
   visibleLibrary: [],
+  libraryNotice: null,
+  setLibraryNotice: (libraryNotice) => set({ libraryNotice }),
   checkOpenWithBooks: isTauriAppPlatform(),
   checkLastOpenBooks: isTauriAppPlatform(),
 

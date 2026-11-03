@@ -3,8 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MdMenuBook, MdCheckCircle, MdErrorOutline } from 'react-icons/md';
 import { RiLoader2Line } from 'react-icons/ri';
-import { tempDir } from '@tauri-apps/api/path';
-import { writeFile } from '@tauri-apps/plugin-fs';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEnv } from '@/context/EnvContext';
 import { useAuth } from '@/context/AuthContext';
@@ -14,12 +12,14 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { isStoreCapture, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { importClaimedBook } from '@/services/claimImport';
 import { BookCodeResult, BookCodeError, downloadGiftBook } from '@/services/bookCode';
-import { detectKindle, sendToKindleApp, type DetectKindleResult } from '@/utils/bridge';
+import { useSendToKindle } from '@/hooks/useSendToKindle';
+import { kindleFile } from '@/services/kindle';
+import { isKindleFormat } from '@/utils/bookDelivery';
+import SendToKindleDialog from './SendToKindleDialog';
 import { eventDispatcher } from '@/utils/event';
-import { navigateToReader } from '@/utils/nav';
+import { navigateToLibrary, navigateToReader } from '@/utils/nav';
 import Dialog from './Dialog';
 
-const KINDLE_WEB_URL = 'https://www.amazon.com/sendtokindle';
 const PLAY_BOOKS_WEB_URL = 'https://play.google.com/books/uploads';
 
 type BusyAction = 'reading' | 'saving' | 'kindle' | 'playbooks' | 'downloads' | null;
@@ -40,23 +40,15 @@ export const BookCodeDialog = () => {
   const library = useLibraryStore((s) => s.library);
   const visibleLibrary = useLibraryStore((s) => s.visibleLibrary);
   const setLibrary = useLibraryStore((s) => s.setLibrary);
+  const setLibraryNotice = useLibraryStore((s) => s.setLibraryNotice);
 
   const [isOpen, setIsOpen] = useState(false);
   const [result, setResult] = useState<BookCodeResult | null>(null);
   const [codeError, setCodeError] = useState<CodeError | null>(null);
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
   const [transferStatus, setTransferStatus] = useState<TransferStatus | null>(null);
-  const kindleRef = useRef<DetectKindleResult | null>(null);
-
-  useEffect(() => {
-    if (isTauriAppPlatform() && appService?.isAndroidApp) {
-      detectKindle()
-        .then((r) => {
-          kindleRef.current = r;
-        })
-        .catch(() => {});
-    }
-  }, [appService?.isAndroidApp]);
+  const actionPending = useRef(false);
+  const kindle = useSendToKindle();
 
   useEffect(() => {
     const handler = (event: CustomEvent) => {
@@ -92,6 +84,7 @@ export const BookCodeDialog = () => {
   }, [result, visibleLibrary]);
 
   const handleClose = () => {
+    if (actionPending.current) return;
     setIsOpen(false);
     setResult(null);
     setCodeError(null);
@@ -109,9 +102,9 @@ export const BookCodeDialog = () => {
           : null;
         setTransferStatus({ phase: 'downloading', percent });
       });
-      return new File([bytes], `${result.book.title}.epub`, {
-        type: 'application/epub+zip',
-      });
+      // Audiobook gifts also arrive in an EPUB container.
+      const format = isKindleFormat(result.book.format) ? result.book.format : 'EPUB';
+      return kindleFile(bytes, result.book.title, format);
     } catch (err) {
       const message =
         err instanceof BookCodeError && err.statusCode === 410
@@ -132,12 +125,13 @@ export const BookCodeDialog = () => {
   };
 
   const handleStartReading = async () => {
-    if (!result) return;
+    if (!result || actionPending.current) return;
     if (alreadyOwned) {
       navigateToReader(router, [alreadyOwned.hash]);
       handleClose();
       return;
     }
+    actionPending.current = true;
     setBusyAction('reading');
     try {
       const file = await getDownloadedFile();
@@ -145,25 +139,32 @@ export const BookCodeDialog = () => {
       setTransferStatus({ phase: 'processing', percent: null });
       const book = await ingestAndConfirm(file);
       if (book) {
-        navigateToReader(router, [book.hash]);
+        actionPending.current = false;
         handleClose();
+        navigateToReader(router, [book.hash]);
       }
+    } catch {
+      eventDispatcher.dispatch('toast', {
+        type: 'error',
+        message: _('Could not save the book. Please try again.'),
+        timeout: 5000,
+      });
     } finally {
+      actionPending.current = false;
       setBusyAction(null);
       setTransferStatus(null);
     }
   };
 
   const handleSaveToLibrary = async () => {
-    if (!result) return;
+    if (!result || actionPending.current) return;
     if (alreadyOwned) {
-      eventDispatcher.dispatch('toast', {
-        type: 'info',
-        message: _('Already in your library'),
-        timeout: 2500,
-      });
+      setLibraryNotice('exists');
+      handleClose();
+      navigateToLibrary(router);
       return;
     }
+    actionPending.current = true;
     setBusyAction('saving');
     try {
       const file = await getDownloadedFile();
@@ -171,15 +172,19 @@ export const BookCodeDialog = () => {
       setTransferStatus({ phase: 'processing', percent: null });
       const book = await ingestAndConfirm(file);
       if (book) {
-        eventDispatcher.dispatch('toast', {
-          type: 'success',
-          message: _('Added to your library'),
-          timeout: 2500,
-        });
-        navigateToReader(router, [book.hash]);
+        setLibraryNotice('added');
+        actionPending.current = false;
         handleClose();
+        navigateToLibrary(router);
       }
+    } catch {
+      eventDispatcher.dispatch('toast', {
+        type: 'error',
+        message: _('Could not save the book. Please try again.'),
+        timeout: 5000,
+      });
     } finally {
+      actionPending.current = false;
       setBusyAction(null);
       setTransferStatus(null);
     }
@@ -210,32 +215,19 @@ export const BookCodeDialog = () => {
   };
 
   const handleSendToKindle = async () => {
-    if (!result) return;
-    const kindle = kindleRef.current;
-    const hasNativeKindle = kindle && (kindle.hasKindle || kindle.hasKindleFs || kindle.isFire);
-    if (!hasNativeKindle) {
-      window.open(KINDLE_WEB_URL, '_blank', 'noopener');
+    if (
+      !result ||
+      actionPending.current ||
+      result.book.appOnlyReading ||
+      !isKindleFormat(result.book.format)
+    )
       return;
-    }
+    actionPending.current = true;
     setBusyAction('kindle');
     try {
-      const file = await getDownloadedFile();
-      if (!file) return;
-      const bytes = await file.arrayBuffer();
-      const tmp = await tempDir();
-      const safeTitle = result.book.title.replace(/[^\w\s-]/g, '_').trim();
-      const epubPath = `${tmp}/${safeTitle}.epub`;
-      await writeFile(epubPath, new Uint8Array(bytes));
-      const shareResult = await sendToKindleApp(epubPath, result.book.title, kindle.isFire);
-      eventDispatcher.dispatch('toast', {
-        type: 'info',
-        message: shareResult.helperMessage,
-        timeout: 6000,
-      });
-    } catch (err) {
-      console.error('Send to Kindle failed:', err);
-      window.open(KINDLE_WEB_URL, '_blank', 'noopener');
+      await kindle.sendToKindle(getDownloadedFile);
     } finally {
+      actionPending.current = false;
       setBusyAction(null);
       setTransferStatus(null);
     }
@@ -310,100 +302,102 @@ export const BookCodeDialog = () => {
         : _('Downloading…');
 
   return (
-    <Dialog
-      id='book_code_dialog'
-      isOpen={isOpen}
-      title={_('We found your book!')}
-      onClose={handleClose}
-      boxClassName='sm:!w-[440px] sm:!max-w-screen-sm sm:h-auto'
-    >
-      {isOpen && (
-        <div className='flex flex-col gap-5 pb-8'>
-          {/* Book info */}
-          <div className='flex gap-4'>
-            <div className='relative flex h-36 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-base-300'>
-              {book.coverImageUrl ? (
-                <Image
-                  src={book.coverImageUrl}
-                  alt={book.title}
-                  width={96}
-                  height={144}
-                  className='h-full w-full object-cover'
-                />
-              ) : (
-                <MdMenuBook className='text-base-content/30' size={40} />
-              )}
-              {alreadyOwned && (
-                <div className='absolute bottom-1 right-1'>
-                  <MdCheckCircle className='text-primary drop-shadow' size={22} />
+    <>
+      <SendToKindleDialog file={kindle.file} onClose={kindle.close} />
+      <Dialog
+        id='book_code_dialog'
+        isOpen={isOpen && !kindle.file}
+        dismissible={!busy}
+        title={_('We found your book!')}
+        onClose={handleClose}
+        boxClassName='sm:!w-[440px] sm:!max-w-screen-sm sm:h-auto'
+      >
+        {isOpen && (
+          <div className='flex flex-col gap-5 pb-8'>
+            {/* Book info */}
+            <div className='flex gap-4'>
+              <div className='relative flex h-36 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-base-300'>
+                {book.coverImageUrl ? (
+                  <Image
+                    src={book.coverImageUrl}
+                    alt={book.title}
+                    width={96}
+                    height={144}
+                    className='h-full w-full object-cover'
+                  />
+                ) : (
+                  <MdMenuBook className='text-base-content/30' size={40} />
+                )}
+                {alreadyOwned && (
+                  <div className='absolute bottom-1 right-1'>
+                    <MdCheckCircle className='text-primary drop-shadow' size={22} />
+                  </div>
+                )}
+              </div>
+
+              <div className='flex flex-col justify-center gap-1.5'>
+                <h3 className='text-base-content text-lg font-bold leading-snug'>{book.title}</h3>
+                <p className='text-base-content/70 text-sm italic'>{book.author}</p>
+                <div className='mt-1 flex flex-col gap-1'>
+                  <div className='text-base-content/60 flex items-center gap-1.5 text-xs'>
+                    <MdMenuBook size={13} />
+                    <span>{book.format}</span>
+                  </div>
                 </div>
-              )}
+                {expiryLabel && <p className='text-base-content/50 text-xs'>{expiryLabel}</p>}
+              </div>
             </div>
 
-            <div className='flex flex-col justify-center gap-1.5'>
-              <h3 className='text-base-content text-lg font-bold leading-snug'>{book.title}</h3>
-              <p className='text-base-content/70 text-sm italic'>{book.author}</p>
-              <div className='mt-1 flex flex-col gap-1'>
-                <div className='text-base-content/60 flex items-center gap-1.5 text-xs'>
-                  <MdMenuBook size={13} />
-                  <span>{book.format}</span>
-                </div>
-              </div>
-              {expiryLabel && <p className='text-base-content/50 text-xs'>{expiryLabel}</p>}
-            </div>
-          </div>
-
-          {/* Description */}
-          {book.description && (
-            <p className='text-base-content/70 line-clamp-3 text-sm leading-relaxed'>
-              {book.description}
-            </p>
-          )}
-
-          {/* Actions */}
-          <div className='flex flex-col gap-3'>
-            {transferStatus && (
-              <div className='flex flex-col gap-2' aria-live='polite'>
-                <span className='text-base-content/70 text-sm'>{transferLabel}</span>
-                <progress
-                  className='progress progress-primary h-2 w-full'
-                  aria-label={
-                    transferStatus.phase === 'processing'
-                      ? _('Adding book to library')
-                      : _('Downloading book')
-                  }
-                  aria-valuenow={transferStatus.percent ?? undefined}
-                  value={transferStatus.percent ?? undefined}
-                  max={100}
-                />
-              </div>
+            {/* Description */}
+            {book.description && (
+              <p className='text-base-content/70 line-clamp-3 text-sm leading-relaxed'>
+                {book.description}
+              </p>
             )}
-            <button
-              className='btn btn-primary btn-lg w-full font-bold tracking-wide'
-              onClick={handleStartReading}
-              disabled={busy}
-            >
-              {busyAction === 'reading' ? (
-                <RiLoader2Line className='animate-spin' size={20} />
-              ) : (
-                primaryLabel
-              )}
-            </button>
 
-            <button
-              className='btn btn-outline w-full'
-              onClick={handleSaveToLibrary}
-              disabled={busy}
-            >
-              {busyAction === 'saving' ? (
-                <RiLoader2Line className='animate-spin' size={18} />
-              ) : (
-                _('Save to My Library')
+            {/* Actions */}
+            <div className='flex flex-col gap-3'>
+              {transferStatus && (
+                <div className='flex flex-col gap-2' aria-live='polite'>
+                  <span className='text-base-content/70 text-sm'>{transferLabel}</span>
+                  <progress
+                    className='progress progress-primary h-2 w-full'
+                    aria-label={
+                      transferStatus.phase === 'processing'
+                        ? _('Adding book to library')
+                        : _('Downloading book')
+                    }
+                    aria-valuenow={transferStatus.percent ?? undefined}
+                    value={transferStatus.percent ?? undefined}
+                    max={100}
+                  />
+                </div>
               )}
-            </button>
+              <button
+                className='btn btn-primary btn-lg w-full font-bold tracking-wide'
+                onClick={handleStartReading}
+                disabled={busy}
+              >
+                {busyAction === 'reading' ? (
+                  <RiLoader2Line className='animate-spin' size={20} />
+                ) : (
+                  primaryLabel
+                )}
+              </button>
 
-            {(!isWebAppPlatform() || isStoreCapture()) && !book.appOnlyReading && (
-              <>
+              <button
+                className='btn btn-outline w-full'
+                onClick={handleSaveToLibrary}
+                disabled={busy}
+              >
+                {busyAction === 'saving' ? (
+                  <RiLoader2Line className='animate-spin' size={18} />
+                ) : (
+                  _('Save to My Library')
+                )}
+              </button>
+
+              {!book.appOnlyReading && isKindleFormat(book.format) && (
                 <button
                   className='btn btn-ghost w-full'
                   onClick={handleSendToKindle}
@@ -415,45 +409,48 @@ export const BookCodeDialog = () => {
                     _('Send to Kindle')
                   )}
                 </button>
+              )}
+              {(!isWebAppPlatform() || isStoreCapture()) && !book.appOnlyReading && (
+                <>
+                  <button
+                    className='btn btn-ghost w-full'
+                    onClick={() => handleShareFile('playbooks', PLAY_BOOKS_WEB_URL)}
+                    disabled={busy}
+                  >
+                    {busyAction === 'playbooks' ? (
+                      <RiLoader2Line className='animate-spin' size={18} />
+                    ) : (
+                      _('Upload to Play Books')
+                    )}
+                  </button>
+                </>
+              )}
 
+              {!book.appOnlyReading && (
                 <button
                   className='btn btn-ghost w-full'
-                  onClick={() => handleShareFile('playbooks', PLAY_BOOKS_WEB_URL)}
+                  onClick={handleSaveToDownloads}
                   disabled={busy}
                 >
-                  {busyAction === 'playbooks' ? (
+                  {busyAction === 'downloads' ? (
                     <RiLoader2Line className='animate-spin' size={18} />
                   ) : (
-                    _('Upload to Play Books')
+                    _('Save to Downloads')
                   )}
                 </button>
-              </>
-            )}
+              )}
 
-            {!book.appOnlyReading && (
               <button
-                className='btn btn-ghost w-full'
-                onClick={handleSaveToDownloads}
+                className='btn btn-ghost text-base-content/50 w-full text-sm'
+                onClick={handleClose}
                 disabled={busy}
               >
-                {busyAction === 'downloads' ? (
-                  <RiLoader2Line className='animate-spin' size={18} />
-                ) : (
-                  _('Save to Downloads')
-                )}
+                {_('Close')}
               </button>
-            )}
-
-            <button
-              className='btn btn-ghost text-base-content/50 w-full text-sm'
-              onClick={handleClose}
-              disabled={busy}
-            >
-              {_('Close')}
-            </button>
+            </div>
           </div>
-        </div>
-      )}
-    </Dialog>
+        )}
+      </Dialog>
+    </>
   );
 };

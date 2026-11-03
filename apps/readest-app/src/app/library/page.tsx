@@ -1,5 +1,6 @@
 'use client';
 
+import { preserveDeliveryRestrictions } from '@/utils/bookDelivery';
 import clsx from 'clsx';
 import * as React from 'react';
 import { MdChevronRight } from 'react-icons/md';
@@ -151,6 +152,8 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
     checkLastOpenBooks,
     setCheckOpenWithBooks,
     setCheckLastOpenBooks,
+    libraryNotice,
+    setLibraryNotice,
   } = useLibraryStore();
   const _ = useTranslation();
   const { selectFiles } = useFileSelector(appService, _);
@@ -158,6 +161,19 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   const { clearBookData } = useBookDataStore();
   const { settings, setSettings, saveSettings } = useSettingsStore();
   const { setSettingsDialogOpen } = useSettingsStore();
+
+  // Claim and Library have separate toast hosts. Show the confirmation here
+  // after navigation so unmounting the claim page cannot discard it.
+  useEffect(() => {
+    if (!libraryNotice || !appService || !insets) return;
+    setLibraryNotice(null);
+    void eventDispatcher.dispatch('toast', {
+      type: libraryNotice === 'added' ? 'success' : 'info',
+      message:
+        libraryNotice === 'added' ? _('Added to your library') : _('Already in your library'),
+      timeout: 2500,
+    });
+  }, [libraryNotice, setLibraryNotice, appService, insets, _]);
 
   // Library page pulls user replicas (dictionaries, custom fonts,
   // background textures, OPDS catalogs, bundled settings). Deferred
@@ -913,6 +929,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
   };
 
   const handleUpdateMetadata = async (book: Book, metadata: BookMetadata) => {
+    metadata = preserveDeliveryRestrictions(book.metadata, metadata)!;
     book.metadata = metadata;
     book.title = formatTitle(metadata.title);
     book.author = formatAuthors(metadata.author);

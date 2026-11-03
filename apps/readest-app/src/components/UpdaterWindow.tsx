@@ -495,7 +495,7 @@ export const UpdaterContent = ({
                   <div className='flex gap-2'>
                     {(appService?.isIOSApp || appService?.isMacOSApp) && (
                       <Link
-                        href='https://apps.apple.com/app/id6738622779'
+                        href='https://apps.apple.com/app/id6802607914'
                         target='_blank'
                         rel='noopener noreferrer'
                         className='btn btn-primary btn-sm'

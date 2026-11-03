@@ -821,7 +821,7 @@ export const CJK_FONTS_PATTENS = new RegExp(
 
 export const BOOK_IDS_SEPARATOR = '+';
 
-export const DOWNLOAD_READEST_URL = 'https://bookarc.app';
+export const DOWNLOAD_READEST_URL = 'https://bookarc.app/reader-app';
 
 export const READEST_WEB_BASE_URL = 'https://web.bookarc.app';
 export const READEST_NODE_BASE_URL = 'https://node.readest.com';

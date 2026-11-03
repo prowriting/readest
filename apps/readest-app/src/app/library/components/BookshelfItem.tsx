@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { useCallback } from 'react';
+import { getKindleAvailability } from '@/utils/bookDelivery';
 import { useEnv } from '@/context/EnvContext';
 import { useLibraryStore } from '@/store/libraryStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -301,6 +302,19 @@ const BookshelfItem: React.FC<BookshelfItemProps> = ({
       menu.append(clearStatusMenuItem);
     }
     menu.append(showBookDetailsMenuItem);
+    const kindleAvailability = getKindleAvailability(book);
+    if (kindleAvailability !== 'hidden') {
+      menu.append(
+        await MenuItem.new({
+          text:
+            kindleAvailability === 'download'
+              ? `${_('Send to Kindle')} — ${_('Download this book first')}`
+              : _('Send to Kindle'),
+          enabled: kindleAvailability === 'ready',
+          action: () => eventDispatcher.dispatch('send-to-kindle', { hash: book.hash }),
+        }),
+      );
+    }
     menu.append(showBookInFinderMenuItem);
     if (book.uploadedAt && !book.downloadedAt) {
       menu.append(downloadBookMenuItem);

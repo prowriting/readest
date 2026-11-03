@@ -77,6 +77,18 @@ const renderView = (extra?: Partial<React.ComponentProps<typeof BookDetailView>>
   );
 
 describe('BookDetailView delete dropdown layout', () => {
+  it('retains generic Export for existing books but hides it for recorded app-only deliveries', () => {
+    const normal = renderView({ onExport: vi.fn() });
+    expect(normal.queryByTitle('Export Book')).toBeTruthy();
+    normal.unmount();
+    const restricted = renderView({
+      onExport: vi.fn(),
+      book: makeBook({
+        metadata: { title: 'Gift', author: 'Author', language: 'en', appOnlyReading: true },
+      }),
+    });
+    expect(restricted.queryByTitle('Export Book')).toBeNull();
+  });
   it('places dropdown-center on the parent dropdown so the menu stays in flow', () => {
     const { container } = renderView();
     const toggle = container.querySelector('button[aria-label="Delete Book Options"]');

@@ -54,6 +54,8 @@ export interface SectionItem {
 }
 
 export type BookMetadata = {
+  /** Delivery restriction retained independently of editable book details. */
+  appOnlyReading?: boolean;
   // NOTE: the title and author fields should be formatted
   title: string | LanguageMap;
   author: string | Contributor;

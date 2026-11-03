@@ -1,3 +1,4 @@
+import { preserveDeliveryRestrictions } from '@/utils/bookDelivery';
 import { SystemSettings } from '@/types/settings';
 import { FileSystem, AppPlatform, BaseDir } from '@/types/system';
 import {
@@ -369,7 +370,7 @@ export async function importBook(
       existingBook.sourceTitle = book.sourceTitle;
       existingBook.author = book.author;
       existingBook.primaryLanguage = book.primaryLanguage;
-      existingBook.metadata = book.metadata;
+      existingBook.metadata = preserveDeliveryRestrictions(existingBook.metadata, book.metadata);
       existingBook.hasAudio = book.hasAudio;
       existingBook.isAudioOnly = book.isAudioOnly;
       existingBook.audioDuration = book.audioDuration;
@@ -383,7 +384,7 @@ export async function importBook(
       existingBook.sourceTitle = existingBook.sourceTitle ?? book.sourceTitle;
       existingBook.author = existingBook.author ?? book.author;
       existingBook.primaryLanguage = existingBook.primaryLanguage ?? book.primaryLanguage;
-      existingBook.metadata = book.metadata;
+      existingBook.metadata = preserveDeliveryRestrictions(existingBook.metadata, book.metadata);
       existingBook.hasAudio = book.hasAudio ?? existingBook.hasAudio;
       existingBook.isAudioOnly = book.isAudioOnly ?? existingBook.isAudioOnly;
       existingBook.audioDuration = book.audioDuration ?? existingBook.audioDuration;
@@ -628,7 +629,7 @@ export async function refreshBookMetadata(fs: FileSystem, book: Book): Promise<b
   const { book: bookDoc } = await new DocumentLoader(file).open();
   if (!bookDoc) return false;
 
-  book.metadata = bookDoc.metadata;
+  book.metadata = preserveDeliveryRestrictions(book.metadata, bookDoc.metadata);
   book.metaHash = getMetadataHash(bookDoc.metadata);
   const primaryLanguage = getPrimaryLanguage(bookDoc.metadata.language);
   if (primaryLanguage) {

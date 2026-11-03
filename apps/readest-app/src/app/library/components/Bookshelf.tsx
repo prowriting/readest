@@ -54,6 +54,9 @@ import ModalPortal from '@/components/ModalPortal';
 import BookshelfItem, { generateBookshelfItems } from './BookshelfItem';
 import SelectModeActions from './SelectModeActions';
 import ShareBookDialog from './ShareBookDialog';
+import { useSendToKindle } from '@/hooks/useSendToKindle';
+import { loadKindleFile } from '@/services/kindle';
+import SendToKindleDialog from '@/components/SendToKindleDialog';
 import { useAuth } from '@/context/AuthContext';
 import GroupingModal from './GroupingModal';
 import SetStatusAlert from './SetStatusAlert';
@@ -153,6 +156,23 @@ const Bookshelf: React.FC<BookshelfProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { envConfig, appService } = useEnv();
+  const kindle = useSendToKindle();
+  const sendBookToKindle = useCallback(
+    (hash: string) => {
+      void kindle.sendToKindle(async () => {
+        const book = useLibraryStore.getState().library.find((entry) => entry.hash === hash);
+        if (!book || !appService) return null;
+        return loadKindleFile(appService, book);
+      });
+    },
+    [kindle.sendToKindle, appService],
+  );
+
+  useEffect(() => {
+    const handler = (event: CustomEvent<{ hash: string }>) => sendBookToKindle(event.detail.hash);
+    eventDispatcher.on('send-to-kindle', handler);
+    return () => eventDispatcher.off('send-to-kindle', handler);
+  }, [sendBookToKindle]);
   const { settings } = useSettingsStore();
   const { safeAreaInsets } = useThemeStore();
 
@@ -699,6 +719,15 @@ const Bookshelf: React.FC<BookshelfProps> = ({
           onStatus={showStatusSelection}
           onDelete={deleteSelectedBooks}
           onCancel={() => handleSetSelectMode(false)}
+          kindleBook={
+            selectedBooks.length === 1
+              ? libraryBooks.find((book) => book.hash === selectedBooks[0])
+              : undefined
+          }
+          kindlePreparing={kindle.isPreparing}
+          onSendToKindle={() => {
+            if (selectedBooks[0]) sendBookToKindle(selectedBooks[0]);
+          }}
         />
       )}
       {showGroupingModal && selectedBooks.length > 0 && (
@@ -750,6 +779,7 @@ const Bookshelf: React.FC<BookshelfProps> = ({
           onUpdateStatus={updateBooksStatus}
         />
       )}
+      <SendToKindleDialog file={kindle.file} onClose={kindle.close} />
       {BOOK_SHARING_ENABLED && (
         <ShareBookDialog
           isOpen={!!shareDialogBook}

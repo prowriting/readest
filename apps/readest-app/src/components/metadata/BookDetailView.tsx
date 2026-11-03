@@ -144,7 +144,7 @@ const BookDetailView: React.FC<BookDetailViewProps> = ({
                 <MdOutlineCloudUpload className='fill-base-content' />
               </button>
             )}
-            {book.downloadedAt && onExport && (
+            {book.downloadedAt && !book.metadata?.appOnlyReading && onExport && (
               <button onClick={onExport} title={_('Export Book')}>
                 <MdSaveAlt className='fill-base-content' />
               </button>
