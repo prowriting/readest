@@ -1,7 +1,15 @@
 # App Store release checklist (iOS)
 
-Status as of 2026-11-03. Supersedes the "Store follow-up" notes in
+Status as of 2026-11-05. Supersedes the "Store follow-up" notes in
 [ios-device-test-2026-09-11.md](ios-device-test-2026-09-11.md).
+
+## Public availability verified 2026-11-04
+
+Version **0.12.8 (12023)** automatically released after approval. App Store Connect
+reports `READY_FOR_SALE` / `READY_FOR_DISTRIBUTION`, with release mode `AFTER_APPROVAL`.
+The public App Store listing also reports 0.12.8, released November 3. No additional
+manual release request was needed. Verification evidence is retained in
+`output/releases/native-approval-20261104/` in the parent workspace.
 
 ## Submitted for public App Review 2026-11-03
 
