@@ -9,6 +9,7 @@ import type { Book } from '@/types/book';
 const mocks = vi.hoisted(() => ({
   appService: { isMobileApp: true, isIOSApp: true, isAndroidApp: false, saveFile: vi.fn() },
   shareKindleFile: vi.fn(),
+  detectKindle: vi.fn(),
   dispatch: vi.fn(),
 }));
 vi.mock('@/context/EnvContext', () => ({ useEnv: () => ({ appService: mocks.appService }) }));
@@ -18,6 +19,7 @@ vi.mock('@/services/kindle', async (original) => ({
   shareKindleFile: mocks.shareKindleFile,
 }));
 vi.mock('@/utils/event', () => ({ eventDispatcher: { dispatch: mocks.dispatch } }));
+vi.mock('@/utils/bridge', () => ({ detectKindle: mocks.detectKindle }));
 vi.mock('@/hooks/useKeyDownActions', () => ({ useKeyDownActions: () => undefined }));
 vi.mock('@/components/Dialog', () => ({
   default: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
@@ -41,7 +43,32 @@ describe('Kindle handoff', () => {
     vi.clearAllMocks();
     mocks.appService.isMobileApp = true;
     mocks.appService.isIOSApp = true;
+    mocks.appService.isAndroidApp = false;
+    mocks.detectKindle.mockResolvedValue({ isFire: false, hasKindle: true, hasKindleFs: false });
     mocks.shareKindleFile.mockResolvedValue(undefined);
+  });
+
+  it('uses the saved-file web handoff on Fire because its Kindle app cannot receive EPUB shares', async () => {
+    mocks.appService.isIOSApp = false;
+    mocks.appService.isAndroidApp = true;
+    mocks.detectKindle.mockResolvedValue({ isFire: true, hasKindle: true, hasKindleFs: false });
+    render(<Harness load={vi.fn().mockResolvedValue(file)} />);
+    fireEvent.click(screen.getByText('Send'));
+    expect(await screen.findByRole('button', { name: 'Save file' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Open Send to Kindle' }).hasAttribute('disabled'),
+    ).toBe(true);
+    expect(mocks.shareKindleFile).not.toHaveBeenCalled();
+    expect(mocks.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('retains native file sharing on non-Fire Android devices', async () => {
+    mocks.appService.isIOSApp = false;
+    mocks.appService.isAndroidApp = true;
+    render(<Harness load={vi.fn().mockResolvedValue(file)} />);
+    fireEvent.click(screen.getByText('Send'));
+    await waitFor(() => expect(mocks.shareKindleFile).toHaveBeenCalledWith(mocks.appService, file));
+    expect(screen.queryByRole('button', { name: 'Save file' })).toBeNull();
   });
 
   it('blocks repeated taps during preparation and does not announce delivery on dismissal', async () => {
