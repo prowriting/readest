@@ -8,15 +8,31 @@ The delivery backend retains immutable personalized copies and queues conversion
 
 The reader verifies and caches MOBI bytes locally. Native Android code requests and retains a grant to internal storage's public Books folder, writes and verifies a temporary file, renames it, records the durable export, and launches Kindle's main activity. Repeat exports verify and reuse existing files; removed files are recreated. Cancellation, interrupted writes, revoked access, and retries leave the original library book intact. Saving is reported separately from Kindle delivery. The explicit Amazon website fallback remains, including for PDF and TXT. iOS and ordinary Android continue native file sharing; desktop/web retain the existing save/upload steps.
 
-## Verification so far
+## Verification
 
 - Reader: 5,453 tests passed, eight existing skips; type checking and Biome passed. A timing-sensitive existing keyboard-focus test failed under heavy concurrent load, passed alone, and passed in the full suite with two workers.
 - Native: Kotlin export tests, Rust formatting and Clippy passed. Tests cover intact reuse, missing/stale records, partial writes, verification, and retry.
-- Backend: new receipt/conversion tests and 33 related delivery/signup/route regressions passed; Reader API's 206 tests and infrastructure tests passed. The full website suite encountered unrelated test-host/timing failures under concurrent workloads; isolated reruns passed. This is not recorded as a clean full-suite pass.
+- Backend: the full website suite passed with 3,455 tests and eight SQL-dependent skips using bounded parallelism. Reader API: 206 passed. Infrastructure: 290 passed and two skipped. Delivery/signup/route regressions also passed. The first GitLab quality job timed out during an existing Ask BookArc test and its test host crashed; a retry is running. All browser/graphics, SQL Server, infrastructure, shell, and web-assets CI jobs passed. The local full-suite pass does not represent a green GitLab pipeline.
 - The production private worker successfully converted the personalized Pride and Prejudice review EPUB. Source SHA-256: `e393ccdb2c263060f4fddb155d0b67ff6f8ee58ee7bf4d426cde307b251ef77a`; MOBI SHA-256: `419ef728134b590be5f9edc5a053af8f2e1249ce1506ed874cf578ba20c32d26`. A round-trip inspection retained the claim watermark. This source has no declared EPUB cover. A separate production conversion of the Standard Ebooks edition preserved its declared cover byte-for-byte and all 64 original headings in order, with Calibre adding a navigation contents page. Its source and MOBI digests were distinct from the personalized edition.
 
-## Rollout gate
+## Deployed backend
 
-The private worker is running. Author/API endpoint promotion and the replacement Amazon build are in progress. Physical verification of the integrated app remains required before submitting the replacement Amazon release. The Fire was disconnected when this record was written. The earlier isolated prototype evidence is in `fire-release-validation-2026-11-05.md`; it does not establish that this replacement app build has passed.
+The backend release is `1505f01fa60f120e78090ddb0cdd16db19c43c9e`, based on the retailer-controls release. Its tree matches implementation commit `9934561163c9ea9be92e2af92cc0a4252da93fab`.
+
+- Author backend: `bookarcweb-prod-web--fire-1505f01f-20261106102603`, image SHA-256 `371f6b78dd4553b2e39d5a94b5ffc247624d1a1e04bc25860478ace3df750196`, serving 100% of traffic.
+- Reader API: `bookarcreader-prod-api--fire-1505f01f-20261106105531`, image SHA-256 `df3498de07f1eed6b3d85324d2b234f9ae00e902bb17fa0f246832a4f75e0062`.
+- Private converter: `bookarcweb-prod-ebook-converter`, one replica with no ingress, using the pinned backend image. Its Service Bus subscription accepts only ebook-conversion jobs; delivery blobs are private.
+
+Live Reader API verification requested MOBI directly, received 202, polled the receipt, and downloaded the personalized result without first downloading or uploading EPUB. A repeated request returned identical cached bytes; an invalid receipt returned 404. The default EPUB response matched the receipt's source digest. CORS exposed the receipt and digest headers. The separate anonymous ordinary-import conversion route also passed. Public hostname bindings and existing application configuration were preserved during rollout.
+
+## Web reader
+
+Reader code `8766543196bdf26414790b8d7a5af76003182caf` is also deployed at `web.bookarc.app`, so browser claims retain receipts for later sync to Fire. Revision `bookarcreader-prod-web--receipt-8766543-11061122` uses image SHA-256 `2e9c276c943e05f03cf5f1c972b493dbf72690e359fa701b990a5d6a434e0448`. The candidate preserved the previous revision's configuration, passed Library and Read checks, and served the receipt code in its browser scripts. Both public hosts passed three rounds of checks before the 5% canary, during the canary, and after promotion to 100%. Final verification passed and the superseded revision was retired. Release tags are `bookarc-kindle-backend-20261106` in the parent repository and `bookarc-web-20261106` in the reader repository.
+
+## Fire release gate
+
+The replacement Amazon APK is version 0.12.8, build 12026, built from reader commit `8766543196bdf26414790b8d7a5af76003182caf`. Its SHA-256 is `77f4dcfb4940885669c36ccc4c24e524da71f41a39376d8f97ea01b926b85ec7`. Signing matches the published app; ARM64/ARMv7, minimum SDK 26, 16 KB alignment, permissions, and deep links passed artifact checks.
+
+Build 12026 is uploaded to the existing Amazon draft and Amazon validation passed. A separate readback confirmed the draft version and release notes. It has **not been submitted**. Physical verification of the integrated app remains required: claim, save, library export, retained Books-folder access, Kindle library presence, watermark, reading position after restart, duplicate reuse, and offline retry. The Fire is disconnected. The earlier isolated prototype evidence is in `fire-release-validation-2026-11-05.md`; it does not establish that this replacement app build has passed.
 
 Private logs, payloads, screenshots, and release manifests are kept outside Git under `output/releases/fire-direct-delivery-20261106` in the parent workspace. Do not commit protected receipts or review codes.
