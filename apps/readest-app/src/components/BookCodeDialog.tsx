@@ -330,7 +330,7 @@ export const BookCodeDialog = () => {
       <SendToKindleDialog file={kindle.file} source={kindle.fireSource} onClose={kindle.close} />
       <Dialog
         id='book_code_dialog'
-        isOpen={isOpen && !kindle.file}
+        isOpen={isOpen && !kindle.file && !kindle.fireSource}
         dismissible={!busy}
         title={_('We found your book!')}
         onClose={handleClose}

@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => {
     searchParams: new URLSearchParams('code=fbc83a2'),
     fetchBookByCode: vi.fn(),
     libraryLoaded: true,
+    isAndroidApp: false,
+    detectKindle: vi.fn(),
     signedIn: true,
     downloadGiftBook: vi.fn(),
     confirmGiftRedemption: vi.fn(),
@@ -35,7 +37,7 @@ vi.mock('next/image', () => ({
 vi.mock('@/context/EnvContext', () => ({
   useEnv: () => ({
     appService: {
-      isAndroidApp: false,
+      isAndroidApp: mocks.isAndroidApp,
       saveLibraryBooks: mocks.saveLibraryBooks,
       importBook: mocks.importBook,
     },
@@ -90,7 +92,7 @@ vi.mock('@/services/bookCode', () => ({
   downloadGiftBook: mocks.downloadGiftBook,
   confirmGiftRedemption: mocks.confirmGiftRedemption,
 }));
-vi.mock('@/utils/bridge', () => ({ detectKindle: vi.fn(), sendToKindleApp: vi.fn() }));
+vi.mock('@/utils/bridge', () => ({ detectKindle: mocks.detectKindle, sendToKindleApp: vi.fn() }));
 vi.mock('@/utils/nav', () => ({
   navigateToReader: mocks.navigateToReader,
   navigateToLibrary: mocks.navigateToLibrary,
@@ -141,7 +143,25 @@ describe('BookCodeDialog', () => {
     mocks.handlers.clear();
     mocks.searchParams = new URLSearchParams('code=fbc83a2');
     mocks.libraryLoaded = true;
+    mocks.isAndroidApp = false;
     mocks.signedIn = true;
+  });
+
+  it('replaces the claim dialog with the Fire handoff and restores it when closed', async () => {
+    mocks.isAndroidApp = true;
+    mocks.detectKindle.mockResolvedValue({ isFire: true, kindleInstalled: true });
+    render(<BookCodeDialog />);
+    act(() =>
+      mocks.dispatch('book-code-found', {
+        result: { ...result, book: { ...result.book, format: 'EPUB' } },
+      }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Send to Kindle' }));
+    await screen.findByRole('button', { name: 'Save to Books' });
+    expect(screen.queryByRole('button', { name: 'Save to My Library' })).toBeNull();
+    expect(mocks.downloadGiftBook).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(await screen.findByRole('button', { name: 'Save to My Library' })).toBeTruthy();
   });
 
   it('shows download progress and returns to the library without opening the saved book', async () => {
@@ -274,6 +294,7 @@ describe('BookCodeDialog', () => {
     expect(mocks.fetchBookByCode).not.toHaveBeenCalled();
     expect(mocks.importBook).not.toHaveBeenCalled();
     mocks.libraryLoaded = true;
+    mocks.isAndroidApp = false;
     rerender(<ReadPage />);
     await waitFor(() =>
       expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=loaded-library-hash'),
