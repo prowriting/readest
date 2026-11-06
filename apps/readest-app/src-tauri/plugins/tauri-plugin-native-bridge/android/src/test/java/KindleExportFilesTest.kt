@@ -12,8 +12,12 @@ class KindleExportFilesTest {
         val files = mutableMapOf<String, ByteArray>()
         var creates = 0
         var broken = false
+        var missingError: RuntimeException? = null
         val names = mutableMapOf<String, String>()
-        override fun read(id: String) = files[id]?.inputStream()
+        override fun read(id: String): InputStream? {
+            if (!files.containsKey(id)) missingError?.let { throw it }
+            return files[id]?.inputStream()
+        }
         override fun create(name: String): String = "document-${++creates}".also { files[it] = byteArrayOf() }
         override fun write(id: String): OutputStream = object : ByteArrayOutputStream() {
             override fun close() { files[id] = if (broken) byteArrayOf(1) else toByteArray() }
@@ -63,5 +67,25 @@ class KindleExportFilesTest {
         val first = save(documents)
         assertEquals(first, save(documents, "removed-old-export"))
         assertEquals(1, documents.creates)
+    }
+
+    @Test fun deletedTreeDocumentIsRecreatedWhenFireReportsAnInvalidDocument() {
+        val documents = Documents()
+        val first = save(documents)
+        documents.files.remove(first)
+        // FileSystemProvider.isChildDocument wraps a missing file in this exception.
+        documents.missingError = IllegalArgumentException("Failed to determine if document is child of Books: java.io.FileNotFoundException")
+        val replacement = save(documents, first)
+        assertNotEquals(first, replacement)
+        assertArrayEquals(bytes, documents.files[replacement])
+        assertEquals(replacement, save(documents, replacement))
+        assertEquals(2, documents.creates)
+    }
+
+    @Test fun revokedAccessIsNotTreatedAsADeletedFile() {
+        val documents = Documents()
+        documents.missingError = SecurityException("Books folder access revoked")
+        assertThrows(SecurityException::class.java) { save(documents, "old-export") }
+        assertEquals(0, documents.creates)
     }
 }

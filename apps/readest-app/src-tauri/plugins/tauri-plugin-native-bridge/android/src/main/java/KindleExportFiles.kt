@@ -32,6 +32,9 @@ internal object KindleExportFiles {
         for (candidate in listOfNotNull(existing, documents.find(name)).distinct()) {
             val intact = try { documents.read(candidate)?.let { digest(it) == expectedSha } == true }
                 catch (_: FileNotFoundException) { false }
+                // Android's FileSystemProvider can report a removed tree document this way.
+                // Only cached references are expendable; new writes and access denials still fail.
+                catch (_: IllegalArgumentException) { false }
             if (intact) { complete(candidate); return candidate }
         }
         var created: String? = null
