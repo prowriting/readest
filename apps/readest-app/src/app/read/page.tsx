@@ -11,6 +11,7 @@ import { importClaimedBook } from '@/services/claimImport';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Book } from '@/types/book';
+import type { DeliveryReceipt } from '@/libs/document';
 import { useLibrary } from '@/hooks/useLibrary';
 
 function ReadLoader() {
@@ -38,16 +39,22 @@ function ReadLoader() {
           key: code,
           promise: (async () => {
             const result = await fetchBookByCode(code);
-            const bytes = await downloadGiftBook(result.downloadRef);
+            let delivery: DeliveryReceipt | undefined;
+            const bytes = await downloadGiftBook(result.downloadRef, undefined, (receipt) => {
+              delivery = receipt;
+            });
             const file = new File([bytes], `${result.book.title}.epub`, {
               type: 'application/epub+zip',
             });
             const { library, setLibrary } = useLibraryStore.getState();
-            return importClaimedBook(result, file, library, setLibrary, {
-              appService,
-              settings,
-              isLoggedIn: !!user,
-            });
+            return importClaimedBook(
+              result,
+              file,
+              library,
+              setLibrary,
+              { appService, settings, isLoggedIn: !!user },
+              delivery,
+            );
           })(),
         };
       }

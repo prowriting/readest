@@ -1,4 +1,7 @@
 import React from 'react';
+import { webcrypto } from 'node:crypto';
+import type { DeliveryReceipt } from '@/libs/document';
+import type { Book } from '@/types/book';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,6 +22,7 @@ const mocks = vi.hoisted(() => {
     navigateToReader: vi.fn(),
     navigateToLibrary: vi.fn(),
     saveLibraryBooks: vi.fn(),
+    loadBookContent: vi.fn(),
     setLibraryNotice: vi.fn(),
     handlers,
     dispatch: (name: string, detail: unknown) => {
@@ -39,6 +43,7 @@ vi.mock('@/context/EnvContext', () => ({
     appService: {
       isAndroidApp: mocks.isAndroidApp,
       saveLibraryBooks: mocks.saveLibraryBooks,
+      loadBookContent: mocks.loadBookContent,
       importBook: mocks.importBook,
     },
   }),
@@ -247,6 +252,47 @@ describe('BookCodeDialog', () => {
       mocks.router.replace.mock.invocationCallOrder[0]!,
     );
     expect(mocks.confirmGiftRedemption).toHaveBeenCalledWith('download-1');
+  });
+
+  it('saves a browser claim receipt before confirming or opening the reader', async () => {
+    mocks.signedIn = false;
+    vi.stubGlobal('crypto', webcrypto);
+    const bytes = new TextEncoder().encode('immutable personalized edition').buffer;
+    const delivery = {
+      receipt: 'protected-copy',
+      sourceSha256: Buffer.from(await webcrypto.subtle.digest('SHA-256', bytes)).toString('hex'),
+    };
+    mocks.fetchBookByCode.mockResolvedValue({
+      ...result,
+      book: { ...result.book, format: 'EPUB' },
+    });
+    mocks.downloadGiftBook.mockImplementation(
+      async (_ref: string, _progress: unknown, onDelivery?: (value: DeliveryReceipt) => void) => {
+        onDelivery?.(delivery);
+        return bytes;
+      },
+    );
+    mocks.ingestFile.mockImplementation(async ({ books }: { books: Book[] }) => {
+      const book = { hash: 'receipt-book', title: 'Book', author: 'Author' } as Book;
+      books.push(book);
+      return book;
+    });
+    mocks.loadBookContent.mockResolvedValue({ file: { arrayBuffer: async () => bytes } });
+    render(<ReadPage />);
+    await waitFor(() =>
+      expect(mocks.router.replace).toHaveBeenCalledWith('/reader?ids=receipt-book'),
+    );
+    expect(mocks.saveLibraryBooks).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          hash: 'receipt-book',
+          metadata: expect.objectContaining({ delivery }),
+        }),
+      ]),
+    );
+    expect(mocks.saveLibraryBooks.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.confirmGiftRedemption.mock.invocationCallOrder[0]!,
+    );
   });
 
   it('persists a direct EPUB URL import before navigating to the reader', async () => {

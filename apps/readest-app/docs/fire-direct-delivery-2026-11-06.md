@@ -2,7 +2,7 @@
 
 ## Implementation
 
-The shared Kindle action resolves a hybrid MOBI before loading EPUB bytes on Fire. Current claims request `format=mobi`; saved BookArc deliveries use a protected receipt tied to the exact personalized source SHA-256. Claims save and verify the receipt with the durable original before confirmation. Metadata edits and sync preserve it; content replacement drops it.
+The shared Kindle action resolves a hybrid MOBI before loading EPUB bytes on Fire. Current claims request `format=mobi`; saved BookArc deliveries use a protected receipt tied to the exact personalized source SHA-256. Both the claim dialog and direct browser reading route save and verify the receipt with the durable original before confirmation. Metadata edits and sync preserve it; content replacement drops it.
 
 The delivery backend retains immutable personalized copies and queues conversions through one private Calibre 9.8.0 worker. Receipt downloads check current app-only restrictions and explicit gift/enrollment revocation independently of claim expiry or use count. Source and converter version identify cached variants. Pending work returns 202 with retry guidance. Ordinary imports and legacy records use the explained upload fallback; receipt denials never trigger that fallback automatically. Temporary uploaded conversions expire after two days in storage.
 
@@ -10,7 +10,7 @@ The reader verifies and caches MOBI bytes locally. Native Android code requests 
 
 ## Verification so far
 
-- Reader: 5,452 tests passed, eight existing skips; type checking and Biome passed. A timing-sensitive existing keyboard-focus test failed under heavy concurrent load, passed alone, and passed in the full suite with two workers.
+- Reader: 5,453 tests passed, eight existing skips; type checking and Biome passed. A timing-sensitive existing keyboard-focus test failed under heavy concurrent load, passed alone, and passed in the full suite with two workers.
 - Native: Kotlin export tests, Rust formatting and Clippy passed. Tests cover intact reuse, missing/stale records, partial writes, verification, and retry.
 - Backend: new receipt/conversion tests and 33 related delivery/signup/route regressions passed; Reader API's 206 tests and infrastructure tests passed. The full website suite encountered unrelated test-host/timing failures under concurrent workloads; isolated reruns passed. This is not recorded as a clean full-suite pass.
 - The production private worker successfully converted the personalized Pride and Prejudice review EPUB. Source SHA-256: `e393ccdb2c263060f4fddb155d0b67ff6f8ee58ee7bf4d426cde307b251ef77a`; MOBI SHA-256: `419ef728134b590be5f9edc5a053af8f2e1249ce1506ed874cf578ba20c32d26`. A round-trip inspection retained the claim watermark. This source has no declared EPUB cover. A separate production conversion of the Standard Ebooks edition preserved its declared cover byte-for-byte and all 64 original headings in order, with Calibre adding a navigation contents page. Its source and MOBI digests were distinct from the personalized edition.
