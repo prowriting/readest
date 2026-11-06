@@ -70,7 +70,10 @@ internal class FireKindleExporter(private val activity: Activity) {
         require(Regex("^[a-f0-9]{64}$").matches(args.fileSha256)) { "Invalid file digest." }
         val source = File(args.filePath).canonicalFile
         // Only app-controlled files are accepted by this native command.
-        val roots = listOfNotNull(activity.filesDir, activity.cacheDir, activity.getExternalFilesDir(null))
+        // Tauri AppData resolves to dataDir on Android, rather than filesDir.
+        // Allow only its dedicated conversion cache, not every private app file.
+        val roots = listOfNotNull(activity.filesDir, activity.cacheDir, activity.getExternalFilesDir(null),
+            File(activity.applicationInfo.dataDir, "Bookarc/kindle-conversions"))
         require(roots.any { source.path.startsWith(it.canonicalPath + File.separator) }) { "Invalid Kindle source path." }
         require(source.isFile && source.length() in 78..(100L * 1024 * 1024) && source.extension == "mobi") { "Invalid Kindle copy." }
         return source

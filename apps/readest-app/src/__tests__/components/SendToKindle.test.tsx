@@ -141,6 +141,38 @@ describe('Kindle handoff', () => {
     );
   });
 
+  it('shows native string rejections with recovery guidance and allows retry', async () => {
+    mocks.prepareFireKindleFile.mockResolvedValue({
+      path: '/data/book.mobi',
+      exportKey: 'key',
+      fileSha256: 'digest',
+    });
+    const guidance = 'Books folder access has changed. Please try again and allow access.';
+    mocks.sendToKindleApp
+      .mockRejectedValueOnce(guidance)
+      .mockResolvedValueOnce({ cancelled: false, kindleOpened: true });
+    const loadOriginal = vi.fn();
+    render(
+      <SendToKindleDialog
+        file={null}
+        source={{
+          id: 'gift',
+          title: 'Gift',
+          format: 'EPUB',
+          delivery: { receipt: 'receipt', sourceSha256: 'digest' },
+          loadOriginal,
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save to Books' }));
+    expect(await screen.findByText(guidance)).toBeTruthy();
+    expect(loadOriginal).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Save to Books' }));
+    expect((await screen.findByRole('status')).textContent).toContain('File saved to Books.');
+    expect(screen.queryByText(guidance)).toBeNull();
+  });
+
   it('allows retry after a share failure', async () => {
     mocks.shareKindleFile.mockRejectedValueOnce(new Error('Share failed'));
     const load = vi.fn().mockResolvedValue(file);

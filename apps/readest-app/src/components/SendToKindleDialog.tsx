@@ -69,7 +69,9 @@ export default function SendToKindleDialog({
         setError(
           err instanceof Error
             ? err.message
-            : _('Could not save the Kindle copy. Please try again.'),
+            : typeof err === 'string'
+              ? err
+              : _('Could not save the Kindle copy. Please try again.'),
         );
     } finally {
       pending.current = false;
