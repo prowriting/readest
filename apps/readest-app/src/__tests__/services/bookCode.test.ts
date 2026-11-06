@@ -95,4 +95,17 @@ describe('book code service', () => {
     expect(onProgress).toHaveBeenNthCalledWith(1, { receivedBytes: 2, totalBytes: 5 });
     expect(onProgress).toHaveBeenLastCalledWith({ receivedBytes: 5, totalBytes: 5 });
   });
+
+  it('never treats a pending file conversion as downloaded book bytes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('{"retryAfterSeconds":3}', {
+          status: 202,
+          headers: { 'Retry-After': '3' },
+        }),
+      ),
+    );
+    await expect(downloadGiftBook('pending')).rejects.toMatchObject({ statusCode: 202 });
+  });
 });

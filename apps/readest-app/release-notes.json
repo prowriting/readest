@@ -6,7 +6,8 @@
         "Save claimed books to your library without opening the reader, or choose Start Reading to begin immediately.",
         "Send compatible EPUB, PDF, and TXT books to Kindle directly from your library, including saved gifts.",
         "Improved claim saving, retry behavior, and preservation of author-set reading restrictions.",
-        "Updated BookArc app download links."
+        "Updated BookArc app download links.",
+        "On Fire tablets, save personalized Kindle copies directly to the Books folder and reuse them offline."
       ]
     },
     "0.12.7": {

@@ -313,8 +313,8 @@ impl<R: Runtime> NativeBridge<R> {
 impl<R: Runtime> NativeBridge<R> {
     pub fn send_to_kindle_app(
         &self,
-        payload: SendToKindleRequest,
-    ) -> crate::Result<SendToKindleResponse> {
+        payload: FireKindleRequest,
+    ) -> crate::Result<FireKindleResponse> {
         self.0
             .run_mobile_plugin("send_to_kindle_app", payload)
             .map_err(Into::into)

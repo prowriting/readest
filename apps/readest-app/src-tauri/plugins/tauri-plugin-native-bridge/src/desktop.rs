@@ -285,8 +285,8 @@ impl<R: Runtime> NativeBridge<R> {
 
     pub fn send_to_kindle_app(
         &self,
-        _payload: SendToKindleRequest,
-    ) -> crate::Result<SendToKindleResponse> {
+        _payload: FireKindleRequest,
+    ) -> crate::Result<FireKindleResponse> {
         Err(crate::Error::UnsupportedPlatformError)
     }
 

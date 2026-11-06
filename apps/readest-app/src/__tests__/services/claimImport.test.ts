@@ -3,6 +3,7 @@ import { importClaimedBook } from '@/services/claimImport';
 import type { Book } from '@/types/book';
 import type { IngestFileDeps } from '@/services/ingestService';
 import type { BookCodeResult } from '@/services/bookCode';
+import { webcrypto } from 'node:crypto';
 
 const mocks = vi.hoisted(() => ({
   ingestFile: vi.fn(),
@@ -88,5 +89,51 @@ describe('durable claim import', () => {
     expect(mocks.queueUpload).not.toHaveBeenCalled();
     await importClaimedBook(result, file, library, setLibrary, deps);
     expect(mocks.confirmGiftRedemption).toHaveBeenCalledTimes(1);
+  });
+  it('stores a receipt only after verifying the actual saved copy, before confirming', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const bytes = new TextEncoder().encode('personalized').buffer;
+    const digest = Array.from(new Uint8Array(await webcrypto.subtle.digest('SHA-256', bytes)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    const delivery = { receipt: 'protected', sourceSha256: digest };
+    const saveLibraryBooks = vi.fn();
+    const close = vi.fn();
+    const loadBookContent = vi
+      .fn()
+      .mockResolvedValue({ file: { arrayBuffer: async () => bytes, close } });
+    const deps = {
+      appService: { saveLibraryBooks, loadBookContent },
+      settings: {},
+      isLoggedIn: false,
+    } as unknown as IngestFileDeps;
+    await importClaimedBook(result, file, [], vi.fn(), deps, delivery);
+    expect(saveLibraryBooks.mock.calls[0]?.[0][0].metadata.delivery).toEqual(delivery);
+    expect(close).toHaveBeenCalled();
+    expect(saveLibraryBooks.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.confirmGiftRedemption.mock.invocationCallOrder[0]!,
+    );
+    vi.unstubAllGlobals();
+  });
+  it('does not attach a receipt or consume the claim if the saved file is another edition', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const saveLibraryBooks = vi.fn();
+    const deps = {
+      appService: {
+        saveLibraryBooks,
+        loadBookContent: async () => ({ file: { arrayBuffer: async () => new ArrayBuffer(3) } }),
+      },
+      settings: {},
+      isLoggedIn: false,
+    } as unknown as IngestFileDeps;
+    await expect(
+      importClaimedBook(result, file, [], vi.fn(), deps, {
+        receipt: 'protected',
+        sourceSha256: 'a'.repeat(64),
+      }),
+    ).rejects.toThrow();
+    expect(saveLibraryBooks).not.toHaveBeenCalled();
+    expect(mocks.confirmGiftRedemption).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

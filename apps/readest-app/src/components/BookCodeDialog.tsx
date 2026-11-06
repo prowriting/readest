@@ -12,6 +12,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { isStoreCapture, isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
 import { importClaimedBook } from '@/services/claimImport';
 import { BookCodeResult, BookCodeError, downloadGiftBook } from '@/services/bookCode';
+import type { DeliveryReceipt } from '@/libs/document';
 import { useSendToKindle } from '@/hooks/useSendToKindle';
 import { kindleFile } from '@/services/kindle';
 import { isKindleFormat } from '@/utils/bookDelivery';
@@ -48,6 +49,7 @@ export const BookCodeDialog = () => {
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
   const [transferStatus, setTransferStatus] = useState<TransferStatus | null>(null);
   const actionPending = useRef(false);
+  const downloadedReceipts = useRef(new WeakMap<File, DeliveryReceipt>());
   const kindle = useSendToKindle();
 
   useEffect(() => {
@@ -96,15 +98,24 @@ export const BookCodeDialog = () => {
     if (!result) return null;
     try {
       setTransferStatus({ phase: 'downloading', percent: null });
-      const bytes = await downloadGiftBook(result.downloadRef, ({ receivedBytes, totalBytes }) => {
-        const percent = totalBytes
-          ? Math.min(100, Math.round((receivedBytes / totalBytes) * 100))
-          : null;
-        setTransferStatus({ phase: 'downloading', percent });
-      });
+      let delivery: DeliveryReceipt | undefined;
+      const bytes = await downloadGiftBook(
+        result.downloadRef,
+        ({ receivedBytes, totalBytes }) => {
+          const percent = totalBytes
+            ? Math.min(100, Math.round((receivedBytes / totalBytes) * 100))
+            : null;
+          setTransferStatus({ phase: 'downloading', percent });
+        },
+        (receipt) => {
+          delivery = receipt;
+        },
+      );
       // Audiobook gifts also arrive in an EPUB container.
       const format = isKindleFormat(result.book.format) ? result.book.format : 'EPUB';
-      return kindleFile(bytes, result.book.title, format);
+      const file = kindleFile(bytes, result.book.title, format);
+      if (delivery) downloadedReceipts.current.set(file, delivery);
+      return file;
     } catch (err) {
       const message =
         err instanceof BookCodeError && err.statusCode === 410
@@ -117,11 +128,18 @@ export const BookCodeDialog = () => {
   };
 
   const ingestAndConfirm = async (file: File) => {
-    return importClaimedBook(result!, file, library, setLibrary, {
-      appService: appService!,
-      settings,
-      isLoggedIn: !!user,
-    });
+    return importClaimedBook(
+      result!,
+      file,
+      library,
+      setLibrary,
+      {
+        appService: appService!,
+        settings,
+        isLoggedIn: !!user,
+      },
+      downloadedReceipts.current.get(file),
+    );
   };
 
   const handleStartReading = async () => {
@@ -225,7 +243,13 @@ export const BookCodeDialog = () => {
     actionPending.current = true;
     setBusyAction('kindle');
     try {
-      await kindle.sendToKindle(getDownloadedFile);
+      await kindle.sendToKindle({
+        id: result.downloadRef,
+        title: result.book.title,
+        format: result.book.format,
+        downloadRef: result.downloadRef,
+        loadOriginal: getDownloadedFile,
+      });
     } finally {
       actionPending.current = false;
       setBusyAction(null);
@@ -303,7 +327,7 @@ export const BookCodeDialog = () => {
 
   return (
     <>
-      <SendToKindleDialog file={kindle.file} onClose={kindle.close} />
+      <SendToKindleDialog file={kindle.file} source={kindle.fireSource} onClose={kindle.close} />
       <Dialog
         id='book_code_dialog'
         isOpen={isOpen && !kindle.file}

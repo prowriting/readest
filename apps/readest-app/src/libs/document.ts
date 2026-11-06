@@ -53,9 +53,12 @@ export interface SectionItem {
   mediaOverlayDuration?: number;
 }
 
+export type DeliveryReceipt = { receipt: string; sourceSha256: string };
+
 export type BookMetadata = {
   /** Delivery restriction retained independently of editable book details. */
   appOnlyReading?: boolean;
+  delivery?: DeliveryReceipt;
   // NOTE: the title and author fields should be formatted
   title: string | LanguageMap;
   author: string | Contributor;

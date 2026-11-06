@@ -366,3 +366,20 @@ pub struct SendToKindleResponse {
 pub struct GetInstallReferrerResponse {
     pub referrer: String,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FireKindleRequest {
+    pub file_path: String,
+    pub title: String,
+    pub export_key: String,
+    pub file_sha256: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FireKindleResponse {
+    pub cancelled: bool,
+    pub saved_path: String,
+    pub kindle_opened: bool,
+}

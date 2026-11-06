@@ -25,6 +25,7 @@ import {
 } from '@/utils/book';
 import type { BookNav } from '@/services/nav';
 import { partialMD5, md5 } from '@/utils/md5';
+import { sha256 } from '@/services/fireKindle';
 import { getBaseFilename, getFilename } from '@/utils/path';
 import { BookDoc, DocumentLoader } from '@/libs/document';
 import { isPseStreamFileName, openPseStreamBook, parsePseStreamFileName } from './opds/pseStream';
@@ -370,7 +371,11 @@ export async function importBook(
       existingBook.sourceTitle = book.sourceTitle;
       existingBook.author = book.author;
       existingBook.primaryLanguage = book.primaryLanguage;
-      existingBook.metadata = preserveDeliveryRestrictions(existingBook.metadata, book.metadata);
+      existingBook.metadata = preserveDeliveryRestrictions(
+        existingBook.metadata,
+        book.metadata,
+        false,
+      );
       existingBook.hasAudio = book.hasAudio;
       existingBook.isAudioOnly = book.isAudioOnly;
       existingBook.audioDuration = book.audioDuration;
@@ -378,13 +383,22 @@ export async function importBook(
       existingBook.downloadedAt = Date.now();
     } else if (existingBook) {
       // Same file hash: preserve user edits
+      const sameDeliveryContent =
+        !existingBook.metadata?.delivery ||
+        (!!fileobj &&
+          (await sha256(await fileobj.arrayBuffer())) ===
+            existingBook.metadata.delivery.sourceSha256);
       existingBook.format = book.format;
       existingBook.metaHash = metaHash;
       existingBook.title = existingBook.title.trim() ? existingBook.title.trim() : book.title;
       existingBook.sourceTitle = existingBook.sourceTitle ?? book.sourceTitle;
       existingBook.author = existingBook.author ?? book.author;
       existingBook.primaryLanguage = existingBook.primaryLanguage ?? book.primaryLanguage;
-      existingBook.metadata = preserveDeliveryRestrictions(existingBook.metadata, book.metadata);
+      existingBook.metadata = preserveDeliveryRestrictions(
+        existingBook.metadata,
+        book.metadata,
+        sameDeliveryContent,
+      );
       existingBook.hasAudio = book.hasAudio ?? existingBook.hasAudio;
       existingBook.isAudioOnly = book.isAudioOnly ?? existingBook.isAudioOnly;
       existingBook.audioDuration = book.audioDuration ?? existingBook.audioDuration;

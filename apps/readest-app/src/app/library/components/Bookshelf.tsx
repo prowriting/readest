@@ -55,6 +55,7 @@ import BookshelfItem, { generateBookshelfItems } from './BookshelfItem';
 import SelectModeActions from './SelectModeActions';
 import ShareBookDialog from './ShareBookDialog';
 import { useSendToKindle } from '@/hooks/useSendToKindle';
+import { getKindleAvailability } from '@/utils/bookDelivery';
 import { loadKindleFile } from '@/services/kindle';
 import SendToKindleDialog from '@/components/SendToKindleDialog';
 import { useAuth } from '@/context/AuthContext';
@@ -159,10 +160,14 @@ const Bookshelf: React.FC<BookshelfProps> = ({
   const kindle = useSendToKindle();
   const sendBookToKindle = useCallback(
     (hash: string) => {
-      void kindle.sendToKindle(async () => {
-        const book = useLibraryStore.getState().library.find((entry) => entry.hash === hash);
-        if (!book || !appService) return null;
-        return loadKindleFile(appService, book);
+      const book = useLibraryStore.getState().library.find((entry) => entry.hash === hash);
+      if (!book || !appService || getKindleAvailability(book) !== 'ready') return;
+      void kindle.sendToKindle({
+        id: book.hash,
+        title: book.title,
+        format: book.format,
+        delivery: book.metadata?.delivery,
+        loadOriginal: () => loadKindleFile(appService, book),
       });
     },
     [kindle.sendToKindle, appService],
@@ -779,7 +784,7 @@ const Bookshelf: React.FC<BookshelfProps> = ({
           onUpdateStatus={updateBooksStatus}
         />
       )}
-      <SendToKindleDialog file={kindle.file} onClose={kindle.close} />
+      <SendToKindleDialog file={kindle.file} source={kindle.fireSource} onClose={kindle.close} />
       {BOOK_SHARING_ENABLED && (
         <ShareBookDialog
           isOpen={!!shareDialogBook}

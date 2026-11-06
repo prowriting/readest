@@ -2,6 +2,9 @@ import type { Book } from '@/types/book';
 import { ingestFile, type IngestFileDeps } from '@/services/ingestService';
 import { confirmGiftRedemption, type BookCodeResult } from '@/services/bookCode';
 import { transferManager } from '@/services/transferManager';
+import type { DeliveryReceipt } from '@/libs/document';
+import type { ClosableFile } from '@/utils/file';
+import { sha256 } from '@/services/fireKindle';
 
 export async function importClaimedBook(
   result: BookCodeResult,
@@ -9,6 +12,7 @@ export async function importClaimedBook(
   library: Book[],
   setLibrary: (books: Book[]) => void,
   deps: IngestFileDeps,
+  delivery?: DeliveryReceipt,
 ): Promise<Book | null> {
   // Stage import/dedup changes so failed persistence cannot look like a saved
   // book on retry. Upload only after delivery restrictions are durably stored.
@@ -18,6 +22,25 @@ export async function importClaimedBook(
   }));
   const book = await ingestFile({ file, books: pendingLibrary }, { ...deps, isLoggedIn: false });
   if (!book) return null;
+  if (delivery) {
+    // Verify the durable file, not a title/author match or the importer's partial
+    // hash. No claim is consumed if persistence retained a different edition.
+    const { file: savedFile } = await deps.appService.loadBookContent(book);
+    try {
+      if ((await sha256(await savedFile.arrayBuffer())) !== delivery.sourceSha256) {
+        throw new Error('The saved copy does not match the delivered edition.');
+      }
+    } finally {
+      await (savedFile as Partial<ClosableFile>).close?.();
+    }
+    book.metadata = {
+      title: book.title,
+      author: book.author,
+      language: book.primaryLanguage || '',
+      ...book.metadata,
+      delivery,
+    };
+  }
   if (result.book.appOnlyReading) {
     book.metadata = {
       title: book.title,

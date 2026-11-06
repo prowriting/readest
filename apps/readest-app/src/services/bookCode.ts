@@ -1,4 +1,6 @@
 import { getAPIBaseUrl, getAuthorBaseUrl } from '@/services/environment';
+import type { DeliveryReceipt } from '@/libs/document';
+import { sha256 } from '@/services/fireKindle';
 
 export class BookCodeError extends Error {
   constructor(
@@ -57,14 +59,25 @@ export async function fetchBookByCode(code: string): Promise<BookCodeResult> {
 export async function downloadGiftBook(
   downloadRef: string,
   onProgress?: (progress: BookDownloadProgress) => void,
+  onDelivery?: (delivery: DeliveryReceipt) => void,
 ): Promise<ArrayBuffer> {
   const res = await fetch(
     `${getAPIBaseUrl()}/claim/download?ref=${encodeURIComponent(downloadRef)}`,
   );
-  if (!res.ok) {
+  if (!res.ok || res.status === 202) {
     throw new BookCodeError(res.status, `Download failed: HTTP ${res.status}`);
   }
-  if (!onProgress || !res.body) return res.arrayBuffer();
+  const finish = async (bytes: ArrayBuffer) => {
+    const receipt = res.headers.get('X-BookArc-Delivery-Receipt');
+    const sourceSha256 = res.headers.get('X-BookArc-Source-SHA256');
+    if (receipt && sourceSha256) {
+      if ((await sha256(bytes)) !== sourceSha256)
+        throw new BookCodeError(502, 'The downloaded copy is incomplete.');
+      onDelivery?.({ receipt, sourceSha256 });
+    }
+    return bytes;
+  };
+  if (!onProgress || !res.body) return finish(await res.arrayBuffer());
 
   const contentLength = Number.parseInt(res.headers.get('Content-Length') ?? '', 10);
   const totalBytes = Number.isFinite(contentLength) && contentLength > 0 ? contentLength : null;
@@ -86,7 +99,7 @@ export async function downloadGiftBook(
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return bytes.buffer;
+  return finish(bytes.buffer);
 }
 
 export async function confirmGiftRedemption(downloadRef: string): Promise<void> {

@@ -250,8 +250,8 @@ pub(crate) async fn detect_kindle<R: Runtime>(app: AppHandle<R>) -> Result<Detec
 #[command]
 pub(crate) async fn send_to_kindle_app<R: Runtime>(
     app: AppHandle<R>,
-    payload: SendToKindleRequest,
-) -> Result<SendToKindleResponse> {
+    payload: FireKindleRequest,
+) -> Result<FireKindleResponse> {
     app.native_bridge().send_to_kindle_app(payload)
 }
 

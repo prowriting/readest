@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   appService: { isMobileApp: true, isIOSApp: true, isAndroidApp: false, saveFile: vi.fn() },
   shareKindleFile: vi.fn(),
   detectKindle: vi.fn(),
+  prepareFireKindleFile: vi.fn(),
+  sendToKindleApp: vi.fn(),
   dispatch: vi.fn(),
 }));
 vi.mock('@/context/EnvContext', () => ({ useEnv: () => ({ appService: mocks.appService }) }));
@@ -19,7 +21,11 @@ vi.mock('@/services/kindle', async (original) => ({
   shareKindleFile: mocks.shareKindleFile,
 }));
 vi.mock('@/utils/event', () => ({ eventDispatcher: { dispatch: mocks.dispatch } }));
-vi.mock('@/utils/bridge', () => ({ detectKindle: mocks.detectKindle }));
+vi.mock('@/utils/bridge', () => ({
+  detectKindle: mocks.detectKindle,
+  sendToKindleApp: mocks.sendToKindleApp,
+}));
+vi.mock('@/services/fireKindle', () => ({ prepareFireKindleFile: mocks.prepareFireKindleFile }));
 vi.mock('@/hooks/useKeyDownActions', () => ({ useKeyDownActions: () => undefined }));
 vi.mock('@/components/Dialog', () => ({
   default: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>
@@ -30,8 +36,14 @@ function Harness({ load }: { load: () => Promise<File | null> }) {
   const kindle = useSendToKindle();
   return (
     <>
-      <button onClick={() => kindle.sendToKindle(load)}>Send</button>
-      <SendToKindleDialog file={kindle.file} onClose={kindle.close} />
+      <button
+        onClick={() =>
+          kindle.sendToKindle({ id: 'book', title: 'Book', format: 'EPUB', loadOriginal: load })
+        }
+      >
+        Send
+      </button>
+      <SendToKindleDialog file={kindle.file} source={kindle.fireSource} onClose={kindle.close} />
     </>
   );
 }
@@ -48,16 +60,17 @@ describe('Kindle handoff', () => {
     mocks.shareKindleFile.mockResolvedValue(undefined);
   });
 
-  it('uses the saved-file web handoff on Fire because its Kindle app cannot receive EPUB shares', async () => {
+  it('explains upload for an imported Fire book before reading any bytes', async () => {
     mocks.appService.isIOSApp = false;
     mocks.appService.isAndroidApp = true;
     mocks.detectKindle.mockResolvedValue({ isFire: true, hasKindle: true, hasKindleFs: false });
-    render(<Harness load={vi.fn().mockResolvedValue(file)} />);
+    const load = vi.fn().mockResolvedValue(file);
+    render(<Harness load={load} />);
     fireEvent.click(screen.getByText('Send'));
-    expect(await screen.findByRole('button', { name: 'Save file' })).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: 'Open Send to Kindle' }).hasAttribute('disabled'),
-    ).toBe(true);
+    expect(await screen.findByRole('button', { name: 'Continue' })).toBeTruthy();
+    expect(load).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(load).not.toHaveBeenCalled();
     expect(mocks.shareKindleFile).not.toHaveBeenCalled();
     expect(mocks.dispatch).not.toHaveBeenCalled();
   });
@@ -69,6 +82,43 @@ describe('Kindle handoff', () => {
     fireEvent.click(screen.getByText('Send'));
     await waitFor(() => expect(mocks.shareKindleFile).toHaveBeenCalledWith(mocks.appService, file));
     expect(screen.queryByRole('button', { name: 'Save file' })).toBeNull();
+  });
+
+  it('can retry a cancelled Books folder picker and reports saving separately from delivery', async () => {
+    mocks.prepareFireKindleFile.mockResolvedValue({
+      path: '/data/book.mobi',
+      exportKey: 'key',
+      fileSha256: 'digest',
+    });
+    mocks.sendToKindleApp
+      .mockResolvedValueOnce({ cancelled: true })
+      .mockResolvedValueOnce({ cancelled: false, kindleOpened: true });
+    const loadOriginal = vi.fn();
+    render(
+      <SendToKindleDialog
+        file={null}
+        source={{
+          id: 'gift',
+          title: 'Gift',
+          format: 'EPUB',
+          delivery: { receipt: 'receipt', sourceSha256: 'digest' },
+          loadOriginal,
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save to Books' }));
+    await waitFor(() => expect(mocks.sendToKindleApp).toHaveBeenCalledOnce());
+    expect(screen.queryByRole('status')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Save to Books' }));
+    expect((await screen.findByRole('status')).textContent).toContain('File saved to Books.');
+    expect(loadOriginal).not.toHaveBeenCalled();
+    expect(mocks.sendToKindleApp).toHaveBeenLastCalledWith(
+      '/data/book.mobi',
+      'Gift',
+      'key',
+      'digest',
+    );
   });
 
   it('blocks repeated taps during preparation and does not announce delivery on dismissal', async () => {

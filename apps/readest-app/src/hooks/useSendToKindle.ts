@@ -4,6 +4,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { shareKindleFile } from '@/services/kindle';
 import { eventDispatcher } from '@/utils/event';
 import { detectKindle } from '@/utils/bridge';
+import type { KindleSource } from '@/services/fireKindle';
 
 export function useSendToKindle() {
   const { appService } = useEnv();
@@ -11,18 +12,21 @@ export function useSendToKindle() {
   const pending = useRef(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [fireSource, setFireSource] = useState<KindleSource | null>(null);
 
   const sendToKindle = useCallback(
-    async (loadFile: () => Promise<File | null>) => {
+    async (source: KindleSource) => {
       if (!appService || pending.current) return;
       pending.current = true;
       setIsPreparing(true);
       try {
-        const prepared = await loadFile();
-        if (!prepared) return;
-        // Fire's built-in Kindle does not handle EPUB shares. Reuse the
-        // saved-file web handoff rather than opening a sheet without Kindle.
         const isFire = appService.isAndroidApp && (await detectKindle()).isFire;
+        if (isFire && source.format.toUpperCase() === 'EPUB') {
+          setFireSource(source);
+          return;
+        }
+        const prepared = await source.loadOriginal();
+        if (!prepared) return;
         if (appService.isIOSApp || (appService.isAndroidApp && !isFire)) {
           eventDispatcher.dispatch('toast', {
             type: 'info',
@@ -48,6 +52,7 @@ export function useSendToKindle() {
           });
         }
       } finally {
+        // The Fire modal owns preparation and keeps repeated taps blocked.
         pending.current = false;
         setIsPreparing(false);
       }
@@ -55,5 +60,17 @@ export function useSendToKindle() {
     [appService, _],
   );
 
-  return { sendToKindle, isPreparing, file, close: () => setFile(null) };
+  return {
+    sendToKindle: (source: KindleSource) => {
+      if (fireSource || file) return Promise.resolve();
+      return sendToKindle(source);
+    },
+    isPreparing,
+    file,
+    fireSource,
+    close: () => {
+      setFile(null);
+      setFireSource(null);
+    },
+  };
 }

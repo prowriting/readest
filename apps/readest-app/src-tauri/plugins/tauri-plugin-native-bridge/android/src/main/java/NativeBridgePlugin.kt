@@ -29,6 +29,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
+import app.tauri.annotation.ActivityCallback
+import androidx.activity.result.ActivityResult
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.Permission
@@ -1013,27 +1015,18 @@ class NativeBridgePlugin(private val activity: Activity): Plugin(activity) {
         invoke.resolve(ret)
     }
 
+    private val fireKindleExporter by lazy { FireKindleExporter(activity) }
+
     @Command
     fun send_to_kindle_app(invoke: Invoke) {
-        val args = try { invoke.parseArgs(SendToKindleArgs::class.java) }
-        catch (e: Exception) { invoke.reject(e.message ?: "Invalid args"); return }
-        try {
-            val src = java.io.File(args.epubPath)
-            val folder = if (args.isFire) "Books" else "kindle"
-            val destDir = java.io.File(activity.getExternalFilesDir(null), folder)
-            destDir.mkdirs()
-            val safeTitle = args.title.replace(Regex("[^\\w\\s\\-]"), "_").trim()
-            val dest = java.io.File(destDir, "$safeTitle.epub")
-            src.copyTo(dest, overwrite = true)
-            val launchIntent = activity.packageManager.getLaunchIntentForPackage("com.amazon.kindle")
-            if (launchIntent != null) activity.startActivity(launchIntent)
-            val ret = JSObject()
-            ret.put("savedPath", dest.absolutePath)
-            ret.put("helperMessage", "Your book has been moved to the $folder folder and should appear in your Kindle app under Downloads. Make sure 'Show personal documents' is enabled in your Kindle settings.")
-            invoke.resolve(ret)
-        } catch (e: Exception) {
-            invoke.reject(e.message ?: "send_to_kindle_app failed")
+        fireKindleExporter.start(invoke) { intent ->
+            startActivityForResult(invoke, intent, "kindleFolderSelected")
         }
+    }
+
+    @ActivityCallback
+    private fun kindleFolderSelected(invoke: Invoke, result: ActivityResult) {
+        fireKindleExporter.selected(invoke, result)
     }
 
     @Command

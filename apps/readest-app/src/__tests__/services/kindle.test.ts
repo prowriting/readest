@@ -1,6 +1,33 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Book } from '@/types/book';
 import { getKindleAvailability, preserveDeliveryRestrictions } from '@/utils/bookDelivery';
+
+it('preserves receipts through metadata edits but drops them when replacing file content', () => {
+  const metadata = {
+    title: 'Book',
+    author: 'A',
+    language: 'en',
+    delivery: { receipt: 'secret', sourceSha256: 'a'.repeat(64) },
+  };
+  expect(
+    preserveDeliveryRestrictions(metadata, { ...metadata, delivery: undefined })?.delivery,
+  ).toEqual(metadata.delivery);
+  expect(
+    preserveDeliveryRestrictions(metadata, { ...metadata, delivery: undefined }, false)?.delivery,
+  ).toBeUndefined();
+});
+it('drops a receipt on content replacement even when replacement metadata is absent', () => {
+  const previous = {
+    title: 'Restricted edition',
+    author: 'A',
+    language: 'en',
+    appOnlyReading: true,
+    delivery: { receipt: 'old-edition', sourceSha256: 'a'.repeat(64) },
+  };
+  const replaced = preserveDeliveryRestrictions(previous, undefined, false);
+  expect(replaced?.appOnlyReading).toBe(true);
+  expect(replaced?.delivery).toBeUndefined();
+});
 import { loadKindleFile, shareKindleFile } from '@/services/kindle';
 import { transformBookFromDB, transformBookToDB } from '@/utils/transform';
 import { NativeFile } from '@/utils/file';
@@ -132,6 +159,7 @@ describe('Kindle library delivery', () => {
       author: book.author,
       language: 'en',
       appOnlyReading: true,
+      delivery: { receipt: 'persisted-receipt', sourceSha256: 'a'.repeat(64) },
     };
     const edited = preserveDeliveryRestrictions(metadata, {
       ...metadata,
@@ -141,6 +169,7 @@ describe('Kindle library delivery', () => {
     expect(edited).toMatchObject({ title: 'Edited', appOnlyReading: true });
     expect(preserveDeliveryRestrictions(metadata, undefined)?.appOnlyReading).toBe(true);
     const restored = transformBookFromDB(transformBookToDB({ ...book, metadata: edited }, 'user'));
+    expect(restored.metadata?.delivery).toEqual(metadata.delivery);
     expect(getKindleAvailability(restored)).toBe('hidden');
     expect(getKindleAvailability(transformBookFromDB(transformBookToDB(book, 'user')))).not.toBe(
       'hidden',

@@ -21,6 +21,14 @@ export function getKindleAvailability(book?: Book): 'hidden' | 'download' | 'rea
 export function preserveDeliveryRestrictions(
   previous: BookMetadata | undefined,
   next: BookMetadata | undefined,
+  sameContent = true,
 ): BookMetadata | undefined {
-  return previous?.appOnlyReading ? { ...(next ?? previous), appOnlyReading: true } : next;
+  if (!previous?.appOnlyReading && !(sameContent && previous?.delivery)) return next;
+  const metadata = { ...(next ?? previous!) };
+  if (!sameContent) delete metadata.delivery;
+  return {
+    ...metadata,
+    ...(previous?.appOnlyReading ? { appOnlyReading: true } : {}),
+    ...(sameContent && previous?.delivery ? { delivery: previous.delivery } : {}),
+  };
 }

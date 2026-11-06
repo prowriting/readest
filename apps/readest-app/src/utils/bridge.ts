@@ -280,12 +280,13 @@ export async function detectKindle(): Promise<DetectKindleResult> {
 }
 
 export async function sendToKindleApp(
-  epubPath: string,
+  filePath: string,
   title: string,
-  isFire: boolean,
-): Promise<KindleShareResult> {
-  return invoke<KindleShareResult>('plugin:native-bridge|send_to_kindle_app', {
-    payload: { epubPath, title, isFire },
+  exportKey: string,
+  fileSha256: string,
+): Promise<{ cancelled: boolean; savedPath: string; kindleOpened: boolean }> {
+  return invoke('plugin:native-bridge|send_to_kindle_app', {
+    payload: { filePath, title, exportKey, fileSha256 },
   });
 }
 
